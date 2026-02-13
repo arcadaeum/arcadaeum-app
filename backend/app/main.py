@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="GameTracker API")
+app = FastAPI(title="Arcadaeum API")
 
 app.add_middleware(
     CORSMiddleware,
