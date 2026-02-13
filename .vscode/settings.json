@@ -1,0 +1,21 @@
+{
+	"editor.formatOnSave": true,
+
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+
+	"[python]": {
+		"editor.defaultFormatter": "ms-python.black-formatter"
+	},
+
+	"editor.tabSize": 4,
+	"editor.insertSpaces": false,
+	"python.defaultInterpreterPath": "backend/.venv/bin/python"
+}

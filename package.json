@@ -1,0 +1,15 @@
+{
+	"name": "gametracker",
+	"private": true,
+	"scripts": {
+		"dev": "docker compose up",
+		"dev:detached": "docker compose up --build -d",
+		"reset": "docker compose down -v",
+		"logs": "docker compose logs -f",
+		"urls": "node -e \"console.log('\\n🎮 Dev URLs:\\nFrontend: http://localhost:5173\\nBackend: http://localhost:8000/health\\nPostgres: localhost:5432\\nTest the database is connected with \\'npm run db:test\\'\\n')\"",
+		"db:test": "docker compose exec db psql -U app_user -d app_db -c 'SELECT * FROM users;'",
+		"setup:py": "cd backend && ([ -d .venv ] || python3 -m venv .venv) && (./.venv/bin/pip install -r requirements.txt -r requirements-dev.txt || .\\.venv\\Scripts\\pip install -r requirements.txt -r requirements-dev.txt)",
+		"start": "npm run setup:py && npm run dev && npm run urls",
+		"stop": "docker compose down"
+	}
+}
