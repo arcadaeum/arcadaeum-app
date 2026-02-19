@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
 
-// import logo image
-import landingImage from "./assets/logo.png";
-
 export default function App() {
 	const [msg, setMsg] = useState("Loading...");
 	const [game, setGame] = useState("");
@@ -37,13 +34,12 @@ export default function App() {
 	};
 
 	return (
-		<main className="bg-black text-white min-h-screen flex flex-col items-center justify-center m-0 font-sans">
-			<img
-				src={landingImage}
-				alt="Arcadaeum Landing Page"
-				className="max-w-[80%] h-auto mb-8"
-			/>
-			<h1>Arcadaeum - Coming Soon</h1>
+		<main className="bg-arcade-black text-white min-h-screen flex flex-col items-center justify-center m-0 font-main">
+			<h1 className="text-8xl font-main tracking-[-0.1em] mb-0">Arcadaeum</h1>
+			<div className="bg-arcade-red h-4 w-full mb-1.5"></div>
+			<div className="bg-arcade-gold h-4 w-full mb-1.5"></div>
+			<div className="bg-arcade-yellow h-4 w-full mb-1.5"></div>
+			<h3>Arcadaeum - Coming Soon</h3>
 			<p>Backend status: {msg}</p>
 
 			{/* Form for submitting favorite game */}
@@ -56,7 +52,7 @@ export default function App() {
 					type="text"
 					value={game}
 					onChange={(e) => setGame(e.target.value)}
-					className="p-2 text-black rounded mb-4"
+					className="p-2 text-white rounded mb-4"
 					placeholder="Type your favorite game"
 					required
 				/>
