@@ -13,9 +13,11 @@ export default function App() {
 
 	// This is what the App() function returns to index.html
 	return (
-		<main style={{ fontFamily: "system-ui", padding: 24 }}>
-			<h1>Arcadaeum</h1>
-			<p>Backend status: {msg}</p>
+		<main className="min-h-screen bg-linear-to-br from-black to-yellow-900 flex items-center justify-center p-6">
+			<div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl text-center">
+				<h1 className="text-4xl font-bold text-white mb-4">Arcadaeum</h1>
+				<p className="text-green-200">Backend status: {msg}</p>
+			</div>
 		</main>
 	);
 }
