@@ -16,23 +16,11 @@ export default function App() {
 
 	return (
 		// Landing Page Style
-		<main
-			style={{
-				backgroundColor: "black",
-				color: "white",
-				minHeight: "100vh",
-				display: "flex",
-				flexDirection: "column",
-				alignItems: "center",
-				justifyContent: "center",
-				margin: 0,
-				fontFamily: "system-ui",
-			}}
-		>
+		<main className="bg-black text-white min-h-screen flex flex-col items-center justify-center m-0 font-sans">
 			<img
 				src={landingImage}
 				alt="Arcadaeum Landing Page"
-				style={{ maxWidth: "80%", height: "auto", marginBottom: "2rem" }}
+				className="max-w-[80%] h-auto mb-8"
 			/>
 			<h1>Arcadaeum - Coming Soon</h1>
 			<p>Backend status: {msg}</p>
