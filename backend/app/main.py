@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg
 from pydantic import BaseModel
+import os
 
 app = FastAPI(title="Arcadaeum API")
 
@@ -25,7 +26,11 @@ def health():
 
 @app.post("/submissions")
 def add_to_database(submission: Submission):
-    with psycopg.connect("dbname=test user=postgres") as conn:
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise RuntimeError("DATABASE_URL environment variable is not set")
+
+    with psycopg.connect(database_url) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
@@ -43,3 +48,20 @@ def add_to_database(submission: Submission):
                 (submission.title,),
             )
     return {"status": "success"}
+
+
+@app.get("/submissions")
+def get_submissions():
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise RuntimeError("DATABASE_URL environment variable is not set")
+
+    with psycopg.connect(database_url) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, title, timestamp FROM favourite_submissions")
+            rows = cur.fetchall()
+            return {
+                "submissions": [
+                    {"id": row[0], "title": row[1], "timestamp": row[2]} for row in rows
+                ]
+            }
