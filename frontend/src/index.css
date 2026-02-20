@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @font-face {
+  font-family: Arial, Helvetica, sans-serif;
   font-family: "Title_Font";
   src: url("./assets/fonts/ITC\ Avant\ Garde\ Gothic\ LT\ Bold.otf");
   font-weight: bold;
@@ -8,6 +9,7 @@
 
 @theme {
   --font-main: "Title_Font", sans-serif;
+  --font-secondary: "Secondary_Font", sans-serif;
   --color-arcade-black: #0e0e0e;
   --color-arcade-yellow: #ffd000;
   --color-arcade-orange: #ff7a00;
