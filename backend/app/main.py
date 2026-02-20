@@ -1,8 +1,17 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import health, submissions
+from app.database import create_tables
 
-app = FastAPI(title="Arcadaeum API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_tables()
+    yield
+
+
+app = FastAPI(title="Arcadaeum API", lifespan=lifespan)
 
 origins = [
     "http://localhost:5173",
