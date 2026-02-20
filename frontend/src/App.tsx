@@ -1,5 +1,6 @@
 import { useState } from "react";
 import discordLogo from "./assets/images/Discord-Symbol-White.svg";
+import crtVideo from "./assets/video/EZCO-CRT-Lighten.mp4";
 import Header from "./components/Header";
 import SubmissionForm from "./components/SubmissionForm";
 
@@ -27,7 +28,7 @@ export default function App() {
 				loop
 				muted
 			>
-				<source src="/src/assets/video/EZCO-CRT-Lighten.mp4" type="video/mp4" />
+				<source src={crtVideo} type="video/mp4" />
 			</video>
 			<Header />
 			<h3 className="text-3xl mt-1 z-10 drop-shadow-[0_0_2.5px_#ffffff] mt-2">
