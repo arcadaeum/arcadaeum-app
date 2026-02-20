@@ -9,7 +9,7 @@ export default function App() {
 	return (
 		<main className="bg-arcade-black text-white min-h-screen flex flex-col items-center justify-center m-0 font-main relative">
 			<a
-				href="https://discord.gg/c3hfwj7Tq9"
+				href="https://discord.gg/qdRumMNB"
 				className="absolute top-4 right-4 z-20"
 				aria-label="Join our Discord"
 				target="_blank"
