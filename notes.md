@@ -21,6 +21,15 @@
     - `PUT /reviews/{id}`: Update a review.
     - `DELETE /reviews/{id}`: Delete a review.
 
+5. **Lists**
+    - `GET /lists`: Get all lists for the current user.
+    - `POST /lists`: Create a new list (inputs: name, description).
+    - `GET /lists/{id}`: Get a specific list with its games.
+    - `PUT /lists/{id}`: Update a list (inputs: name, description).
+    - `DELETE /lists/{id}`: Delete a list.
+    - `POST /lists/{id}/games`: Add a game to a list (inputs: game_id).
+    - `DELETE /lists/{id}/games/{game_id}`: Remove a game from a list.
+
 ## Database Schema
 
 1. **Users**
@@ -30,7 +39,7 @@
     - `username`: Unique
     - `created_at`: Timestamp
 
-2. **Games**
+2. **Games** (Might need to add more here if IGDB has more info)
     - `id`: Primary key
     - `title`: Game title
     - `description`: Game description
@@ -51,6 +60,21 @@
     - `rating`: Integer (1-5)
     - `review_text`: Text
     - `created_at`: Timestamp
+
+5. **Lists**
+    - `id`: Primary key
+    - `user_id`: Foreign key to Users
+    - `name`: List name (e.g., "Want to Play", "Favorites")
+    - `description`: Optional text
+    - `created_at`: Timestamp
+    - `updated_at`: Timestamp
+
+6. **ListGames** (Junction table)
+    - `id`: Primary key
+    - `list_id`: Foreign key to Lists
+    - `game_id`: Foreign key to Games
+    - `added_at`: Timestamp
+    - `position`: Integer (for ordering games within a list)
 
 ## IGDB and Steam API
 
