@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import discordLogo from "./assets/images/Discord-Symbol-White.svg";
 
@@ -8,9 +9,9 @@ export default function App() {
 
 	// Backend health check
 	useEffect(() => {
-		fetch("http://localhost:8000/health")
-			.then((r) => r.json())
-			.then((d) => setMsg(d.status))
+		axios
+			.get("http://localhost:8000/health")
+			.then((response) => setMsg(response.data.status))
 			.catch(() => setMsg("Backend not reachable"));
 	}, []);
 
@@ -18,15 +19,9 @@ export default function App() {
 	const handleSubmit = (e: React.SubmitEvent) => {
 		e.preventDefault();
 		setSubmissionStatus("Submitting...");
-
-		fetch("http://localhost:8000/submissions", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ title: game }),
-		})
-			.then((r) => r.json())
+		// Use the axios library for HTTP requests
+		axios
+			.post("http://localhost:8000/submissions", { title: game })
 			.then(() => {
 				setSubmissionStatus("Game submitted successfully!");
 				setGame("");
