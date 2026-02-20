@@ -1,67 +1,22 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import psycopg
-from pydantic import BaseModel
-import os
+from app.routes import health, submissions
 
 app = FastAPI(title="Arcadaeum API")
 
+origins = [
+    "http://localhost:5173",  # Dev frontend
+    "http://www.arcadaeum.com",  # Production frontend
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-class Submission(BaseModel):
-    title: str
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
-
-@app.post("/submissions")
-def add_to_database(submission: Submission):
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        raise RuntimeError("DATABASE_URL environment variable is not set")
-
-    with psycopg.connect(database_url) as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS favourite_submissions (
-                    id serial PRIMARY KEY,
-                    title text,
-                    timestamp timestamp)
-                """
-            )
-            cur.execute(
-                """
-                INSERT INTO favourite_submissions (title, timestamp)
-                VALUES (%s, NOW())
-                """,
-                (submission.title,),
-            )
-    return {"status": "success"}
-
-
-@app.get("/submissions")
-def get_submissions():
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        raise RuntimeError("DATABASE_URL environment variable is not set")
-
-    with psycopg.connect(database_url) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT id, title, timestamp FROM favourite_submissions")
-            rows = cur.fetchall()
-            return {
-                "submissions": [
-                    {"id": row[0], "title": row[1], "timestamp": row[2]} for row in rows
-                ]
-            }
+# Attach all the API routes here
+app.include_router(health.router)
+app.include_router(submissions.router)
