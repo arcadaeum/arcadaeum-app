@@ -14,13 +14,11 @@ def create_tables():
     database_url = get_database_url()
     with psycopg.connect(database_url) as conn:
         with conn.cursor() as cur:
-
-            # Favourite submissions table
             cur.execute(
                 """
-				CREATE TABLE IF NOT EXISTS favourite_submissions (
-					id serial PRIMARY KEY,
-					title text,
-					timestamp timestamp)
-				"""
+                CREATE TABLE IF NOT EXISTS favourite_submissions (
+                    id serial PRIMARY KEY,
+                    title text,
+                    timestamp timestamp)
+                """
             )
