@@ -13,14 +13,6 @@ def add_to_database(submission: Submission):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                CREATE TABLE IF NOT EXISTS favourite_submissions (
-                    id serial PRIMARY KEY,
-                    title text,
-                    timestamp timestamp)
-                """
-            )
-            cur.execute(
-                """
                 INSERT INTO favourite_submissions (title, timestamp)
                 VALUES (%s, NOW())
                 """,

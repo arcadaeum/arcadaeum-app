@@ -7,7 +7,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432" # dev only
     healthcheck:

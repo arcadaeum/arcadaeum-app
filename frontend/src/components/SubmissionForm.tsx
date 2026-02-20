@@ -2,6 +2,8 @@ import React from "react";
 import axios from "axios";
 import { useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 function SubmissionForm({
 	setSubmissionStatus,
 }: {
@@ -15,7 +17,7 @@ function SubmissionForm({
 		setSubmissionStatus("Submitting...");
 		// Use the axios library for HTTP requests
 		axios
-			.post("http://localhost:8000/submissions", { title: game })
+			.post(`${API_URL}/submissions`, { title: game })
 			.then(() => {
 				setSubmissionStatus("Game submitted successfully!");
 				setGame("");
