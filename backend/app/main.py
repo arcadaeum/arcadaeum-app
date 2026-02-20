@@ -5,13 +5,15 @@ from app.routes import health, submissions
 app = FastAPI(title="Arcadaeum API")
 
 origins = [
-    "http://localhost:5173",  # Dev frontend
-    "http://www.arcadaeum.com",  # Production frontend
+    "http://localhost:5173",
+    "https://www.arcadaeum.com",
+    "https://arcadaeum.com",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
