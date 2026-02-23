@@ -15,3 +15,10 @@
 	--color-arcade-red: #ff2a2a;
 	--color-arcade-gold: #ffb300;
 }
+
+/* Global styles */
+body {
+	font-family: var(--font-secondary);
+	background-color: var(--color-arcade-black);
+	color: white;
+}
