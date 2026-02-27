@@ -27,3 +27,9 @@ class User(BaseModel):
 
 class UserInDB(User):
     password_hash: str
+
+
+class RegisterRequest(BaseModel):
+    username: str
+    email: str
+    password: str

@@ -8,11 +8,11 @@ from app.auth import (
     create_access_token,
     get_password_hash,
     ACCESS_TOKEN_EXPIRE_MINUTES,
-    Token,
-    User,
 )
 
 from app.database import create_user
+
+from app.models import User, Token, RegisterRequest
 
 router = APIRouter()
 
@@ -40,10 +40,10 @@ async def login_for_access_token(
 
 
 @router.post("/users/", response_model=User)
-def register_user(username: str, email: str, password: str):
+def register_user(req: RegisterRequest):
     """Endpoint for user registration. Creates a new user and returns the user details."""
-    hashed = get_password_hash(password)  # Hash the user's password for secure storage
+    hashed = get_password_hash(req.password)  # Hash the user's password for secure storage
     user_id = create_user(
-        username, email, hashed
+        req.username, req.email, hashed
     )  # Create a new user in the database and get the user's ID
-    return User(id=user_id, username=username, email=email)
+    return User(id=user_id, username=req.username, email=req.email)

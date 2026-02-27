@@ -1,7 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 import psycopg
 from app.database import get_database_url
 from app.models import Submission
+from app.auth import get_current_active_user
+from app.models import User
 
 router = APIRouter()
 
@@ -22,14 +24,16 @@ def add_to_database(submission: Submission):
 
 
 @router.get("/submissions")
-def get_submissions():
+def get_submissions(current_user: User = Depends(get_current_active_user)):
+    """Endpoint to retrieve all favourite submissions from the database. Requires user authentication."""
     database_url = get_database_url()
     with psycopg.connect(database_url) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT id, title, timestamp FROM favourite_submissions")
             rows = cur.fetchall()
             return {
+                "user": current_user.username,
                 "submissions": [
                     {"id": row[0], "title": row[1], "timestamp": row[2]} for row in rows
-                ]
+                ],
             }

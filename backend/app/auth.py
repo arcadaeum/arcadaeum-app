@@ -1,5 +1,5 @@
 # backend/app/auth.py
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from jose import JWTError, jwt
@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from models import *
+from app.models import User, UserInDB, TokenData
 import os
 
 from app import database
@@ -50,7 +50,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create a JWT access token with an optional expiration time."""
     to_encode = data.copy()  # Create a copy of the data to encode in the token
 
-    expire = datetime.now(datetime.timezone.utc) + (
+    expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=15)
     )  # Default to 15 minutes if no expiration is provided
 
