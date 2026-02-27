@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import health, submissions
+from app.routes import health, submissions, auth
 from app.database import create_tables
 
 
@@ -22,7 +22,6 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,3 +30,4 @@ app.add_middleware(
 # Attach all the API routes here
 app.include_router(health.router)
 app.include_router(submissions.router)
+app.include_router(auth.router)
