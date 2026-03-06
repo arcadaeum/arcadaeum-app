@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 from authlib.integrations.starlette_client import OAuth
@@ -14,7 +14,7 @@ from app.auth import (
     get_current_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
-from app.database import create_user, get_user_by_email
+from app.database import create_user, get_user_by_email, update_user_display_name
 from app.models import User, Token, RegisterRequest
 
 router = APIRouter()
@@ -24,6 +24,18 @@ router = APIRouter()
 async def get_me(current_user: User = Depends(get_current_user)):
     """Return the currently authenticated user."""
     return current_user
+
+
+@router.patch("/me", response_model=User)
+async def update_me_display_name(
+    display_name: str = Body(..., embed=True),
+    current_user: User = Depends(get_current_user),
+):
+    """Update the current user's display name."""
+    update_user_display_name(current_user.username, display_name)
+    # Fetch updated user info
+    updated_user = get_user_by_email(current_user.email)
+    return updated_user
 
 
 # ── Email / password auth ────────────────────────────────────────────
@@ -86,6 +98,7 @@ async def google_callback(request: Request):
 
     email = userinfo.get("email")
     sub = userinfo.get("sub")
+    name = userinfo.get("name")
 
     if not email or not sub:
         raise HTTPException(status_code=400, detail="Invalid Google user info")
@@ -98,6 +111,7 @@ async def google_callback(request: Request):
             password_hash=None,
             oauth_provider="google",
             oauth_id=sub,
+            display_name=name,
         )
         username = email
     else:

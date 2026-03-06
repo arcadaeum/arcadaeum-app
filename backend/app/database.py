@@ -35,7 +35,8 @@ def create_tables():
                     email text UNIQUE NOT NULL,
                     password_hash text,
                     oauth_provider text,
-                    oauth_id text)
+                    oauth_id text,
+                    display_name text)
                 """
             )
 
@@ -48,17 +49,18 @@ def create_user(
     password_hash: str | None,
     oauth_provider: str | None = None,
     oauth_id: str | None = None,
+    display_name: str | None = None,
 ) -> int:
     """Create a new user in the database and return the user's ID."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO users (username, email, password_hash, oauth_provider, oauth_id)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO users (username, email, password_hash, oauth_provider, oauth_id, display_name)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """,
-                (username, email, password_hash, oauth_provider, oauth_id),
+                (username, email, password_hash, oauth_provider, oauth_id, display_name),
             )
             return cur.fetchone()[0]
 
@@ -67,7 +69,7 @@ def get_user_by_username(username: str):
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, username, email, password_hash " "FROM users WHERE username = %s",
+                "SELECT id, username, email, password_hash, display_name FROM users WHERE username = %s",
                 (username,),
             )
             row = cur.fetchone()
@@ -77,6 +79,7 @@ def get_user_by_username(username: str):
                     username=row[1],
                     email=row[2],
                     password_hash=row[3],
+                    display_name=row[4],
                 )
     return None
 
@@ -85,10 +88,26 @@ def get_user_by_email(email: str):
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, username, email, password_hash FROM users WHERE email = %s",
+                "SELECT id, username, email, password_hash, display_name FROM users WHERE email = %s",
                 (email,),
             )
             row = cur.fetchone()
             if row:
-                return dict(id=row[0], username=row[1], email=row[2], password_hash=row[3])
+                return dict(
+                    id=row[0],
+                    username=row[1],
+                    email=row[2],
+                    password_hash=row[3],
+                    display_name=row[4],
+                )
     return None
+
+
+def update_user_display_name(username: str, display_name: str):
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET display_name = %s WHERE username = %s",
+                (display_name, username),
+            )
+            conn.commit()
