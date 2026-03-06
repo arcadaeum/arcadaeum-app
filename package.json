@@ -10,7 +10,7 @@
 		"db:test": "docker compose exec db psql -U app_user -d app_db -c 'SELECT * FROM users;'",
 		"setup:py": "cd backend && ([ -d .venv ] || python3 -m venv .venv) && (./.venv/bin/pip install -r requirements.txt -r requirements-dev.txt || .\\.venv\\Scripts\\pip install -r requirements.txt -r requirements-dev.txt)",
 		"setup:py:win": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"cd backend; if (!(Test-Path .venv)) { py -m venv .venv }; .\\.venv\\Scripts\\python -m pip install -r requirements.txt -r requirements-dev.txt\"",
-		"start:win": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"npm run setup:py:win; docker compose up --build -d; npm run urls\"",
+		"start:win": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"npm run setup:py:win; npm run dev; npm run urls\"",
 		"start": "npm run setup:py && npm run dev && npm run urls",
 		"stop": "docker compose down"
 	}

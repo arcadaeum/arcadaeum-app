@@ -1,0 +1,24 @@
+### register a new user
+POST http://localhost:8000/users/
+Content-Type: application/json
+
+{
+  "username": "Elliott",
+  "email": "Elliott@example.com",
+  "password": "s3cret"
+}
+
+### get a token (OAuth2 password flow)
+POST http://localhost:8000/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=&username=Elliott&password=s3cret
+
+# after sending the previous request you can copy the access_token
+# from the JSON response and paste it below, or use a variable.
+
+### use the token to hit a protected endpoint
+
+GET http://localhost:8000/submissions
+# Add the token after Bearer when generated from the previous request
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlbGxpb3R0ZmVsdGhhbTk4QGdtYWlsLmNvbSIsImV4cCI6MTc3MjgwNDQ3Nn0.F-42EP01j9V_fJyWUcIyP-XjBBLc3iB1YZJ3pbQ7U7k
