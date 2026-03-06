@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
+import AsciiText from '../components/AsciiText';
+import LetterGlitch from "../components/LetterGlitch";
 
 function SignInPage() {
     const [usernameOrEmail, setUsernameOrEmail] = useState("");
@@ -43,12 +45,27 @@ function SignInPage() {
 
     return (
         <>
+            <div className="fixed inset-0 -z-20 pointer-events-none">
+                <LetterGlitch
+                    glitchSpeed={50}
+                    centerVignette={true}
+                    outerVignette={false}
+                    smooth={true}
+                />
+                
+            </div>
             <NavigationBar />
             <div className="flex flex-col items-center justify-center font-main min-h-screen pt-20 px-4">
                 <div className="w-full max-w-md bg-arcade-black/80 rounded-lg p-8 shadow-lg border border-arcade-orange/30">
-                    <h1 className="text-3xl font-main text-arcade-gold text-center mb-8">
-                        Sign In
-                    </h1>
+                    <div className="relative w-full mb-6 h-28 sm:h-32 md:h-36 lg:h-40"> 
+                        <AsciiText
+                            text="Sign In"
+                            enableWaves={false}
+                            asciiFontSize={3}   
+                            textFontSize={80}   
+                            planeBaseHeight={16}
+                        />
+                    </div>
 
                     {error && (
                         <div className="bg-arcade-red/20 border border-arcade-red text-red-200 px-4 py-3 rounded mb-4">
