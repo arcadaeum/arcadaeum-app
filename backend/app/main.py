@@ -1,11 +1,12 @@
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env
+load_dotenv()
 
-
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from app.routes import health, submissions, auth
 from app.database import create_tables
 
@@ -17,6 +18,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Arcadaeum API", lifespan=lifespan)
+
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY"))
 
 origins = [
     "http://localhost:5173",
@@ -32,7 +35,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Attach all the API routes here
 app.include_router(health.router)
 app.include_router(submissions.router)
 app.include_router(auth.router)

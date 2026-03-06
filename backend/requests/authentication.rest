@@ -21,4 +21,4 @@ grant_type=&username=Elliott&password=s3cret
 
 GET http://localhost:8000/submissions
 # Add the token after Bearer when generated from the previous request
-Authorization: Bearer 
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlbGxpb3R0ZmVsdGhhbTk4QGdtYWlsLmNvbSIsImV4cCI6MTc3MjgwNDQ3Nn0.F-42EP01j9V_fJyWUcIyP-XjBBLc3iB1YZJ3pbQ7U7k
