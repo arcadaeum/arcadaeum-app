@@ -1,11 +1,12 @@
 import os
+import httpx
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 from authlib.integrations.starlette_client import OAuth
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, Response
 
 from app.auth import (
     authenticate_user,
@@ -65,7 +66,15 @@ async def login_for_access_token(
 def register_user(req: RegisterRequest):
     """Create a new user and return the user details."""
     hashed = get_password_hash(req.password)
-    user_id = create_user(req.username, req.email, hashed)
+    user_id = create_user(
+        username=req.username,
+        email=req.email,
+        password_hash=hashed,
+        oauth_provider=None,
+        oauth_id=None,
+        display_name=None,
+        profile_picture=None,
+    )
     return User(id=user_id, username=req.username, email=req.email)
 
 
@@ -99,6 +108,7 @@ async def google_callback(request: Request):
     email = userinfo.get("email")
     sub = userinfo.get("sub")
     name = userinfo.get("name")
+    profile_picture = userinfo.get("picture")
 
     if not email or not sub:
         raise HTTPException(status_code=400, detail="Invalid Google user info")
@@ -112,6 +122,7 @@ async def google_callback(request: Request):
             oauth_provider="google",
             oauth_id=sub,
             display_name=name,
+            profile_picture=profile_picture,
         )
         username = email
     else:
@@ -125,3 +136,11 @@ async def google_callback(request: Request):
     # Redirect back to frontend with the token
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
     return RedirectResponse(url=f"{frontend_url}/auth/callback?token={access_token}")
+
+
+# Temporary endpoint to avoid google rate limits
+@router.get("/proxy/profile-image")
+async def proxy_profile_image(url: str):
+    async with httpx.AsyncClient() as client:
+        r = await client.get(url)
+        return Response(content=r.content, media_type=r.headers.get("content-type", "image/jpeg"))

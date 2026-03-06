@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
-import { Pencil } from "lucide-react";
+import { Pencil, UserRound } from "lucide-react";
 
 function UserPage() {
 	const [user, setUser] = useState<{
 		username: string;
 		email: string;
 		display_name: string;
+		profile_picture: string | null;
 	} | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
@@ -68,7 +69,19 @@ function UserPage() {
 		<>
 			<NavigationBar />
 			<div className="flex flex-col items-center font-main min-h-screen pt-20">
-				<div className="w-30 h-30 bg-white rounded-full"></div>
+				<div className="w-30 h-30 bg-white rounded-full overflow-hidden flex items-center justify-center">
+					{user?.profile_picture ? (
+						<img
+							src={`${import.meta.env.VITE_API_URL}/proxy/profile-image?url=${encodeURIComponent(user.profile_picture)}`}
+							alt="Profile Picture"
+							className="w-full h-full object-cover"
+						/>
+					) : (
+						<div className="flex items-center justify-center bg-black border-4 border-white rounded-full w-28 h-28">
+							<UserRound className="text-white w-16 h-16" />
+						</div>
+					)}
+				</div>
 				<h1 className="mt-8 text-3xl font-secondary text-center flex items-center gap-2">
 					{editing ? (
 						<>
@@ -93,7 +106,7 @@ function UserPage() {
 						</>
 					) : (
 						<>
-							{user?.display_name}
+							{user?.display_name ?? user?.username}
 							<button onClick={handleEdit} className="ml-2" title="Edit display name">
 								<Pencil />
 							</button>
