@@ -20,7 +20,7 @@ export default function CreateAccountPage() {
 		return null;
 	};
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.SubmitEvent) => {
 		e.preventDefault();
 		setError(null);
 		setSuccess(null);
