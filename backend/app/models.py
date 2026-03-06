@@ -23,6 +23,8 @@ class User(BaseModel):
     id: int
     username: str
     email: str
+    display_name: Optional[str] = None
+    profile_picture: Optional[str] = None
 
 
 class UserInDB(User):
