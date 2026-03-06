@@ -32,18 +32,15 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def authenticate_user(username: str, password: str):
-    """Authenticate a user by username and password."""
-    user_dict = database.get_user_by_username(username)
-    if not user_dict:
-        return False
-
-    user = UserInDB(**user_dict)  # Convert dict to UserInDB model for type safety
-
-    if not verify_password(password, user.password_hash):
-        return False
-
-    return user
+def authenticate_user(username_or_email: str, password: str):
+    user = database.get_user_by_username(username_or_email)
+    if not user:
+        user = database.get_user_by_email(username_or_email)
+    if not user or not user["password_hash"]:
+        return None
+    if not verify_password(password, user["password_hash"]):
+        return None
+    return User(**user)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
