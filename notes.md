@@ -128,3 +128,5 @@
 - Build the homepage with login options and a game search bar.
 - Build the user dashboard to display the library and reviews.
 - Create reusable components (e.g., buttons, forms).
+
+JUST WRITING IN HERE TO TEST A DISCORD BOT
