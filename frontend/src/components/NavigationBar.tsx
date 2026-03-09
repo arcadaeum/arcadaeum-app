@@ -10,21 +10,34 @@ export default function NavigationBar() {
 		navigate("/signin");
 	};
 
+	const actionClassName =
+		"font-tester inline-flex items-center justify-center rounded-2xl border border-arcade-white px-8 py-2 bg-transparent font-bold tracking-tighter text-sm leading-none";
+
 	return (
-		<nav className="absolute top-4 left-4 right-4 z-20 font-main flex justify-between items-center">
+		<nav className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center text-arcade-white">
 			{/* Logo on top-left */}
 			<Link to="/">
-				<img src={smallLogo} alt="Arcadaeum Logo" className="h-15 w-15" />
+				<img src={smallLogo} alt="Arcadaeum Logo" className="h-15 w-15 rounded-md p-1" />
 			</Link>
 
 			{/* Right-side links */}
-			<div className="space-x-4 text-base">
-				{!isAuthenticated && <Link to="/signin">Sign In</Link>}
+			<div className="flex items-center gap-4">
+				{!isAuthenticated && (
+					<Link to="/signin" className={actionClassName}>
+						SIGN IN
+					</Link>
+				)}
 				{isAuthenticated && (
 					<>
-						<Link to="/user">User Page</Link>
-						<button onClick={handleLogout} className="ml-2">
-							Logout
+						<Link to="/user" className={actionClassName + " relative"}>
+							USER PAGE
+						</Link>
+						<button
+							type="button"
+							onClick={handleLogout}
+							className={actionClassName + " cursor-pointer"}
+						>
+							LOGOUT
 						</button>
 					</>
 				)}
