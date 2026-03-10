@@ -3,7 +3,8 @@ import smallLogo from "../assets/images/small_logo.jpg";
 
 export default function NavigationBar() {
 	const navigate = useNavigate();
-	const isAuthenticated = !!localStorage.getItem("access_token");
+	const token = localStorage.getItem("access_token");
+	const isAuthenticated = token ? true : false;
 
 	const handleLogout = () => {
 		localStorage.removeItem("access_token");

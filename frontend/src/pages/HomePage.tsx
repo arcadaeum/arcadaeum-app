@@ -82,6 +82,8 @@ function HomePage() {
 	const navigate = useNavigate();
 	const [activePanel, setActivePanel] = useState<string | null>(null);
 	const [isAnimatingClosed, setIsAnimatingClosed] = useState(false);
+	const token = localStorage.getItem("access_token");
+	const isAuthenticated = token ? true : false;
 
 	const handleSquareClick = (key: string) => {
 		if (activePanel === key) {
@@ -176,12 +178,14 @@ function HomePage() {
 				</p>
 
 				{/* Sign in button */}
-				<button
-					onClick={() => navigate("/signin")}
-					className="mt-1 px-8 py-3 bg-grey text-arcade-white font-main text-lg rounded-sm bg-green-500 hover:bg-arcade-white hover:text-black"
-				>
-					SIGN IN
-				</button>
+				{!isAuthenticated && (
+					<button
+						onClick={() => navigate("/signin")}
+						className="mt-1 px-8 py-3 bg-grey text-arcade-white font-main text-lg rounded-sm bg-green-500 hover:bg-arcade-white hover:text-black"
+					>
+						SIGN IN
+					</button>
+				)}
 			</div>
 		</>
 	);
