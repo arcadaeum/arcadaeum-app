@@ -127,18 +127,18 @@ function HomePage() {
 			/>
 
 			{/* Centered content */}
-			<div className="flex flex-col items-center justify-center min-h-screen gap-4 px-4 relative">
+			<div className="flex flex-col items-center justify-center min-h-screen gap-8 px-4 relative">
 				{/* Title row */}
 				<div className="flex flex-row items-center gap-3 flex-wrap justify-center">
 					<span
 						className="font-main text-arcade-white text-3xl sm:text-4xl md:text-5xl whitespace-nowrap
-                 filter drop-shadow-[0_6px_18px_rgba(0,0,0,0.85)]"
+                  drop-shadow-[0_0_3px_#fefddc]"
 					>
 						WELCOME TO
 					</span>
 					<RotatingText
 						texts={["ARCADAEUM", "YOUR LIBRARY", "YOUR REVIEWS"]}
-						mainClassName="px-3 py-1 bg-arcade-white text-arcade-black overflow-hidden justify-center rounded-sm font-main font-bold text-3xl sm:text-4xl md:text-5xl"
+						mainClassName="px-3 py-1 bg-arcade-white text-arcade-black overflow-hidden justify-center rounded-sm font-main font-bold text-3xl sm:text-4xl md:text-5xl drop-shadow-[0_0_3px_#fefddc] [text-shadow:0_0_6px_#fefddc,0_0_14px_#fefddc]"
 						staggerFrom="last"
 						initial={{ y: "100%" }}
 						animate={{ y: 0 }}
@@ -151,7 +151,7 @@ function HomePage() {
 				</div>
 
 				{/* Feature squares */}
-				<div className="flex flex-row gap-5 justify-center mt-5 z-20">
+				<div className="flex flex-row gap-5 justify-center z-20">
 					{features.map((feature) => (
 						<FeatureSquare
 							key={feature.key}
@@ -178,7 +178,7 @@ function HomePage() {
 				{/* Sign in button */}
 				<button
 					onClick={() => navigate("/signin")}
-					className="mt-1 px-8 py-3 bg-grey text-arcade-white font-main text-lg rounded-sm bg-green-500 hover:bg-arcade-white hover:text-black"
+					className="px-8 py-3 bg-grey text-arcade-white font-main text-lg rounded-sm bg-green-500 hover:bg-arcade-white hover:text-black"
 				>
 					SIGN IN
 				</button>
