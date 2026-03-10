@@ -35,6 +35,9 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       FRONTEND_URL: ${FRONTEND_URL}
+      IGDB_CLIENT_ID: ${IGDB_CLIENT_ID}
+      IGDB_KEY: ${IGDB_KEY}
+
 
   frontend:
     image: node:20-alpine
