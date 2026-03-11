@@ -1,7 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import smallLogo from "../assets/images/icon.jpg";
 
-export default function NavigationBar() {
+type NavigationBarProps = {
+	isSignInPage?: boolean;
+};
+
+export default function NavigationBar({ isSignInPage = false }: NavigationBarProps) {
 	const navigate = useNavigate();
 	const token = localStorage.getItem("access_token");
 	const isAuthenticated = token ? true : false;
@@ -27,7 +31,7 @@ export default function NavigationBar() {
 
 			{/* Right-side links */}
 			<div className="flex items-center gap-4 ">
-				{!isAuthenticated && (
+				{!isAuthenticated && !isSignInPage ? (
 					<Link
 						to="/signin"
 						className={
@@ -40,7 +44,7 @@ export default function NavigationBar() {
 					>
 						SIGN IN
 					</Link>
-				)}
+				) : null}
 				{isAuthenticated && (
 					<>
 						<Link
