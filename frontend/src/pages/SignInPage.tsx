@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import NavigationBar from "../components/NavigationBar";
-import AsciiText from "../components/AsciiText";
-import LetterGlitch from "../components/LetterGlitch";
+import ColorBends from "../components/ColorBends";
+import pngLogo from "../assets/images/Group 2.png";
 
 function SignInPage() {
 	const [usernameOrEmail, setUsernameOrEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 	const [error, setError] = useState("");
 	const navigate = useNavigate();
 
@@ -42,31 +44,36 @@ function SignInPage() {
 	const handleGoogleSignIn = () => {
 		window.location.href = `${import.meta.env.VITE_API_URL}/auth/oauth/google`;
 	};
-
 	return (
 		<>
-			<div className="fixed inset-0 -z-20 pointer-events-none">
-				<LetterGlitch
-					glitchSpeed={50}
-					centerVignette={true}
-					outerVignette={false}
-					smooth={true}
-					glitchColors={["#42424236", "#ffb3002c", "#ffb30038"]}
-					characters={'ARCADAEM!?"$£@=+-_'}
-				/>
-			</div>
+			<ColorBends
+				className="fixed inset-0 -z-10 pointer-events-none opacity-90"
+				rotation={32}
+				colors={["#ff2a2a", "#ff7a00", "#00c951"]}
+				speed={0.2}
+				scale={2}
+				frequency={1}
+				warpStrength={1}
+				mouseInfluence={1}
+				parallax={0.5}
+				noise={0.1}
+				transparent
+				autoRotate={0}
+			/>
+
 			<NavigationBar isSignInPage={true} />
-			<div className="flex flex-col items-center justify-center font-main min-h-screen pt-20 px-4">
-				<div className="w-full max-w-md bg-arcade-black/80 rounded-lg p-8 shadow-lg border border-arcade-orange/30">
-					<div className="relative w-full mb-6 h-28 sm:h-32 md:h-36 lg:h-40">
-						<AsciiText
-							text="Sign In"
-							enableWaves={false}
-							asciiFontSize={3}
-							textFontSize={80}
-							planeBaseHeight={16}
+			<div className="flex flex-col items-center justify-center font-main min-h-1/2 pt-20 px-4">
+				<div className="w-full max-w-md bg-arcade-black p-8 shadow-lg ">
+					<div className="flex justify-center">
+						<img
+							src={pngLogo}
+							alt="Arcadaeum logo"
+							className="w-20 h-20 mb-6 mx-auto object-contain rounded-xl p-1"
 						/>
 					</div>
+					<h1 className="text-4xl font-main tracking-tighter text-white bg-arcade-black mb-6 text-center">
+						Sign in to Arcadaeum
+					</h1>
 
 					{error && (
 						<div className="bg-arcade-red/20 border border-arcade-red text-red-200 px-4 py-3 rounded mb-4">
@@ -76,32 +83,50 @@ function SignInPage() {
 
 					<form onSubmit={handleSubmit} className="space-y-6">
 						<div>
-							<label className="block text-white font-secondary mb-2">
+							<label className="block text-white font-kilimanjaro mb-2">
 								Username or Email
 							</label>
 							<input
 								type="text"
 								value={usernameOrEmail}
 								onChange={(e) => setUsernameOrEmail(e.target.value)}
-								className="w-full px-4 py-2 bg-arcade-black text-white rounded border border-arcade-orange/50 focus:border-arcade-gold focus:outline-none"
+								className="w-full px-4 py-2 bg-white text-arcade-black font-kilimanjaro rounded border border-arcade-orange/50 focus:border-arcade-gold focus:outline-none"
 								required
 							/>
 						</div>
 
 						<div>
-							<label className="block text-white font-secondary mb-2">Password</label>
-							<input
-								type="password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								className="w-full px-4 py-2 bg-arcade-black text-white rounded border border-arcade-orange/50 focus:border-arcade-gold focus:outline-none"
-								required
-							/>
+							<label className="block text-white font-kilimanjaro mb-2">
+								Password
+							</label>
+							<div className="relative">
+								<input
+									type={showPassword ? "text" : "password"}
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									className="w-full px-4 py-2 pr-10 bg-white text-arcade-black font-kilimanjaro rounded border border-arcade-orange/50 focus:border-arcade-gold focus:outline-none"
+									required
+								/>
+								<button
+									type="button"
+									onMouseDown={() => setShowPassword((s) => !s)}
+									onMouseUp={() => setShowPassword(false)}
+									onMouseLeave={() => setShowPassword(false)}
+									aria-label={showPassword ? "Hide password" : "Show password"}
+									className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-arcade-black/60 hover:text-arcade-black"
+								>
+									{showPassword ? (
+										<EyeOff className="w-5 h-5" />
+									) : (
+										<Eye className="w-5 h-5" />
+									)}
+								</button>
+							</div>
 						</div>
 
 						<button
 							type="submit"
-							className="w-full bg-arcade-gold text-arcade-black font-secondary py-3 rounded hover:bg-arcade-yellow transition-colors"
+							className="w-full bg-arcade-gold text-arcade-black font-secondary py-3 rounded-full hover:bg-arcade-yellow transition-colors"
 						>
 							Sign In
 						</button>

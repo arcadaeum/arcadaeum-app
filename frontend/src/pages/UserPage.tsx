@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
+import GameCard from "../components/GameCard";
 import { Pencil, UserRound } from "lucide-react";
 
 function UserPage() {
@@ -64,6 +65,14 @@ function UserPage() {
 		setNewDisplayName(user?.display_name || "");
 		setEditing(true);
 	};
+
+	const favorites = [
+		{ id: "1", title: "Nebula Drift", image: null },
+		{ id: "2", title: "Pixel Quest", image: null },
+		{ id: "3", title: "Synthwave Racer", image: null },
+		{ id: "4", title: "Retro Rogue", image: null },
+		{ id: "5", title: "Arcade Odyssey", image: null },
+	];
 
 	const handleSave = async () => {
 		const token = localStorage.getItem("access_token");
@@ -196,7 +205,15 @@ function UserPage() {
 				>
 					Favorite Games
 				</h2>
-				<div className="w-2/3 ml-50 h-48" />
+				<div className="w-2/3 ml-50">
+					<div className="overflow-x-auto py-6 -mx-2">
+						<div className="flex gap-6 px-2">
+							{favorites.map((g) => (
+								<GameCard key={g.id} id={g.id} title={g.title} image={g.image} />
+							))}
+						</div>
+					</div>
+				</div>
 
 				<h2
 					className="w-2/3 z-50 text-2xl ml-50 font-main text-arcade-white border-b-4 border-arcade-gold tracking-tighter"

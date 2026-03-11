@@ -4,6 +4,7 @@ import SignInPage from "./pages/SignInPage";
 import UserPage from "./pages/UserPage";
 import CreateAccountPage from "./pages/CreateAccountPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
+import GameDetailPage from "./pages/GameDetailPage";
 
 export default function App() {
 	return (
@@ -13,6 +14,7 @@ export default function App() {
 			<Route path="/user" element={<UserPage />} />
 			<Route path="/createaccount" element={<CreateAccountPage />} />
 			<Route path="/auth/callback" element={<AuthCallbackPage />} />
+			<Route path="/games/:id" element={<GameDetailPage />} />
 		</Routes>
 	);
 }
