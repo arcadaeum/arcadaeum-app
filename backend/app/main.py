@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import os
@@ -8,11 +9,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from app.routes import health, submissions, auth, cache
 from app.database import create_tables
+from app.services.cache import cache_popular_games
 
 
+# On startup, create tables and cache popular games from IGDB to our DB
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_tables()
+    cache_result = cache_popular_games(limit=500)
+    print(f"Startup cache result: {cache_result}")
     yield
 
 

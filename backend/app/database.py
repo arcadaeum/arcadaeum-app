@@ -178,7 +178,13 @@ def add_game_to_db(
                 """
                 INSERT INTO games (igdb_id, title, summary, cover_url, platforms, release_date, igdb_rating)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (igdb_id) DO NOTHING
+                ON CONFLICT (igdb_id) DO UPDATE SET
+                    title = EXCLUDED.title,
+                    summary = EXCLUDED.summary,
+                    cover_url = EXCLUDED.cover_url,
+                    platforms = EXCLUDED.platforms,
+                    release_date = EXCLUDED.release_date,
+                    igdb_rating = EXCLUDED.igdb_rating
                 RETURNING id
                 """,
                 (

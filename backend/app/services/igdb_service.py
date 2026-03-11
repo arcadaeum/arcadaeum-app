@@ -7,17 +7,11 @@ class IGDBService:
     def __init__(self):
         self.client_id = os.getenv("IGDB_CLIENT_ID")
         self.client_secret = os.getenv("IGDB_KEY")
-
-        if not self.client_id or not self.client_secret:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Missing env vars: IGDB_CLIENT_ID={self.client_id}, IGDB_KEY={self.client_secret}",
-            )
-
         self.auth_url = "https://id.twitch.tv/oauth2/token"
         self.base_url = "https://api.igdb.com/v4"
         self.access_token = None
 
+    # Get a auth token from Twitch for IGDB API access
     def get_access_token(self):
         params = {
             "client_id": self.client_id,
@@ -30,6 +24,7 @@ class IGDBService:
             raise HTTPException(status_code=401, detail=f"IGDB Auth Failed: {response.text}")
         return response.json().get("access_token")
 
+    # Fetch top n amount of games from IGDB, sorted by total rating count
     def fetch_top_games(self, limit: int = 500):
         """Hits IGDB for the top games"""
         if not self.access_token:
@@ -41,16 +36,13 @@ class IGDBService:
         }
 
         query = f"""
-        fields name, summary, cover.url, first_release_date, total_rating;
+        fields name, summary, cover.image_id, platforms.name, first_release_date, total_rating;
         sort total_rating_count desc;
         where total_rating_count > 0;
         limit {limit};
         """
 
         response = requests.post(f"{self.base_url}/games", headers=headers, data=query)
-
-        print(f"IGDB Response Status: {response.status_code}")
-        print(f"IGDB Response Body: {response.text}")
 
         print(f"IGDB Response: {response.status_code} - {response.text}")
 
