@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from app.routes import health, submissions, auth, cache
+from app.routes import health, submissions, auth, cache, games
 from app.database import create_tables
 from app.services.cache import cache_popular_games
 
@@ -43,3 +43,4 @@ app.include_router(health.router)
 app.include_router(submissions.router)
 app.include_router(auth.router)
 app.include_router(cache.router)
+app.include_router(games.router)
