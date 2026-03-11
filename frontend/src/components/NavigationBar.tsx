@@ -1,7 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
-import smallLogo from "../assets/images/small_logo.jpg";
+import smallLogo from "../assets/images/icon.jpg";
 
-export default function NavigationBar() {
+type NavigationBarProps = {
+	isSignInPage?: boolean;
+};
+
+export default function NavigationBar({ isSignInPage = false }: NavigationBarProps) {
 	const navigate = useNavigate();
 	const token = localStorage.getItem("access_token");
 	const isAuthenticated = token ? true : false;
@@ -18,25 +22,47 @@ export default function NavigationBar() {
 		<nav className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center drop-shadow-[0_0_1px_#fefddc] text-arcade-white">
 			{/* Logo on top-left */}
 			<Link to="/">
-				<img src={smallLogo} alt="Arcadaeum Logo" className="h-15 w-15 rounded-md p-1" />
+				<img
+					src={smallLogo}
+					alt="Arcadaeum Logo"
+					className="h-15 w-15 rounded-md p-1 cursor-pointer hover:scale-110 transition-transform"
+				/>
 			</Link>
 
 			{/* Right-side links */}
-			<div className="flex items-center gap-4">
-				{!isAuthenticated && (
-					<Link to="/signin" className={actionClassName}>
+			<div className="flex items-center gap-4 ">
+				{!isAuthenticated && !isSignInPage ? (
+					<Link
+						to="/signin"
+						className={
+							actionClassName +
+							" relative cursor-pointer hover:scale-110 transition-transform"
+						}
+						cursor-pointer
+						hover:scale-110
+						transition-transform
+					>
 						SIGN IN
 					</Link>
-				)}
+				) : null}
 				{isAuthenticated && (
 					<>
-						<Link to="/user" className={actionClassName + " relative"}>
+						<Link
+							to="/user"
+							className={
+								actionClassName +
+								" relative cursor-pointer hover:scale-110 transition-transform"
+							}
+						>
 							USER PAGE
 						</Link>
 						<button
 							type="button"
 							onClick={handleLogout}
-							className={actionClassName + " cursor-pointer"}
+							className={
+								actionClassName +
+								" cursor-pointer hover:scale-110 transition-transform	"
+							}
 						>
 							LOGOUT
 						</button>

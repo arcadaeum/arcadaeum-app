@@ -55,7 +55,7 @@ function SignInPage() {
 					characters={'ARCADAEM!?"$£@=+-_'}
 				/>
 			</div>
-			<NavigationBar />
+			<NavigationBar isSignInPage={true} />
 			<div className="flex flex-col items-center justify-center font-main min-h-screen pt-20 px-4">
 				<div className="w-full max-w-md bg-arcade-black/80 rounded-lg p-8 shadow-lg border border-arcade-orange/30">
 					<div className="relative w-full mb-6 h-28 sm:h-32 md:h-36 lg:h-40">

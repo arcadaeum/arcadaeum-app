@@ -18,6 +18,15 @@ function UserPage() {
 	const profileRef = useRef<HTMLDivElement>(null);
 	const navigate = useNavigate();
 
+	const borderColors = [
+		"border-arcade-gold",
+		"border-arcade-yellow",
+		"border-arcade-red",
+		"border-arcade-green",
+	] as const;
+	const colorKey = user?.username ?? user?.display_name ?? "";
+	const borderColor = borderColors[colorKey ? colorKey.charCodeAt(0) % borderColors.length : 0];
+
 	useEffect(() => {
 		const token = localStorage.getItem("access_token");
 		if (!token) {
@@ -101,7 +110,9 @@ function UserPage() {
 			)}
 			<div className="flex flex-col items-start font-main min-h-screen pt-40 px-16">
 				<div ref={profileRef} className="relative flex w-full overflow-visible h-64">
-					<div className="ml-40 relative z-10 w-64 h-64 bg-arcade-white rounded-full overflow-hidden flex items-centerjustify-center flex-shrink-0">
+					<div
+						className={`border-4 ${borderColor} rounded-full ml-40 relative z-10 w-64 h-64 bg-arcade-white rounded-full overflow-hidden flex items-centerjustify-center flex-shrink-0`}
+					>
 						{user?.profile_picture ? (
 							<img
 								src={`${import.meta.env.VITE_API_URL}/proxy/profile-image?url=${encodeURIComponent(user.profile_picture)}`}
@@ -109,7 +120,7 @@ function UserPage() {
 								className="w-full h-full object-cover"
 							/>
 						) : (
-							<div className="flex items-center justify-center bg-arcade-black border-4 border-white rounded-full w-64 h-64">
+							<div className="flex items-center justify-center bg-arcade-black  w-64 h-64">
 								<UserRound className="text-arcade-white w-32 h-32" />
 							</div>
 						)}
@@ -132,13 +143,13 @@ function UserPage() {
 									/>
 									<button
 										onClick={handleSave}
-										className="ml-1 text-lg font-secondary text-arcade-white border rounded px-2 py-1"
+										className="ml-1 text-lg font-secondary text-arcade-white border tracking-wide rounded px-2 py-1"
 									>
 										Save
 									</button>
 									<button
 										onClick={() => setEditing(false)}
-										className="ml-1 text-lg font-secondary text-arcade-white border rounded px-2 py-1"
+										className="ml-1 text-lg font-secondary text-arcade-white border tracking-wide rounded px-2 py-1"
 									>
 										Cancel
 									</button>
