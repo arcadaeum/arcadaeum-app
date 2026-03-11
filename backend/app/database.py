@@ -41,6 +41,36 @@ def create_tables():
                 """
             )
 
+            cur.execute(  # Creates the games table if it doesn't exists
+                """
+                CREATE TABLE IF NOT EXISTS games (
+                    id serial PRIMARY KEY,
+                    igdb_id integer UNIQUE NOT NULL,
+                    title text NOT NULL,
+                    summary text,
+                    cover_url text,
+                    platforms text[],
+                    release_date date,
+                    igdb_rating real,
+                    created_at timestamp DEFAULT CURRENT_TIMESTAMP)
+                """
+            )
+
+            cur.execute(  # Creates the user_library table if it doesn't exist
+                """
+                CREATE TABLE IF NOT EXISTS user_library (
+                    id serial PRIMARY KEY,
+                    user_id integer REFERENCES users(id) ON DELETE CASCADE,
+                    game_id integer REFERENCES games(id) ON DELETE CASCADE,
+                    status text,
+                    added_at timestamp DEFAULT CURRENT_TIMESTAMP,
+                    completed_at timestamp,
+                    rating integer,
+                    notes text,
+                    UNIQUE(user_id, game_id))
+                """
+            )
+
             conn.commit()  # Makes permanent changes to the database
 
 
