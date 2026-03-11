@@ -50,5 +50,3 @@ This is just extra stuff:
 ## GitHub
 
 Use branches for features, push to GitHub and make a merge request for to be merged into main. 🤙🏻
-
-A discord bot should trigger a message for each pull request!
