@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import smallLogo from "../assets/images/icon.jpg";
+import pngLogo from "../assets/images/Group 2.png";
 
 type NavigationBarProps = {
 	isSignInPage?: boolean;
@@ -19,13 +19,13 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 		"font-tester inline-flex items-center justify-center rounded-2xl border-4 border-arcade-white px-8 py-2 bg-transparent font-bold tracking-tighter text-sm leading-none";
 
 	return (
-		<nav className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center drop-shadow-[0_0_1px_#fefddc] text-arcade-white">
+		<nav className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center  text-arcade-white">
 			{/* Logo on top-left */}
 			<Link to="/">
 				<img
-					src={smallLogo}
+					src={pngLogo}
 					alt="Arcadaeum Logo"
-					className="h-15 w-15 rounded-md p-1 cursor-pointer hover:scale-110 transition-transform"
+					className="h-15 w-15p-1 rounded-br-2xl rounded-tl-2xl cursor-pointer hover:scale-110 transition-transform"
 				/>
 			</Link>
 
@@ -36,7 +36,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 						to="/signin"
 						className={
 							actionClassName +
-							" relative cursor-pointer hover:scale-110 transition-transform"
+							" relative cursor-pointer hover:scale-110 transition-transform drop-shadow-[0_0_1px_#fefddc]"
 						}
 						cursor-pointer
 						hover:scale-110
@@ -51,7 +51,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 							to="/user"
 							className={
 								actionClassName +
-								" relative cursor-pointer hover:scale-110 transition-transform"
+								" relative cursor-pointer hover:scale-110 transition-transform drop-shadow-[0_0_1px_#fefddc]"
 							}
 						>
 							USER PAGE
@@ -61,7 +61,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 							onClick={handleLogout}
 							className={
 								actionClassName +
-								" cursor-pointer hover:scale-110 transition-transform	"
+								" cursor-pointer hover:scale-110 transition-transform drop-shadow-[0_0_1px_#fefddc]"
 							}
 						>
 							LOGOUT

@@ -6,17 +6,38 @@
 
 /* Custom fonts*/
 @font-face {
+	font-family: "Subtitle_Font";
+	src: url("./assests/fonts/ITC\ Avant\ Garde\ Gothic\ Book\ PERSONAL\ USE.ttf");
+}
+@font-face {
 	font-family: "Title_Font";
-	src: url("./assets/fonts/ITC\ Avant\ Garde\ Gothic\ LT\ Bold.otf");
+	src: url("./assets/fonts/MADEMIRAGE/MADE\ Mirage\ Bold\ PERSONAL\ USE.otf");
 }
 @font-face {
 	font-family: "Backup_Font";
 	src: url("./assets/fonts/HelveticaNeue.ttc");
 }
+@font-face {
+	font-family: "Ronda";
+	src: url("./assets/fonts/ITC\ Ronda.otf");
+}
+@font-face {
+	font-family: "Kilimanjaro";
+	src: url("./assets/fonts/KilimanjaroSansRound1.ttf");
+	font-display: swap;
+}
+@font-face {
+	font-family: "Original";
+	src: url("./assets/fonts/ITC\ Avant Garde Gothic LT Bold.otf")
+}
 @theme {
 	--font-main: "Title_Font", sans-serif;
+	--font-og: "Original", sans-serif;
+	--font-subtitle: "Subtitle_Font", sans-serif;
+	--font-ronda: "Ronda", sans-serif;
 	--font-secondary: Arial, Helvetica, sans-serif;
 	--font-tester: "Backup_Font", sans-serif;
+	--font-kilimanjaro: "Kilimanjaro", sans-serif;
 	--color-arcade-black: #191617;
 	--color-arcade-yellow: #ffe826;
 	--color-arcade-orange: #ff7a00;
@@ -150,4 +171,9 @@ body {
   body {
     @apply bg-background text-foreground;
 	}
+}
+
+/* Utility class to match Tailwind usage */
+.font-kilimanjaro {
+	font-family: var(--font-kilimanjaro);
 }
