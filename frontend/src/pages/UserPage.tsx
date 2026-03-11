@@ -5,12 +5,19 @@ import GameCard from "../components/GameCard";
 import { Pencil, UserRound } from "lucide-react";
 
 function UserPage() {
+	type Game = {
+		id: number;
+		title: string;
+		cover_url?: string | null;
+	};
+
 	const [user, setUser] = useState<{
 		username: string;
 		email: string;
 		display_name: string;
 		profile_picture: string | null;
 	} | null>(null);
+	const [favorites, setFavorites] = useState<Game[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [editing, setEditing] = useState(false);
@@ -61,18 +68,24 @@ function UserPage() {
 		return () => observer.disconnect();
 	}, [loading]);
 
+	// Get games from the URL, This needs to be changed to get favourites instead of popular.
+	useEffect(() => {
+		const url = import.meta.env.VITE_API_URL;
+
+		// Stores the data from the game api into the favorites state.
+		fetch(`${url}/games`)
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to fetch games");
+				return res.json();
+			})
+			.then((data: Game[]) => setFavorites(data))
+			.catch(() => setFavorites([]));
+	}, []);
+
 	const handleEdit = () => {
 		setNewDisplayName(user?.display_name || "");
 		setEditing(true);
 	};
-
-	const favorites = [
-		{ id: "1", title: "Nebula Drift", image: null },
-		{ id: "2", title: "Pixel Quest", image: null },
-		{ id: "3", title: "Synthwave Racer", image: null },
-		{ id: "4", title: "Retro Rogue", image: null },
-		{ id: "5", title: "Arcade Odyssey", image: null },
-	];
 
 	const handleSave = async () => {
 		const token = localStorage.getItem("access_token");
@@ -209,7 +222,12 @@ function UserPage() {
 					<div className="overflow-x-auto py-6 -mx-2">
 						<div className="flex gap-6 px-2">
 							{favorites.map((g) => (
-								<GameCard key={g.id} id={g.id} title={g.title} image={g.image} />
+								<GameCard
+									key={g.id}
+									id={g.id}
+									title={g.title}
+									image={g.cover_url}
+								/>
 							))}
 						</div>
 					</div>
