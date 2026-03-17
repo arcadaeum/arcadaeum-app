@@ -141,7 +141,7 @@ function HomePage() {
 				</div>
 
 				{/* Feature squares */}
-				<div className="flex flex-row gap-5 justify-center z-20">
+				<div className="flex flex-row gap-2 justify-center z-2">
 					{features.map((feature) => (
 						<FeatureSquare
 							key={feature.key}
