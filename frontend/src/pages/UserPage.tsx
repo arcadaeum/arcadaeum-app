@@ -148,10 +148,10 @@ function UserPage() {
 						)}
 					</div>
 					<div className="pointer-events-none absolute -left-16 top-1/2 z-0 -translate-y-1/2 flex flex-col w-screen">
-						<div className="h-5 w-screen bg-arcade-red drop-shadow-[0_0_8px_#ff2a2a]" />
-						<div className="h-5 w-screen bg-arcade-gold drop-shadow-[0_0_8px_#ffb300]" />
-						<div className="h-5 w-screen bg-arcade-yellow drop-shadow-[0_0_8px_#ffe826]" />
-						<div className="h-5 w-screen bg-arcade-green drop-shadow-[0_0_8px_#00c951]" />
+						<div className="h-5 w-screen bg-arcade-red drop-shadow-[0_0_8px_#ece4d5]" />
+						<div className="h-5 w-screen bg-arcade-gold drop-shadow-[0_0_8px_#37b0ea]" />
+						<div className="h-5 w-screen bg-arcade-yellow drop-shadow-[0_0_8px_#5647f1]" />
+						<div className="h-5 w-screen bg-arcade-green drop-shadow-[0_0_8px_#8122c0]" />
 					</div>
 					<div className="relative z-10 -mt-40 self-center flex flex-col pl-10">
 						<h1 className="text-6xl font-main text-arcade-white flex items-center gap-2 whitespace-nowrap drop-shadow-[0_0_3px_#fefddc] mb-2 tracking-tighter">

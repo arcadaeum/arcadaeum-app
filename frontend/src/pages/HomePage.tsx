@@ -12,7 +12,7 @@ const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 		title: "TRACK YOUR BACKLOG",
 		borderClass: "border-arcade-red",
 		bgClass: "bg-arcade-red",
-		glowColor: "#ff2a2a",
+		glowColor: "#ece4d5",
 		body: (
 			<>
 				<p>
@@ -30,7 +30,7 @@ const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 		title: "SEE WHAT FRIENDS PLAY",
 		borderClass: "border-arcade-orange",
 		bgClass: "bg-arcade-orange",
-		glowColor: "#ff7a00",
+		glowColor: "#37b0ea",
 		body: (
 			<>
 				<p>See what your friends are playing, finishing and recommending in real time.</p>
@@ -45,7 +45,7 @@ const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 		title: "REVIEW YOUR FAVOURITES",
 		borderClass: "border-arcade-yellow",
 		bgClass: "bg-arcade-yellow",
-		glowColor: "#ffe826",
+		glowColor: "#5647f1",
 		body: (
 			<>
 				<p>
@@ -63,7 +63,7 @@ const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 		title: "DISCOVER NEW TITLES",
 		borderClass: "border-arcade-green",
 		bgClass: "bg-arcade-green",
-		glowColor: "#00c951",
+		glowColor: "#8122c0",
 		body: (
 			<>
 				<p>
@@ -116,7 +116,7 @@ function HomePage() {
 			<ColorBends
 				className="fixed inset-0 -z-10 pointer-events-none opacity-90"
 				rotation={32}
-				colors={["#ff2a2a", "#ff7a00", "#00c951"]}
+				colors={["#8622c2", "#5647f1", "#37b0ea"]}
 				speed={0.2}
 				scale={2}
 				frequency={1}

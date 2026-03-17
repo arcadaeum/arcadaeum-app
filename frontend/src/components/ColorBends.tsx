@@ -116,7 +116,7 @@ export default function ColorBends({
 	style,
 	rotation = 45,
 	speed = 0.2,
-	colors = ["#ffb300", "#ff7a00", "#ff2a2a"],
+	colors,
 	transparent = true,
 	autoRotate = 0,
 	scale = 1,
@@ -261,16 +261,27 @@ export default function ColorBends({
 							parseInt(h[0] + h[0], 16),
 							parseInt(h[1] + h[1], 16),
 							parseInt(h[2] + h[2], 16),
-					  ]
+						]
 					: [
 							parseInt(h.slice(0, 2), 16),
 							parseInt(h.slice(2, 4), 16),
 							parseInt(h.slice(4, 6), 16),
-					  ];
+						];
 			return new THREE.Vector3(v[0] / 255, v[1] / 255, v[2] / 255);
 		};
 
-		const arr = (colors || []).filter(Boolean).slice(0, MAX_COLORS).map(toVec3);
+		// If no explicit colors provided, read updated palette from CSS variables.
+		const getCssVar = (name: string) =>
+			getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "";
+		const defaultPalette = [
+			getCssVar("--color-arcade-orange") || "#5647f1",
+			getCssVar("--color-arcade-yellow") || "#37b0ea",
+			getCssVar("--color-arcade-red") || "#8622c2",
+		];
+		const sourceColors = (colors && colors.length > 0 ? colors : defaultPalette)
+			.filter(Boolean)
+			.slice(0, MAX_COLORS);
+		const arr = sourceColors.map((c) => toVec3(c));
 		for (let i = 0; i < MAX_COLORS; i++) {
 			const vec = (material.uniforms.uColors.value as THREE.Vector3[])[i];
 			if (i < arr.length) vec.copy(arr[i]);
