@@ -32,7 +32,7 @@ export default function GameCard({ id, title, image, onClick }: GameCardProps) {
 				/>
 			</div>
 			<div className="px-3 py-2">
-				<div className="text-sm font-secondary text-arcade-white truncate">{title}</div>
+				<div className="text-sm font-default text-arcade-white truncate">{title}</div>
 			</div>
 		</div>
 	);

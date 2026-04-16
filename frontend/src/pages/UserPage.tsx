@@ -27,10 +27,10 @@ function UserPage() {
 	const navigate = useNavigate();
 
 	const borderColors = [
-		"border-arcade-gold",
-		"border-arcade-yellow",
-		"border-arcade-red",
-		"border-arcade-green",
+		"border-arcade-blue",
+		"border-",
+		"border-arcade-white",
+		"border-arcade-purple",
 	] as const;
 	const colorKey = user?.username ?? user?.display_name ?? "";
 	const borderColor = borderColors[colorKey ? colorKey.charCodeAt(0) % borderColors.length : 0];
@@ -116,21 +116,21 @@ function UserPage() {
 				<div className="fixed top-0 left-0 w-full z-50 bg-[#191617] opacity-100">
 					<div className="flex items-center gap-4 px-16 py-3">
 						<span
-							className="text-xl font-main text-arcade-white tracking-tighter"
+							className="text-xl font-title text-arcade-white tracking-tighter"
 							style={{ textShadow: "0 0 3px #fefddc" }}
 						>
 							{user?.display_name ?? user?.username}
 						</span>
 					</div>
 					<div className="flex h-1">
-						<div className="flex-1 bg-arcade-red" />
-						<div className="flex-1 bg-arcade-gold" />
-						<div className="flex-1 bg-arcade-yellow" />
-						<div className="flex-1 bg-arcade-green" />
+						<div className="flex-1 bg-arcade-white" />
+						<div className="flex-1 bg-arcade-blue" />
+						<div className="flex-1 bg-arcade-violet" />
+						<div className="flex-1 bg-arcade-purple" />
 					</div>
 				</div>
 			)}
-			<div className="flex flex-col items-start font-main min-h-screen pt-40 px-16">
+			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
 				<div ref={profileRef} className="relative flex w-full overflow-visible h-64">
 					<div
 						className={`border-4 ${borderColor} rounded-full ml-40 relative z-10 w-64 h-64 bg-arcade-white rounded-full overflow-hidden flex items-centerjustify-center flex-shrink-0`}
@@ -148,13 +148,13 @@ function UserPage() {
 						)}
 					</div>
 					<div className="pointer-events-none absolute -left-16 top-1/2 z-0 -translate-y-1/2 flex flex-col w-screen">
-						<div className="h-5 w-screen bg-arcade-red drop-shadow-[0_0_8px_#ece4d5]" />
-						<div className="h-5 w-screen bg-arcade-gold drop-shadow-[0_0_8px_#37b0ea]" />
-						<div className="h-5 w-screen bg-arcade-yellow drop-shadow-[0_0_8px_#5647f1]" />
-						<div className="h-5 w-screen bg-arcade-green drop-shadow-[0_0_8px_#8122c0]" />
+						<div className="h-5 w-screen bg-arcade-white drop-shadow-[0_0_8px_#ece4d5]" />
+						<div className="h-5 w-screen bg-arcade-blue drop-shadow-[0_0_8px_#37b0ea]" />
+						<div className="h-5 w-screen bg-arcade-violet drop-shadow-[0_0_8px_#5647f1]" />
+						<div className="h-5 w-screen bg-arcade-purple drop-shadow-[0_0_8px_#8122c0]" />
 					</div>
 					<div className="relative z-10 -mt-40 self-center flex flex-col pl-10">
-						<h1 className="text-6xl font-main text-arcade-white flex items-center gap-2 whitespace-nowrap drop-shadow-[0_0_3px_#fefddc] mb-2 tracking-tighter">
+						<h1 className="text-6xl font-title text-arcade-white flex items-center gap-2 whitespace-nowrap drop-shadow-[0_0_3px_#fefddc] mb-2 tracking-tighter">
 							{editing ? (
 								<>
 									<input
@@ -165,13 +165,13 @@ function UserPage() {
 									/>
 									<button
 										onClick={handleSave}
-										className="ml-1 text-lg font-secondary text-arcade-white border tracking-wide rounded px-2 py-1"
+										className="ml-1 text-lg font-default text-arcade-white border tracking-wide rounded px-2 py-1"
 									>
 										Save
 									</button>
 									<button
 										onClick={() => setEditing(false)}
-										className="ml-1 text-lg font-secondary text-arcade-white border tracking-wide rounded px-2 py-1"
+										className="ml-1 text-lg font-default text-arcade-white border tracking-wide rounded px-2 py-1"
 									>
 										Cancel
 									</button>
@@ -192,7 +192,7 @@ function UserPage() {
 					</div>
 				</div>
 				<div
-					className="flex gap-6 -mt-16 font-secondary text-xs text-gray-400 tracking-wider items-center"
+					className="flex gap-6 -mt-16 font-default text-xs text-gray-400 tracking-wider items-center"
 					style={{ marginLeft: "28.5rem" }}
 				>
 					<span>
@@ -213,7 +213,7 @@ function UserPage() {
 				</div>
 
 				<h2
-					className="w-2/3 mt-25 text-2xl ml-50 font-main text-arcade-white border-b-4 border-arcade-red tracking-tighter"
+					className="w-2/3 mt-25 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter"
 					style={{ textShadow: "0 0 2px #fefddc" }}
 				>
 					Favorite Games
@@ -234,7 +234,7 @@ function UserPage() {
 				</div>
 
 				<h2
-					className="w-2/3 z-50 text-2xl ml-50 font-main text-arcade-white border-b-4 border-arcade-gold tracking-tighter"
+					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter"
 					style={{ textShadow: "0 0 2px #fefddc" }}
 				>
 					Reviews
@@ -242,7 +242,7 @@ function UserPage() {
 				<div className="w-2/3 ml-50 h-48" />
 
 				<h2
-					className="w-2/3 z-50 text-2xl ml-50 font-main text-arcade-white border-b-4 border-arcade-yellow tracking-tighter"
+					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-violet tracking-tighter"
 					style={{ textShadow: "0 0 2px #fefddc" }}
 				>
 					Collections
@@ -250,7 +250,7 @@ function UserPage() {
 				<div className="w-2/3 ml-50 h-48" />
 
 				<h2
-					className="w-2/3 z-50 text-2xl ml-50 font-main text-arcade-white border-b-4 border-arcade-green tracking-tighter"
+					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter"
 					style={{ textShadow: "0 0 2px #fefddc" }}
 				>
 					Posts

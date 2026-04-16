@@ -16,7 +16,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 	};
 
 	const actionClassName =
-		"font-tester inline-flex items-center justify-center rounded-2xl border-4 border-arcade-white px-8 py-2 bg-transparent font-bold tracking-tighter text-sm leading-none";
+		"font-secondary inline-flex items-center justify-center rounded-2xl border-4 border-arcade-white px-8 py-2 bg-transparent font-bold tracking-tighter text-sm leading-none";
 
 	return (
 		<nav className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center  text-arcade-white">

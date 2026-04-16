@@ -1,11 +1,7 @@
 interface FeatureSquareProps {
-	/** Tailwind background class, e.g. "bg-arcade-red" */
 	bgClass: string;
-	/** CSS color for the glow, e.g. "#ff2a2a" */
 	glowColor: string;
-	/** Accessible label */
 	label: string;
-	/** Click handler */
 	onClick: () => void;
 }
 
