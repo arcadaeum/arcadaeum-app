@@ -8,7 +8,7 @@ import { useState } from "react";
 
 const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 	{
-		key: "red",
+		key: "white",
 		title: "TRACK YOUR BACKLOG",
 		borderClass: "border-arcade-white",
 		bgClass: "bg-arcade-white",
@@ -26,7 +26,7 @@ const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 		),
 	},
 	{
-		key: "orange",
+		key: "blue",
 		title: "SEE WHAT FRIENDS PLAY",
 		borderClass: "border-arcade-blue",
 		bgClass: "bg-arcade-blue",
@@ -59,7 +59,7 @@ const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 		),
 	},
 	{
-		key: "green",
+		key: "purple",
 		title: "DISCOVER NEW TITLES",
 		borderClass: "border-arcade-purple",
 		bgClass: "bg-arcade-purple",
@@ -111,12 +111,10 @@ function HomePage() {
 	return (
 		<>
 			<NavigationBar />
-
-			{/* Full screen background */}
 			<ColorBends
 				className="fixed inset-0 -z-10 pointer-events-none opacity-90"
 				rotation={32}
-				colors={["#8622c2", "#5647f1", "#37b0ea"]}
+				colors={["#8122c0", "#5647f1", "#37b0ea"]}
 				speed={0.2}
 				scale={2}
 				frequency={1}
@@ -128,53 +126,61 @@ function HomePage() {
 				autoRotate={0}
 			/>
 
-			{/* Centered content */}
-			<div className="flex flex-col items-center justify-center min-h-screen gap-6 px-4 relative">
-				{/* Title row */}
-				<div className="flex flex-col items-center gap-3">
-					<span
-						className="font-title tracking-tighter text-arcade-white text-3xl sm:text-4xl md:text-5xl whitespace-nowrap
+			{/* Unauthenticated homepage content */}
+			{!isAuthenticated ? (
+				<div className="flex flex-col items-center justify-center min-h-screen gap-6 px-4 relative">
+					<div className="flex flex-col items-center gap-3">
+						<span
+							className="font-title tracking-tighter text-arcade-white text-3xl sm:text-4xl md:text-5xl whitespace-nowrap
                   drop-shadow-[0_0_1px_#fefddc]"
-					>
-						Welcome to Arcadaeum.
-					</span>
-				</div>
+						>
+							Welcome to Arcadaeum.
+						</span>
+					</div>
 
-				{/* Feature squares */}
-				<div className="flex flex-row gap-2 justify-center z-2">
-					{features.map((feature) => (
-						<FeatureSquare
-							key={feature.key}
-							bgClass={feature.bgClass}
-							glowColor={feature.glowColor}
-							label={`Open ${feature.key} info panel`}
-							onClick={() => handleSquareClick(feature.key)}
-						/>
-					))}
-				</div>
+					<div className="flex flex-row gap-2 justify-center z-2">
+						{features.map((feature) => (
+							<FeatureSquare
+								key={feature.key}
+								bgClass={feature.bgClass}
+								glowColor={feature.glowColor}
+								label={`Open ${feature.key} info panel`}
+								onClick={() => handleSquareClick(feature.key)}
+							/>
+						))}
+					</div>
 
-				{/* Expanding feature panel */}
-				<FeaturePanel
-					items={features}
-					activeKey={activePanel}
-					isVisible={isPanelVisible}
-					onClose={closePanel}
-				/>
+					<FeaturePanel
+						items={features}
+						activeKey={activePanel}
+						isVisible={isPanelVisible}
+						onClose={closePanel}
+					/>
 
-				<p className="font-title tracking-tighter drop-shadow-[0_0_2px_#fefddc] text-arcade-white text-lg sm:text-xl md:text-2xl text-center max-w-md">
-					Log, review and discover games.
-				</p>
+					<p className="font-title tracking-tighter drop-shadow-[0_0_2px_#fefddc] text-arcade-white text-lg sm:text-xl md:text-2xl text-center max-w-md">
+						Log, review and discover games.
+					</p>
 
-				{/* Sign in button */}
-				{!isAuthenticated && (
 					<button
 						onClick={() => navigate("/signin")}
-						className="mt-1 px-8 py-3 bg-grey text-arcade-white font-title tracking-tighter drop-shadow-[0_0_1px_#fefddc] text-xl rounded-sm bg-green-500 hover:bg-arcade-white hover:text-black"
+						className="mt-1 px-8 py-3 bg-grey text-arcade-white font-title tracking-tighter drop-shadow-[0_0_1px_#fefddc] text-xl rounded-sm bg-arcade-blue hover:bg-arcade-white hover:text-arcade-black"
 					>
 						SIGN IN
 					</button>
-				)}
-			</div>
+				</div>
+			) : (
+				/* Placeholder authenticated homepage content */
+				<div className="flex flex-col items-center justify-center min-h-screen gap-6 px-4 relative">
+					<div className="flex flex-col items-center gap-3">
+						<span
+							className="font-title tracking-tighter text-arcade-white text-3xl sm:text-4xl md:text-5xl whitespace-nowrap
+				  drop-shadow-[0_0_1px_#fefddc]"
+						>
+							This is the authenticated homepage section.
+						</span>
+					</div>
+				</div>
+			)}
 		</>
 	);
 }

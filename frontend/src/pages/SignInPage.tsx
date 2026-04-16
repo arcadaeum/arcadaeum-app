@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import NavigationBar from "../components/NavigationBar";
 import ColorBends from "../components/ColorBends";
-import pngLogo from "../assets/images/Group 2.png";
+import pngLogo from "../assets/images/LOGO_PURPLE.png";
 
 function SignInPage() {
 	const [usernameOrEmail, setUsernameOrEmail] = useState("");
@@ -49,7 +49,7 @@ function SignInPage() {
 			<ColorBends
 				className="fixed inset-0 -z-10 pointer-events-none opacity-90"
 				rotation={32}
-				colors={["#ff2a2a", "#ff7a00", "#00c951"]}
+				colors={["#8122c0", "#5647f1", "#37b0ea"]}
 				speed={0.2}
 				scale={2}
 				frequency={1}
@@ -71,7 +71,7 @@ function SignInPage() {
 							className="w-20 h-20 mb-6 mx-auto object-contain rounded-xl p-1"
 						/>
 					</div>
-					<h1 className="text-4xl font-title tracking-tighter text-white bg-arcade-black mb-6 text-center">
+					<h1 className="text-4xl font-title tracking-tighter text-arcade-white bg-arcade-black mb-6 text-center">
 						Sign in to Arcadaeum
 					</h1>
 
@@ -83,20 +83,20 @@ function SignInPage() {
 
 					<form onSubmit={handleSubmit} className="space-y-6">
 						<div>
-							<label className="block text-white font-kilimanjaro mb-2">
+							<label className="block text-arcade-white font-kilimanjaro mb-2">
 								Username or Email
 							</label>
 							<input
 								type="text"
 								value={usernameOrEmail}
 								onChange={(e) => setUsernameOrEmail(e.target.value)}
-								className="w-full px-4 py-2 bg-white text-arcade-black font-kilimanjaro rounded border border-arcade-blue/50 focus:border-arcade-gold focus:outline-none"
+								className="w-full px-4 py-2 bg-arcade-white text-arcade-black font-kilimanjaro rounded border border-arcade-blue/50 focus:border-arcade-blue focus:outline-none"
 								required
 							/>
 						</div>
 
 						<div>
-							<label className="block text-white font-kilimanjaro mb-2">
+							<label className="block text-arcade-white font-kilimanjaro mb-2">
 								Password
 							</label>
 							<div className="relative">
@@ -104,7 +104,7 @@ function SignInPage() {
 									type={showPassword ? "text" : "password"}
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
-									className="w-full px-4 py-2 pr-10 bg-white text-arcade-black font-kilimanjaro rounded border border-arcade-blue/50 focus:border-arcade-gold focus:outline-none"
+									className="w-full px-4 py-2 pr-10 bg-arcade-white text-arcade-black font-kilimanjaro rounded border border-arcade-blue/50 focus:border-arcade-blue focus:outline-none"
 									required
 								/>
 								<button
@@ -126,7 +126,7 @@ function SignInPage() {
 
 						<button
 							type="submit"
-							className="w-full bg-arcade-gold text-arcade-black font-default py-3 rounded-full hover:bg- transition-colors"
+							className="w-full bg-arcade-blue text-arcade-black font-default py-3 rounded-full hover:bg- transition-colors"
 						>
 							Sign In
 						</button>
@@ -135,7 +135,7 @@ function SignInPage() {
 					<div className="mt-6">
 						<button
 							onClick={handleGoogleSignIn}
-							className="w-full bg-white text-arcade-black font-default py-3 rounded hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+							className="w-full bg-arcade-white text-arcade-black font-default py-3 rounded hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
 						>
 							<svg className="w-5 h-5" viewBox="0 0 24 24">
 								<path
@@ -160,10 +160,10 @@ function SignInPage() {
 					</div>
 
 					<div className="mt-8 text-center">
-						<p className="text-white/70 mb-4">New here? Create an account</p>
+						<p className="text-arcade-white/70 mb-4">New here? Create an account</p>
 						<button
 							onClick={() => navigate("/createaccount")}
-							className="w-full bg-arcade-black text-arcade-gold font-default py-3 rounded border border-arcade-gold hover:bg-arcade-blue transition-colors"
+							className="w-full bg-arcade-black text-arcade-blue font-default py-3 rounded border border-arcade-blue hover:bg-arcade-blue transition-colors"
 						>
 							Create Account
 						</button>

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 export interface FeatureItem {
 	key: string;
 	title: string;
-	borderClass: string;
+	borderClass: string; // tailwind border color class, e.g. "border-arcade-white"
 	body: ReactNode;
 }
 

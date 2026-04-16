@@ -59,7 +59,7 @@ export default function CreateAccountPage() {
 			<div className="flex flex-col items-center font-title min-h-screen pt-50 px-4">
 				<form
 					onSubmit={handleSubmit}
-					className="w-full max-w-md bg-arcade-black/80 p-8 rounded-lg border border-arcade-gold"
+					className="w-full max-w-md bg-arcade-black/80 p-8 rounded-lg border border-arcade-blue"
 				>
 					<h1 className="text-2xl font-default text-center mb-6">Create Account</h1>
 
@@ -69,7 +69,7 @@ export default function CreateAccountPage() {
 							type="email"
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
-							className="mt-1 w-full px-3 py-2 rounded bg-white text-black"
+							className="mt-1 w-full px-3 py-2 rounded bg-arcade-white text-arcade-black"
 							autoComplete="email"
 						/>
 					</label>
@@ -79,7 +79,7 @@ export default function CreateAccountPage() {
 						<input
 							value={username}
 							onChange={(e) => setUsername(e.target.value)}
-							className="mt-1 w-full px-3 py-2 rounded bg-white text-black"
+							className="mt-1 w-full px-3 py-2 rounded bg-arcade-white text-arcade-black"
 							autoComplete="username"
 						/>
 					</label>
@@ -90,7 +90,7 @@ export default function CreateAccountPage() {
 							type="password"
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
-							className="mt-1 w-full px-3 py-2 rounded bg-white text-black"
+							className="mt-1 w-full px-3 py-2 rounded bg-arcade-white text-arcade-black"
 							autoComplete="new-password"
 						/>
 					</label>
@@ -101,7 +101,7 @@ export default function CreateAccountPage() {
 							type="password"
 							value={confirm}
 							onChange={(e) => setConfirm(e.target.value)}
-							className="mt-1 w-full px-3 py-2 rounded bg-white text-black"
+							className="mt-1 w-full px-3 py-2 rounded bg-arcade-white text-arcade-black"
 							autoComplete="new-password"
 						/>
 					</label>
@@ -112,7 +112,7 @@ export default function CreateAccountPage() {
 					<button
 						type="submit"
 						disabled={loading}
-						className="w-full py-2 rounded bg-arcade-gold text-black font-semibold hover:opacity-90"
+						className="w-full py-2 rounded bg-arcade-blue text-arcade-black font-semibold hover:opacity-90"
 					>
 						{loading ? "Creating..." : "Create Account"}
 					</button>

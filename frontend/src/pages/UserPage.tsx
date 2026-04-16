@@ -27,7 +27,7 @@ function UserPage() {
 	const navigate = useNavigate();
 
 	const borderColors = [
-		"border-arcade-gold",
+		"border-arcade-blue",
 		"border-",
 		"border-arcade-white",
 		"border-arcade-purple",
@@ -124,7 +124,7 @@ function UserPage() {
 					</div>
 					<div className="flex h-1">
 						<div className="flex-1 bg-arcade-white" />
-						<div className="flex-1 bg-arcade-gold" />
+						<div className="flex-1 bg-arcade-blue" />
 						<div className="flex-1 bg-arcade-violet" />
 						<div className="flex-1 bg-arcade-purple" />
 					</div>
@@ -149,7 +149,7 @@ function UserPage() {
 					</div>
 					<div className="pointer-events-none absolute -left-16 top-1/2 z-0 -translate-y-1/2 flex flex-col w-screen">
 						<div className="h-5 w-screen bg-arcade-white drop-shadow-[0_0_8px_#ece4d5]" />
-						<div className="h-5 w-screen bg-arcade-gold drop-shadow-[0_0_8px_#37b0ea]" />
+						<div className="h-5 w-screen bg-arcade-blue drop-shadow-[0_0_8px_#37b0ea]" />
 						<div className="h-5 w-screen bg-arcade-violet drop-shadow-[0_0_8px_#5647f1]" />
 						<div className="h-5 w-screen bg-arcade-purple drop-shadow-[0_0_8px_#8122c0]" />
 					</div>
@@ -234,7 +234,7 @@ function UserPage() {
 				</div>
 
 				<h2
-					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-gold tracking-tighter"
+					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter"
 					style={{ textShadow: "0 0 2px #fefddc" }}
 				>
 					Reviews
