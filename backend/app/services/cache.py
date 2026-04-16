@@ -31,12 +31,18 @@ def cache_popular_games(limit: int = 500):
                     if isinstance(platform, dict) and platform.get("name"):
                         platform_names.append(platform["name"])
 
+                genre_names = []
+                for genre in game_data.get("genres", []):
+                    if isinstance(genre, dict) and genre.get("name"):
+                        genre_names.append(genre["name"])
+
                 add_game_to_db(
                     igdb_id=game_data.get("id"),
                     title=game_data.get("name"),
                     summary=game_data.get("summary"),
                     cover_url=cover_url,
                     platforms=platform_names,
+                    genres=genre_names,
                     release_date=game_data.get("first_release_date"),
                     igdb_rating=game_data.get("total_rating"),
                 )

@@ -52,6 +52,7 @@ def create_tables():
                     summary text,
                     cover_url text,
                     platforms text[],
+                    genres text[],
                     release_date date,
                     igdb_rating real,
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP)
@@ -62,16 +63,17 @@ def create_tables():
                 """
                 CREATE TABLE IF NOT EXISTS user_library (
                     id serial PRIMARY KEY,
-                    user_id integer REFERENCES users(id) ON DELETE CASCADE,
-                    game_id integer REFERENCES games(id) ON DELETE CASCADE,
-                    status text,
+                    user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    game_id integer NOT NULL REFERENCES games(id) ON DELETE CASCADE,
                     added_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     completed_at timestamp,
-                    rating integer,
+                    rating real,
                     notes text,
                     UNIQUE(user_id, game_id))
                 """
             )
+
+            cur.execute
 
             conn.commit()  # Makes permanent changes to the database
 
@@ -163,6 +165,7 @@ def add_game_to_db(
     summary: Optional[str] = None,
     cover_url: Optional[str] = None,
     platforms: Optional[list[str]] = None,
+    genres: Optional[list[str]] = None,
     release_date: Optional[int] = None,
     igdb_rating: Optional[float] = None,
 ):
@@ -176,13 +179,14 @@ def add_game_to_db(
 
             cur.execute(
                 """
-                INSERT INTO games (igdb_id, title, summary, cover_url, platforms, release_date, igdb_rating)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO games (igdb_id, title, summary, cover_url, platforms, genres, release_date, igdb_rating)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (igdb_id) DO UPDATE SET
                     title = EXCLUDED.title,
                     summary = EXCLUDED.summary,
                     cover_url = EXCLUDED.cover_url,
                     platforms = EXCLUDED.platforms,
+                    genres = EXCLUDED.genres,
                     release_date = EXCLUDED.release_date,
                     igdb_rating = EXCLUDED.igdb_rating
                 RETURNING id
@@ -193,6 +197,7 @@ def add_game_to_db(
                     summary,
                     cover_url,
                     platforms,
+                    genres,
                     formatted_date,
                     igdb_rating,
                 ),

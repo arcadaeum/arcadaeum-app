@@ -66,6 +66,7 @@
     - `user_id`: Foreign key to Users
     - `name`: List name (e.g., "Want to Play", "Favorites")
     - `description`: Optional text
+    - `is_private`: Boolean
     - `created_at`: Timestamp
     - `updated_at`: Timestamp
 
