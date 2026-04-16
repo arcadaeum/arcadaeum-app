@@ -134,7 +134,7 @@ function HomePage() {
 				<div className="flex flex-col items-center gap-3">
 					<span
 						className="font-main tracking-tighter text-arcade-white text-3xl sm:text-4xl md:text-5xl whitespace-nowrap
-                  drop-shadow-[0_0_2px_#fefddc]"
+                  drop-shadow-[0_0_1px_#fefddc]"
 					>
 						Welcome to Arcadaeum.
 					</span>
@@ -169,7 +169,7 @@ function HomePage() {
 				{!isAuthenticated && (
 					<button
 						onClick={() => navigate("/signin")}
-						className="mt-1 px-8 py-3 bg-grey text-arcade-white font-main tracking-tighter drop-shadow-[0_0_2px_#fefddc] text-xl rounded-sm bg-green-500 hover:bg-arcade-white hover:text-black"
+						className="mt-1 px-8 py-3 bg-grey text-arcade-white font-main tracking-tighter drop-shadow-[0_0_1px_#fefddc] text-xl rounded-sm bg-green-500 hover:bg-arcade-white hover:text-black"
 					>
 						SIGN IN
 					</button>
