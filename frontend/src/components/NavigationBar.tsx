@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import pngLogo from "../assets/images/Group 2.png";
+import pngLogo from "../assets/images/LOGO_PURPLE.png";
 
 type NavigationBarProps = {
 	isSignInPage?: boolean;

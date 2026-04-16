@@ -13,7 +13,7 @@ function FeatureSquare({ bgClass, glowColor, label, onClick }: FeatureSquareProp
 	return (
 		<button
 			onClick={onClick}
-			className={`w-12 h-12 ${bgClass} cursor-pointer hover:scale-110 transition-transform`}
+			className={`w-12 h-12 ${bgClass} cursor-pointer rounded hover:scale-110 transition-transform`}
 			style={{ filter: `drop-shadow(0 0 3px ${glowColor})` }}
 			aria-label={label}
 		/>

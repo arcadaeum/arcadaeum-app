@@ -39,12 +39,13 @@
 	--font-tester: "Backup_Font", sans-serif;
 	--font-kilimanjaro: "Kilimanjaro", sans-serif;
 	--color-arcade-black: #191617;
-	--color-arcade-yellow: #ffe826;
-	--color-arcade-orange: #ff7a00;
-	--color-arcade-red: #ff2a2a;
-	--color-arcade-gold: #ffb300;
-	--color-arcade-white: #fefddc;
-	--color-arcade-green: #00c951;
+	--color-arcade-yellow: #5647f1;
+	--color-arcade-orange: #37b0ea;
+	--color-arcade-red: #ece4d5;
+	--color-arcade-gold: #37b0ea;
+	--color-arcade-white: #ece4d5;
+	--color-arcade-green: #8122c0;
+	
 }
 
 /* Global styles */
