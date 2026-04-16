@@ -20,9 +20,11 @@ export default function GameDetailPage() {
 
 	useEffect(() => {
 		if (!id) return;
-		const url = `${import.meta.env.VITE_API_URL}/games/${id}`;
-		// Try to fetch real data; fall back to placeholder if unavailable
 
+		// Need to implement games/id in backend for this to work.
+		const url = `${import.meta.env.VITE_API_URL}/games/${id}`;
+
+		// Try to fetch real data; fall back to placeholder if unavailable
 		fetch(url)
 			.then((res) => {
 				if (!res.ok) throw new Error("not found");
