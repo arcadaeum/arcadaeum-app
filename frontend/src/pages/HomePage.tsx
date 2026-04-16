@@ -10,8 +10,8 @@ const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 	{
 		key: "red",
 		title: "TRACK YOUR BACKLOG",
-		borderClass: "border-arcade-red",
-		bgClass: "bg-arcade-red",
+		borderClass: "border-arcade-white",
+		bgClass: "bg-arcade-white",
 		glowColor: "#ece4d5",
 		body: (
 			<>
@@ -28,8 +28,8 @@ const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 	{
 		key: "orange",
 		title: "SEE WHAT FRIENDS PLAY",
-		borderClass: "border-arcade-orange",
-		bgClass: "bg-arcade-orange",
+		borderClass: "border-arcade-blue",
+		bgClass: "bg-arcade-blue",
 		glowColor: "#37b0ea",
 		body: (
 			<>
@@ -41,10 +41,10 @@ const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 		),
 	},
 	{
-		key: "yellow",
+		key: "violet",
 		title: "REVIEW YOUR FAVOURITES",
-		borderClass: "border-arcade-yellow",
-		bgClass: "bg-arcade-yellow",
+		borderClass: "border-arcade-violet",
+		bgClass: "bg-arcade-violet",
 		glowColor: "#5647f1",
 		body: (
 			<>
@@ -61,8 +61,8 @@ const features: (FeatureItem & { bgClass: string; glowColor: string })[] = [
 	{
 		key: "green",
 		title: "DISCOVER NEW TITLES",
-		borderClass: "border-arcade-green",
-		bgClass: "bg-arcade-green",
+		borderClass: "border-arcade-purple",
+		bgClass: "bg-arcade-purple",
 		glowColor: "#8122c0",
 		body: (
 			<>
@@ -133,7 +133,7 @@ function HomePage() {
 				{/* Title row */}
 				<div className="flex flex-col items-center gap-3">
 					<span
-						className="font-main tracking-tighter text-arcade-white text-3xl sm:text-4xl md:text-5xl whitespace-nowrap
+						className="font-title tracking-tighter text-arcade-white text-3xl sm:text-4xl md:text-5xl whitespace-nowrap
                   drop-shadow-[0_0_1px_#fefddc]"
 					>
 						Welcome to Arcadaeum.
@@ -161,7 +161,7 @@ function HomePage() {
 					onClose={closePanel}
 				/>
 
-				<p className="font-main tracking-tighter drop-shadow-[0_0_2px_#fefddc] text-arcade-white text-lg sm:text-xl md:text-2xl text-center max-w-md">
+				<p className="font-title tracking-tighter drop-shadow-[0_0_2px_#fefddc] text-arcade-white text-lg sm:text-xl md:text-2xl text-center max-w-md">
 					Log, review and discover games.
 				</p>
 
@@ -169,7 +169,7 @@ function HomePage() {
 				{!isAuthenticated && (
 					<button
 						onClick={() => navigate("/signin")}
-						className="mt-1 px-8 py-3 bg-grey text-arcade-white font-main tracking-tighter drop-shadow-[0_0_1px_#fefddc] text-xl rounded-sm bg-green-500 hover:bg-arcade-white hover:text-black"
+						className="mt-1 px-8 py-3 bg-grey text-arcade-white font-title tracking-tighter drop-shadow-[0_0_1px_#fefddc] text-xl rounded-sm bg-green-500 hover:bg-arcade-white hover:text-black"
 					>
 						SIGN IN
 					</button>

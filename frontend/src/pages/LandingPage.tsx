@@ -8,7 +8,7 @@ export default function App() {
 	const [submissionStatus, setSubmissionStatus] = useState("");
 
 	return (
-		<main className="bg-arcade-black text-white min-h-screen flex flex-col items-center justify-center m-0 font-main relative">
+		<main className="bg-arcade-black text-white min-h-screen flex flex-col items-center justify-center m-0 font-title relative">
 			<a
 				href="https://discord.gg/qdRumMNB"
 				className="absolute top-4 right-4 z-20"

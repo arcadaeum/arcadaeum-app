@@ -56,12 +56,12 @@ export default function CreateAccountPage() {
 	return (
 		<>
 			<NavigationBar />
-			<div className="flex flex-col items-center font-main min-h-screen pt-50 px-4">
+			<div className="flex flex-col items-center font-title min-h-screen pt-50 px-4">
 				<form
 					onSubmit={handleSubmit}
 					className="w-full max-w-md bg-arcade-black/80 p-8 rounded-lg border border-arcade-gold"
 				>
-					<h1 className="text-2xl font-secondary text-center mb-6">Create Account</h1>
+					<h1 className="text-2xl font-default text-center mb-6">Create Account</h1>
 
 					<label className="block mb-3">
 						<span className="text-sm text-gray-300">Email</span>

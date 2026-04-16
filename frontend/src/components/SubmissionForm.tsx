@@ -40,7 +40,7 @@ function SubmissionForm({
 			/>
 			<button
 				type="submit"
-				className="bg-arcade-red text-white px-4 py-2 rounded hover:bg-white hover:text-arcade-red transition-colors duration-100 drop-shadow-[0_0_5px_#ff2a2a]"
+				className="bg-arcade-white text-white px-4 py-2 rounded hover:bg-white hover:text-arcade-white transition-colors duration-100 drop-shadow-[0_0_5px_#ff2a2a]"
 			>
 				Submit
 			</button>

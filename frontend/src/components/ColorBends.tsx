@@ -274,9 +274,9 @@ export default function ColorBends({
 		const getCssVar = (name: string) =>
 			getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "";
 		const defaultPalette = [
-			getCssVar("--color-arcade-orange") || "#5647f1",
-			getCssVar("--color-arcade-yellow") || "#37b0ea",
-			getCssVar("--color-arcade-red") || "#8622c2",
+			getCssVar("--color-arcade-blue") || "#5647f1",
+			getCssVar("--color-arcade-violet") || "#37b0ea",
+			getCssVar("--color-arcade-white") || "#8622c2",
 		];
 		const sourceColors = (colors && colors.length > 0 ? colors : defaultPalette)
 			.filter(Boolean)
