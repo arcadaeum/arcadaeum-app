@@ -107,6 +107,7 @@ function SignInPage() {
 									className="w-full px-4 py-2 pr-10 bg-arcade-white text-arcade-black font-kilimanjaro rounded border border-arcade-blue/50 focus:border-arcade-blue focus:outline-none"
 									required
 								/>
+								
 								<button
 									type="button"
 									onMouseDown={() => setShowPassword((s) => !s)}
@@ -123,13 +124,22 @@ function SignInPage() {
 								</button>
 							</div>
 						</div>
-
+						<div className="text-right">
 						<button
-							type="submit"
-							className="w-full bg-arcade-blue text-arcade-black font-default py-3 rounded-full hover:bg- transition-colors"
+							type="button"
+							onClick={() => navigate("/forgot-password")}
+							className="text-arcade-blue hover:text-arcade-white text-sm font-kilimanjaro transition-colors"
 						>
-							Sign In
+							Forgot password?
 						</button>
+					</div>
+
+					<button
+						type="submit"
+						className="w-full bg-arcade-blue text-arcade-black font-default py-3 rounded-full hover:bg- transition-colors"
+					>
+						Sign In
+					</button>
 					</form>
 
 					<div className="mt-6">

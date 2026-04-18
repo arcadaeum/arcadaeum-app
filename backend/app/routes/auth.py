@@ -14,9 +14,20 @@ from app.auth import (
     get_password_hash,
     get_current_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    create_password_reset_link,
+    reset_password_with_token,
 )
+
+from app.models import (
+    User,
+    Token,
+    RegisterRequest,
+    PasswordResetRequest,
+    PasswordReset,
+    PasswordResetResponse,
+)
+
 from app.database import create_user, get_user_by_email, update_user_display_name
-from app.models import User, Token, RegisterRequest
 
 router = APIRouter()
 
@@ -144,3 +155,22 @@ async def proxy_profile_image(url: str):
     async with httpx.AsyncClient() as client:
         r = await client.get(url)
         return Response(content=r.content, media_type=r.headers.get("content-type", "image/jpeg"))
+
+
+# ── Password reset ─────────────────────────────────────────────────
+
+
+@router.post("/password-reset/request", response_model=PasswordResetResponse)
+async def request_password_reset(req: PasswordResetRequest):
+    """Request a password reset by providing an email address."""
+    result = await create_password_reset_link(req.email)
+    return PasswordResetResponse(message=result["message"])
+
+
+@router.post("/password-reset/reset", response_model=PasswordResetResponse)
+async def reset_password(req: PasswordReset):
+    """Reset password using a valid reset token."""
+    result = reset_password_with_token(req.token, req.new_password)
+    if not result["success"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result["message"])
+    return PasswordResetResponse(message=result["message"])

@@ -1,6 +1,7 @@
 # backend/app/auth.py
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+import secrets
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -10,6 +11,7 @@ from pydantic import BaseModel
 from app.models import User, UserInDB, TokenData
 import os
 
+from app.services.email import send_password_reset_email
 from app import database
 
 # Authentication utilities for handling user authentication, password hashing, and JWT token management.
@@ -94,3 +96,74 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     """Get the current active user"""
     return current_user
+
+
+# Password reset functionality
+
+
+def generate_reset_token() -> str:
+    """Generate a secure random reset token."""
+    return secrets.token_urlsafe(32)
+
+
+async def create_password_reset_link(
+    email: str, frontend_url: str = "http://localhost:5173"
+) -> dict:
+    """Create and send a password reset token for a user."""
+    # Find user by email
+    user = database.get_user_by_email(email)
+
+    if not user:
+        # Don't reveal if email exists
+        return {
+            "success": True,
+            "message": "If an account with that email exists, a reset link has been sent.",
+        }
+
+    # Generate reset token
+    reset_token = generate_reset_token()
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+
+    # Store token in database
+    stored = database.create_password_reset_token(user["id"], reset_token, expires_at)
+
+    if not stored:
+        return {"success": False, "message": "Failed to create reset token"}
+
+    # Send email
+    email_sent = await send_password_reset_email(email, reset_token, frontend_url)
+
+    if not email_sent:
+        return {"success": False, "message": "Failed to send reset email"}
+
+    return {
+        "success": True,
+        "message": "If an account with that email exists, a reset link has been sent.",
+    }
+
+
+def reset_password_with_token(token: str, new_password: str) -> dict:
+    """Verify token and reset user's password."""
+    # Get token from database
+    token_data = database.get_password_reset_token(token)
+
+    if not token_data:
+        return {"success": False, "message": "Invalid or expired reset token"}
+
+    # Check if token is expired
+    if token_data["expires_at"] < datetime.now(timezone.utc):
+        return {"success": False, "message": "Reset token has expired"}
+
+    # Hash new password
+    password_hash = get_password_hash(new_password)
+
+    # Update user's password
+    updated = database.update_user_password(token_data["user_id"], password_hash)
+
+    if not updated:
+        return {"success": False, "message": "Failed to update password"}
+
+    # Mark token as used
+    database.mark_reset_token_as_used(token_data["id"])
+
+    return {"success": True, "message": "Password has been reset successfully"}

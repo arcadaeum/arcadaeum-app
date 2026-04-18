@@ -64,3 +64,16 @@ class RegisterRequest(BaseModel):
     username: str
     email: str
     password: str
+
+
+class PasswordResetRequest(BaseModel):
+    email: str
+
+
+class PasswordReset(BaseModel):
+    token: str
+    new_password: str
+
+
+class PasswordResetResponse(BaseModel):
+    message: str
