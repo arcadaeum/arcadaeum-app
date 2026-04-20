@@ -150,8 +150,12 @@ def reset_password_with_token(token: str, new_password: str) -> dict:
     if not token_data:
         return {"success": False, "message": "Invalid or expired reset token"}
 
-    # Check if token is expired
-    if token_data["expires_at"] < datetime.now(timezone.utc):
+    # Check if token is expired (ensure timezone awareness for comparison)
+    expires_at = token_data["expires_at"]
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at < datetime.now(timezone.utc):
         return {"success": False, "message": "Reset token has expired"}
 
     # Hash new password
