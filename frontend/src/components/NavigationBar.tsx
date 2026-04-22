@@ -48,6 +48,15 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 				{isAuthenticated && (
 					<>
 						<Link
+							to="/browse"
+							className={
+								actionClassName +
+								" relative cursor-pointer hover:scale-110 transition-transform drop-shadow-[0_0_1px_#fefddc]"
+							}
+						>
+							BROWSE
+						</Link>
+						<Link
 							to="/user"
 							className={
 								actionClassName +
