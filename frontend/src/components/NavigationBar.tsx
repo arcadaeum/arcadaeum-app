@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import GameSearch from "./GameSearch";
 import pngLogo from "../assets/images/LOGO_PURPLE.png";
 
 type NavigationBarProps = {
@@ -28,6 +29,9 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 					className="h-15 w-15p-1 rounded-br-2xl rounded-tl-2xl cursor-pointer hover:scale-110 transition-transform"
 				/>
 			</Link>
+
+			{/* Search bar in center */}
+			{<GameSearch />}
 
 			{/* Right-side links */}
 			<div className="flex items-center gap-4 ">
