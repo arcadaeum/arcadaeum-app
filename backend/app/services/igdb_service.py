@@ -36,7 +36,7 @@ class IGDBService:
         }
 
         query = f"""
-        fields name, summary, cover.image_id, platforms.name, first_release_date, total_rating;
+        fields name, summary, cover.image_id, platforms.name, genres.name, first_release_date, total_rating;
         sort total_rating_count desc;
         where total_rating_count > 0;
         limit {limit};
