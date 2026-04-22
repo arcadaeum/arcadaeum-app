@@ -40,6 +40,6 @@
 /* Global styles */
 body {
 	font-family: var(--font-default);
-	background-color: black;
+	background-color: var(--color-arcade-black);
 	color: white;
 }

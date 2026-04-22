@@ -19,17 +19,18 @@ export default function GameCard({ id, title, image, onClick }: GameCardProps) {
 		<div
 			onClick={handleClick}
 			role="button"
-			className="w-56 min-w-[14rem] cursor-pointer select-none rounded-lg overflow-hidden bg-arcade-black drop-shadow-lg"
+			className="group min-w-[10rem] cursor-pointer select-none rounded-sm overflow-hidden bg-arcade-black duration-200 drop-shadow-lg"
 		>
-			<div className="w-full h-36 bg-gray-800">
+			<div className="w-full h-full bg-gray-800 relative">
 				<img
 					src={
 						image ??
 						`https://via.placeholder.com/320x180?text=${encodeURIComponent(title)}`
 					}
 					alt={title}
-					className="w-full h-full object-cover"
+					className="w-full h-full object-cover relative z-0 block"
 				/>
+				<div className="pointer-events-none absolute inset-0 z-10 rounded-sm transition-all duration-200 border-4 border-transparent group-hover:border-arcade-white box-border" />
 			</div>
 			<div className="px-3 py-2">
 				<div className="text-sm font-default text-arcade-white truncate">{title}</div>

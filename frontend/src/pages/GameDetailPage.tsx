@@ -88,26 +88,37 @@ export default function GameDetailPage() {
 				</button>
 
 				<div className="flex gap-8 items-start">
-					<div className="w-82">
-						{/* Game image */}
-						<img
-							src={game?.cover_url ?? undefined}
-							alt={game?.title}
-							className="rounded-lg shadow-lg object-cover h-64"
-						/>
+					<div className="w-82 relative">
+						{/* Game image with overlayed favourite */}
+						<div className="relative">
+							<img
+								src={game?.cover_url ?? undefined}
+								alt={game?.title}
+								className="rounded-lg shadow-lg object-cover h-64 w-full"
+							/>
 
-						{/* Favourite buttons */}
-
-						<button
-							className="flex gap-2 mt-4 justify-content text-sm text-arcade-white font-secondary border-2 border-arcade-white rounded-lg p-4"
-							onClick={() => setFavourited(!favourited)}
-						>
-							{favourited ? (
-								<img src={heartIconFilled} alt="Favourite" className="w-6 h-6" />
-							) : (
-								<img src={heartIconUnfilled} alt="Favourite" className="w-6 h-6" />
-							)}
-						</button>
+							<div className="absolute inset-0 z-30 flex items-end mb-1 justify-center pointer-events-none">
+								<button
+									aria-label="Favourite"
+									onClick={() => setFavourited(!favourited)}
+									className="opacity-0 pointer-events-auto text-arcade-white bg-arcade-black rounded-full p-1 transition-transform hover:scale-110 hover:opacity-100 duration-100"
+								>
+									{favourited ? (
+										<img
+											src={heartIconFilled}
+											alt="Favourite"
+											className="w-5 h-5"
+										/>
+									) : (
+										<img
+											src={heartIconUnfilled}
+											alt="Favourite"
+											className="w-5 h-5"
+										/>
+									)}
+								</button>
+							</div>
+						</div>
 					</div>
 
 					{/* Game title and summary */}
