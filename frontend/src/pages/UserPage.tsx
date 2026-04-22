@@ -28,7 +28,7 @@ function UserPage() {
 
 	const borderColors = [
 		"border-arcade-blue",
-		"border-",
+		"border-arcade-violet",
 		"border-arcade-white",
 		"border-arcade-purple",
 	] as const;
@@ -57,6 +57,7 @@ function UserPage() {
 			.finally(() => setLoading(false));
 	}, [navigate]);
 
+	// Intersection observer to show header when profile section is scrolled out of view.
 	useEffect(() => {
 		const el = profileRef.current;
 		if (!el) return;
