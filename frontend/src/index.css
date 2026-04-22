@@ -7,6 +7,7 @@
 }
 
 @theme {
+<<<<<<< Updated upstream
 	--font-main: "Title_Font", sans-serif;
 	--font-secondary: Arial, Helvetica, sans-serif;
 	--color-arcade-black: #0e0e0e;
@@ -14,4 +15,26 @@
 	--color-arcade-orange: #ff7a00;
 	--color-arcade-red: #ff2a2a;
 	--color-arcade-gold: #ffb300;
+=======
+	--font-title: "Title_Font", sans-serif;
+	--font-secondary: "Secondary_Font", sans-serif;
+	--font-default: Arial, Helvetica, sans-serif;
+
+	/* not currently in use */
+	--font-ronda: "Ronda", sans-serif;
+	--font-kilimanjaro: "Kilimanjaro", sans-serif;
+
+	--color-arcade-black: #191617;
+	--color-arcade-violet: #5647f1;
+	--color-arcade-blue: #37b0ea;
+	--color-arcade-white: #ece4d5;
+	--color-arcade-purple: #8122c0;
+}
+
+/* Global styles */
+body {
+	font-family: var(--font-default);
+	background-color: var(--color-arcade-black);
+	color: white;
+>>>>>>> Stashed changes
 }
