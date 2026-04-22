@@ -4,6 +4,8 @@ import GameCard from "../components/GameCard";
 import { useEffect, useState } from "react";
 
 function BrowsePage() {
+	const PAGE_SIZE = 50;
+
 	type Game = {
 		id: number;
 		title: string;
@@ -11,8 +13,13 @@ function BrowsePage() {
 	};
 
 	const [games, setGames] = useState<Game[]>([]);
+	const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-	// Get games from the URL, This needs to be changed to get favourites instead of popular.
+	// A slice of all visible games
+	const visibleGames = games.slice(0, visibleCount);
+	const hasMoreGames = visibleCount < games.length;
+
+	// Get games from the backend
 	useEffect(() => {
 		const url = import.meta.env.VITE_API_URL;
 
@@ -22,9 +29,16 @@ function BrowsePage() {
 				if (!res.ok) throw new Error("Failed to fetch games");
 				return res.json();
 			})
-			.then((data: Game[]) => setGames(data))
+			.then((data: Game[]) => {
+				setGames(data);
+				setVisibleCount(PAGE_SIZE);
+			})
 			.catch(() => setGames([]));
 	}, []);
+
+	const handleLoadMore = () => {
+		setVisibleCount((prev) => prev + PAGE_SIZE);
+	};
 
 	return (
 		<>
@@ -46,7 +60,7 @@ function BrowsePage() {
 
 			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
 				<h1
-					className="w-full mt-25 text-2xl font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter"
+					className="w-full mt-25 text-4xl font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter"
 					style={{ textShadow: "0 0 2px #fefddc" }}
 				>
 					Browse
@@ -55,18 +69,27 @@ function BrowsePage() {
 					Discover new games and explore your library.
 				</p>
 				<div className="w-full max-w-7xl mx-auto px-4 py-6">
-					{" "}
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-						{" "}
-						{games.map((game) => (
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+						{visibleGames.map((game) => (
 							<GameCard
 								key={game.id}
 								id={game.id}
 								title={game.title}
 								image={game.cover_url}
 							/>
-						))}{" "}
-					</div>{" "}
+						))}
+					</div>
+
+					{hasMoreGames && (
+						<div className="mt-8 flex justify-center">
+							<button
+								onClick={handleLoadMore}
+								className="bg-arcade-black hover:bg-arcade-blue text-arcade-white font-title py-2 px-6 border-2 border-arcade-white rounded-lg"
+							>
+								Load 50 More
+							</button>
+						</div>
+					)}
 				</div>
 			</div>
 		</>
