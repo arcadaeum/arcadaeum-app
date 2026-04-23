@@ -23,12 +23,7 @@ def create_tables():
     create_games_table()  # Creates the games table if it doesn't exist
     create_user_library_table()  # Creates the user_library table if it doesn't exist
     create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
-<<<<<<< Database_Work
     create_user_followers_table()  # Creates the user followers table if it doesn't exist
-    create_user_following_table()  # Creates the user following table if it doesn't exist
-=======
-    create_user_followers_table()  # Creates the user_followers table if it doesn't exist
->>>>>>> dev
 
 
 def create_users_table():
@@ -148,39 +143,6 @@ def create_user(
             )
             return cur.fetchone()[0]
 
-def create_user_followers_table():
-    """Creates the user followers table if it doesn't exist"""
-    with get_database_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS user_followers (
-                    id serial PRIMARY KEY,
-                    userid integer NOT NULL REFERENCES users(id),
-                    follower_user_id integer NOT NULL REFERENCES users(id),
-                    UNIQUE(userid, follower_user_id)
-                )
-                """
-            )
-            conn.commit()
-
-def create_user_following_table():
-    """Creates the user following table if it doesn't exist"""
-    with get_database_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS user_follow (
-                    id serial PRIMARY KEY,
-                    userid integer NOT NULL REFERENCES users(id),
-                    following_user_id integer NOT NULL REFERENCES users(id),
-                    UNIQUE(userid, following_user_id)
-                )
-                """
-            )
-            conn.commit()
-
-
 
 def get_user_by_username(username: str):
     with get_database_connection() as conn:
@@ -201,6 +163,7 @@ def get_user_by_username(username: str):
                 )
     return None
 
+
 def get_user_followers(user_id: int):
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -210,12 +173,13 @@ def get_user_followers(user_id: int):
             )
             rows = cur.fetchall()
             return [row[0] for row in rows]
-        
+
+
 def get_user_following(user_id: int):
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT following_user_id FROM user_following WHERE userid = %s",
+                "SELECT userid FROM user_followers WHERE follower_user_id = %s",
                 (user_id,),
             )
             rows = cur.fetchall()
