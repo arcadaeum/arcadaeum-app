@@ -19,17 +19,18 @@ def get_database_connection():
 
 def create_tables():
     """Create the necessary tables in the database if they don't exist."""
+    create_users_table()  # Creates the users table if it doesn't exist
+    create_games_table()  # Creates the games table if it doesn't exist
+    create_user_library_table()  # Creates the user_library table if it doesn't exist
+    create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
+    create_user_followers_table()  # Creates the user_followers table if it doesn't exist
+
+
+def create_users_table():
+    """Creates the users table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(  # Creates the favourite_submissions table if it doesn't exist
-                """
-                CREATE TABLE IF NOT EXISTS favourite_submissions (
-                    id serial PRIMARY KEY,
-                    title text,
-                    timestamp timestamp)
-                """
-            )
-            cur.execute(  # Creates the users table if it doesn't exist
+            cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS users (
                     id serial PRIMARY KEY,
@@ -42,14 +43,21 @@ def create_tables():
                     profile_picture text)
                 """
             )
+            conn.commit()
 
-            cur.execute(  # Creates the games table if it doesn't exists
+
+def create_games_table():
+    """Creates the games table if it doesn't exists"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS games (
                     id serial PRIMARY KEY,
                     igdb_id integer UNIQUE NOT NULL,
                     title text NOT NULL,
                     summary text,
+                    developer text,
                     cover_url text,
                     platforms text[],
                     genres text[],
@@ -59,7 +67,21 @@ def create_tables():
                 """
             )
 
-            cur.execute(  # Creates the user_library table if it doesn't exist
+            # Ensure older deployments get the new column without manual migration.
+            cur.execute(
+                """
+                ALTER TABLE games
+                ADD COLUMN IF NOT EXISTS developer text
+                """
+            )
+            conn.commit()
+
+
+def create_user_library_table():
+    """Creates the user_library table if it doesn't exist"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS user_library (
                     id serial PRIMARY KEY,
@@ -72,12 +94,23 @@ def create_tables():
                     UNIQUE(user_id, game_id))
                 """
             )
+            conn.commit()
 
-            cur.execute
 
-            conn.commit()  # Makes permanent changes to the database
-
-    create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
+def create_user_followers_table():
+    """Creates the user_followers table if it doesn't exist"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_followers (
+                    id serial PRIMARY KEY,
+                    userid integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    follower_user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    UNIQUE(userid, follower_user_id))
+                """
+            )
+            conn.commit()
 
 
 def create_user(
@@ -165,6 +198,7 @@ def add_game_to_db(
     igdb_id: int,
     title: str,
     summary: Optional[str] = None,
+    developer: Optional[str] = None,
     cover_url: Optional[str] = None,
     platforms: Optional[list[str]] = None,
     genres: Optional[list[str]] = None,
@@ -181,11 +215,12 @@ def add_game_to_db(
 
             cur.execute(
                 """
-                INSERT INTO games (igdb_id, title, summary, cover_url, platforms, genres, release_date, igdb_rating)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO games (igdb_id, title, summary, developer, cover_url, platforms, genres, release_date, igdb_rating)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (igdb_id) DO UPDATE SET
                     title = EXCLUDED.title,
                     summary = EXCLUDED.summary,
+                    developer = EXCLUDED.developer,
                     cover_url = EXCLUDED.cover_url,
                     platforms = EXCLUDED.platforms,
                     genres = EXCLUDED.genres,
@@ -197,6 +232,7 @@ def add_game_to_db(
                     igdb_id,
                     title,
                     summary,
+                    developer,
                     cover_url,
                     platforms,
                     genres,

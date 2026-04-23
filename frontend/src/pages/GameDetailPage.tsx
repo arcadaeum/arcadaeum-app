@@ -11,6 +11,7 @@ type Game = {
 	title: string;
 	cover_url?: string | null;
 	summary?: string | null;
+	developer?: string | null;
 	igdb_rating?: number | null;
 	platforms?: string[] | null;
 	release_date?: string | null;
@@ -49,6 +50,7 @@ export default function GameDetailPage() {
 					summary:
 						"This is a placeholder game page. When the game API is available, real metadata and images will be shown here.",
 					igdb_rating: null,
+					developer: null,
 					platforms: null,
 					release_date: null,
 					created_at: null,
@@ -66,7 +68,7 @@ export default function GameDetailPage() {
 		<>
 			<NavigationBar />
 			<ColorBends
-				className="fixed inset-0 -z-10 pointer-events-none opacity-90"
+				className="fixed inset-0 -z-10 pointer-events-none opacity-90 blur-3xl"
 				rotation={32}
 				colors={["#8122c0", "#5647f1", "#37b0ea"]}
 				speed={0.2}
@@ -79,41 +81,110 @@ export default function GameDetailPage() {
 				transparent
 				autoRotate={0}
 			/>
-			<div className="min-h-screen font-title px-16 pt-36 text-arcade-white">
-				<button
-					onClick={() => navigate(-1)}
-					className="mb-4 text-sm font-default text-arcade-white border rounded px-3 py-1"
-				>
-					Back
-				</button>
-
+			<div className="min-h-screen ml-16 font-title px-16 pt-36 text-arcade-white">
 				<div className="flex gap-8 items-start">
-					<div className="w-82">
-						{/* Game image */}
-						<img
-							src={game?.cover_url ?? undefined}
-							alt={game?.title}
-							className="rounded-lg shadow-lg object-cover h-64"
-						/>
+					<div className="w-1/3 max-w-md">
+						{/* Game image with overlayed favourite */}
+						<div className="relative pb-8">
+							<img
+								src={game?.cover_url ?? undefined}
+								alt={game?.title}
+								className="shadow-lg object-cover rounded-xl h-auto w-full border-5 border-arcade-white"
+							/>
 
-						{/* Favourite buttons */}
+							<div className="absolute inset-0 z-30 flex items-end mb-1 justify-center pointer-events-none">
+								<button
+									aria-label="Favourite"
+									onClick={() => setFavourited(!favourited)}
+									className="opacity-0 pointer-events-auto text-arcade-white bg-arcade-black rounded-full p-1 transition-transform hover:scale-110 hover:opacity-100 duration-100"
+								>
+									{favourited ? (
+										<img
+											src={heartIconFilled}
+											alt="Favourite"
+											className="w-5 h-5"
+										/>
+									) : (
+										<img
+											src={heartIconUnfilled}
+											alt="Favourite"
+											className="w-5 h-5"
+										/>
+									)}
+								</button>
+							</div>
 
-						<button
-							className="flex gap-2 mt-4 justify-content text-sm text-arcade-white font-secondary border-2 border-arcade-white rounded-lg p-4"
-							onClick={() => setFavourited(!favourited)}
-						>
-							{favourited ? (
-								<img src={heartIconFilled} alt="Favourite" className="w-6 h-6" />
-							) : (
-								<img src={heartIconUnfilled} alt="Favourite" className="w-6 h-6" />
-							)}
-						</button>
+							{/* Floating favourite button beneath artwork */}
+							<button
+								aria-label="Favourite floating"
+								onClick={() => setFavourited(!favourited)}
+								className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 z-40 pointer-events-auto bg-arcade-black text-arcade-white rounded-full p-3 shadow-lg hover:scale-105 transition-transform duration-150"
+							>
+								{favourited ? (
+									<img
+										src={heartIconFilled}
+										alt="Favourite"
+										className="w-6 h-6"
+									/>
+								) : (
+									<img
+										src={heartIconUnfilled}
+										alt="Favourite"
+										className="w-6 h-6"
+									/>
+								)}
+							</button>
+						</div>
 					</div>
 
 					{/* Game title and summary */}
 					<div className="flex-col h-full w-full">
 						<h1 className="text-4xl font-title mt-4">{game?.title}</h1>
-						<p className="mt-4 text-sm font-default text-gray-200">{game?.summary}</p>
+						<h2 className="text-xl font-default text-gray-300 mt-2">
+							<i>
+								{game?.developer ?? "Unknown developer"},{" "}
+								{game?.release_date?.slice(0, 4) ?? "-"}
+							</i>
+						</h2>
+						<p className="mt-8 text-md font-default text-gray-200rounded-lg  flex-1 overflow-auto">
+							{game?.summary}
+						</p>
+						<div className="flex-col mt-16 h-full w-full ">
+							<p>
+								Additional content can go here, such as screenshots, videos,
+								reviews, etc.
+							</p>
+						</div>
+						<div className="flex flex-col gap-4 mt-8 bg-arcade-black rounded-lg p-4">
+							<h2 className="text-2xl font-title">Reviews</h2>
+							<div className="flex justify-start">
+								<button
+									onClick={() => navigate(`/games/${game?.id}/add-review`)}
+									className="text-arcade-white border border-arcade-white rounded px-4 py-2 hover:bg-arcade-white hover:text-arcade-black transition-colors duration-200"
+								>
+									Add Review
+								</button>
+							</div>
+							{/* Placeholder review cards - replace with real data when available */}
+							<div className="grid gap-4 mt-2">
+								<div className="bg-arcade-black/60 rounded-lg p-3">
+									<div className="text-sm font-default text-gray-300">
+										User123 · 2024-01-01
+									</div>
+									<div className="mt-2 text-md font-default text-gray-200">
+										Great game — loved the soundtrack and levels.
+									</div>
+								</div>
+								<div className="bg-arcade-black/60 rounded-lg p-3">
+									<div className="text-sm font-default text-gray-300">
+										PlayerTwo · 2024-02-14
+									</div>
+									<div className="mt-2 text-md font-default text-gray-200">
+										Challenging but rewarding. Would recommend.
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 
 					{/* Sidebar */}

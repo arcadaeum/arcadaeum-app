@@ -4,11 +4,6 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-# Landing Page Submission
-class Submission(BaseModel):
-    title: str
-
-
 # Pydantic models used in responses / type hints
 class Token(BaseModel):
     access_token: str
@@ -32,6 +27,7 @@ class Game(BaseModel):
     igdb_id: int
     title: str
     summary: Optional[str] = None
+    developer: Optional[str] = None
     cover_url: Optional[str] = None
     platforms: Optional[list[str]] = None
     release_date: Optional[str] = None
@@ -43,6 +39,11 @@ class GameSearchResult(BaseModel):
     title: str
     cover_url: Optional[str] = None
     release_date: Optional[str] = None
+
+
+class UserFollowers(BaseModel):
+    userid: int
+    follower_user_id: int
 
 
 class UserLibraryEntry(BaseModel):
