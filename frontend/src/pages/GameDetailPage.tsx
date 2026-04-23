@@ -11,6 +11,7 @@ type Game = {
 	title: string;
 	cover_url?: string | null;
 	summary?: string | null;
+	developer?: string | null;
 	igdb_rating?: number | null;
 	platforms?: string[] | null;
 	release_date?: string | null;
@@ -49,6 +50,7 @@ export default function GameDetailPage() {
 					summary:
 						"This is a placeholder game page. When the game API is available, real metadata and images will be shown here.",
 					igdb_rating: null,
+					developer: null,
 					platforms: null,
 					release_date: null,
 					created_at: null,
@@ -140,7 +142,8 @@ export default function GameDetailPage() {
 						<h1 className="text-4xl font-title mt-4">{game?.title}</h1>
 						<h2 className="text-xl font-default text-gray-300 mt-2">
 							<i>
-								{"<Developer goes here>"}, {game?.release_date?.slice(0, 4) ?? "-"}
+								{game?.developer ?? "Unknown developer"},{" "}
+								{game?.release_date?.slice(0, 4) ?? "-"}
 							</i>
 						</h2>
 						<p className="mt-8 text-md font-default text-gray-200rounded-lg  flex-1 overflow-auto">
