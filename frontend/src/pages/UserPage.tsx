@@ -160,13 +160,13 @@ function UserPage() {
 							</div>
 						)}
 					</div>
-					<div className="pointer-events-none absolute -left-16 top-1/2 z-0 -translate-y-1/2 flex flex-col w-screen">
-						<div className="h-5 w-screen bg-arcade-white" />
-						<div className="h-5 w-screen bg-arcade-blue" />
-						<div className="h-5 w-screen bg-arcade-violet" />
-						<div className="h-5 w-screen bg-arcade-purple" />
+					<div className="mt-2 pointer-events-none absolute -left-16 top-1/2 z-0 -translate-y-1/2 flex flex-col w-screen">
+						<div className="h-12 w-screen mb-1 bg-arcade-white" />
+						<div className="h-7 w-screen mb-1 bg-arcade-blue" />
+						<div className="h-5 w-screen mb-1 bg-arcade-violet" />
+						<div className="h-3 w-screen mb-1 bg-arcade-purple" />
 					</div>
-					<div className="relative z-10 -mt-40 self-center flex flex-col pl-10">
+					<div className="relative z-10 -mt-40 self-center flex flex-col pl-10 ">
 						<h1 className="text-6xl font-title text-arcade-white flex items-center gap-2 whitespace-nowrap mb-2 tracking-tighter">
 							{editing ? (
 								<>
@@ -205,7 +205,7 @@ function UserPage() {
 					</div>
 				</div>
 				<div
-					className="flex gap-6 -mt-16 font-default text-xs text-gray-400 tracking-wider items-center"
+					className="flex gap-6 -mt-11 font-default text-xs text-gray-400 tracking-wider items-center"
 					style={{ marginLeft: "28.5rem" }}
 				>
 					<span>
