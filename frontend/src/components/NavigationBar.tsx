@@ -63,7 +63,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 						to="/signin"
 						className={
 							actionClassName +
-							" relative cursor-pointer hover:scale-110 transition-transform drop-shadow-[0_0_1px_#fefddc]"
+							" relative cursor-pointer hover:scale-110 transition-transform"
 						}
 					>
 						SIGN IN
@@ -72,10 +72,19 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 				{isAuthenticated && (
 					<>
 						<Link
+							to="/browse"
+							className={
+								actionClassName +
+								" relative cursor-pointer hover:scale-110 transition-transform"
+							}
+						>
+							BROWSE
+						</Link>
+						<Link
 							to="/user"
 							className={
 								actionClassName +
-								" relative cursor-pointer hover:scale-110 transition-transform drop-shadow-[0_0_1px_#fefddc]"
+								" relative cursor-pointer hover:scale-110 transition-transform "
 							}
 						>
 							USER PAGE
@@ -85,7 +94,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 							onClick={handleLogout}
 							className={
 								actionClassName +
-								" cursor-pointer hover:scale-110 transition-transform drop-shadow-[0_0_1px_#fefddc]"
+								" cursor-pointer hover:scale-110 transition-transform"
 							}
 						>
 							LOGOUT

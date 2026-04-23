@@ -23,7 +23,7 @@ def create_tables():
     create_games_table()  # Creates the games table if it doesn't exist
     create_user_library_table()  # Creates the user_library table if it doesn't exist
     create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
-    create_user_followers_table()  # Creates the user_followers table if it doesn't exist
+    create_user_followers_table()  # Creates the user followers table if it doesn't exist
 
 
 def create_users_table():
@@ -162,6 +162,28 @@ def get_user_by_username(username: str):
                     profile_picture=row[5],
                 )
     return None
+
+
+def get_user_followers(user_id: int):
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT follower_user_id FROM user_followers WHERE userid = %s",
+                (user_id,),
+            )
+            rows = cur.fetchall()
+            return [row[0] for row in rows]
+
+
+def get_user_following(user_id: int):
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT userid FROM user_followers WHERE follower_user_id = %s",
+                (user_id,),
+            )
+            rows = cur.fetchall()
+            return [row[0] for row in rows]
 
 
 def get_user_by_email(email: str):
