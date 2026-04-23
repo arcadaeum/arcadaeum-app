@@ -36,10 +36,24 @@ def cache_popular_games(limit: int = 500):
                     if isinstance(genre, dict) and genre.get("name"):
                         genre_names.append(genre["name"])
 
+                developer_names = []
+                for involved_company in game_data.get("involved_companies", []):
+                    if not isinstance(involved_company, dict):
+                        continue
+                    if not involved_company.get("developer"):
+                        continue
+
+                    company = involved_company.get("company")
+                    if isinstance(company, dict) and company.get("name"):
+                        developer_names.append(company["name"])
+
+                developer = ", ".join(developer_names) if developer_names else None
+
                 add_game_to_db(
                     igdb_id=game_data.get("id"),
                     title=game_data.get("name"),
                     summary=game_data.get("summary"),
+                    developer=developer,
                     cover_url=cover_url,
                     platforms=platform_names,
                     genres=genre_names,

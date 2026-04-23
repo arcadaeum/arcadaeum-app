@@ -10,7 +10,7 @@ def get_games():
         with conn.cursor() as cur:
             cur.execute(
                 """
-				SELECT id, igdb_id, title, summary, cover_url, platforms, release_date, igdb_rating, created_at
+                SELECT id, igdb_id, title, summary, developer, cover_url, platforms, release_date, igdb_rating, created_at
 				FROM games
 				ORDER BY id DESC
 				"""
@@ -27,7 +27,7 @@ def get_game(game_id: int):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, igdb_id, title, summary, cover_url, platforms, release_date, igdb_rating, created_at
+                SELECT id, igdb_id, title, summary, developer, cover_url, platforms, release_date, igdb_rating, created_at
                 FROM games
                 WHERE id = %s
                 """,
