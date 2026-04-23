@@ -36,7 +36,7 @@ class IGDBService:
         }
 
         query = f"""
-        fields name, summary, cover.image_id, platforms.name, genres.name, first_release_date, total_rating;
+        fields id, name, summary, involved_companies.company.name, involved_companies.developer, cover.image_id, platforms.name, genres.name, first_release_date, total_rating;
         sort total_rating_count desc;
         where total_rating_count > 0;
         limit {limit};
@@ -48,6 +48,56 @@ class IGDBService:
 
         if response.status_code == 200:
             return response.json()
+        raise HTTPException(
+            status_code=response.status_code, detail=f"IGDB Fetch Failed: {response.text}"
+        )
+
+    # Search for games by name
+    def search_games(self, query: str, limit: int = 10):
+        """Search IGDB for games by name"""
+        if not self.access_token:
+            self.access_token = self.get_access_token()
+
+        headers = {
+            "Client-ID": self.client_id,
+            "Authorization": f"Bearer {self.access_token}",
+        }
+
+        igdb_query = f"""
+        search "{query}";
+        fields name, cover.image_id;
+        limit {limit};
+        """
+
+        response = requests.post(f"{self.base_url}/games", headers=headers, data=igdb_query)
+
+        if response.status_code == 200:
+            return response.json()
+        raise HTTPException(
+            status_code=response.status_code, detail=f"IGDB Search Failed: {response.text}"
+        )
+
+    # Fetch game details by IGDB ID
+    def fetch_game_by_id(self, igdb_id: int):
+        """Fetch game details from IGDB by ID"""
+        if not self.access_token:
+            self.access_token = self.get_access_token()
+
+        headers = {
+            "Client-ID": self.client_id,
+            "Authorization": f"Bearer {self.access_token}",
+        }
+
+        query = f"""
+        fields name, summary, cover.image_id, platforms.name, genres.name, first_release_date, total_rating;
+        where id = {igdb_id};
+        """
+
+        response = requests.post(f"{self.base_url}/games", headers=headers, data=query)
+
+        if response.status_code == 200:
+            games = response.json()
+            return games[0] if games else None
         raise HTTPException(
             status_code=response.status_code, detail=f"IGDB Fetch Failed: {response.text}"
         )

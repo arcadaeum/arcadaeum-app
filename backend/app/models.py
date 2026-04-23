@@ -27,6 +27,7 @@ class Game(BaseModel):
     igdb_id: int
     title: str
     summary: Optional[str] = None
+    developer: Optional[str] = None
     cover_url: Optional[str] = None
     platforms: Optional[list[str]] = None
     release_date: Optional[str] = None

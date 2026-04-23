@@ -23,8 +23,12 @@ def create_tables():
     create_games_table()  # Creates the games table if it doesn't exist
     create_user_library_table()  # Creates the user_library table if it doesn't exist
     create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
+<<<<<<< Database_Work
     create_user_followers_table()  # Creates the user followers table if it doesn't exist
     create_user_following_table()  # Creates the user following table if it doesn't exist
+=======
+    create_user_followers_table()  # Creates the user_followers table if it doesn't exist
+>>>>>>> dev
 
 
 def create_users_table():
@@ -58,12 +62,21 @@ def create_games_table():
                     igdb_id integer UNIQUE NOT NULL,
                     title text NOT NULL,
                     summary text,
+                    developer text,
                     cover_url text,
                     platforms text[],
                     genres text[],
                     release_date date,
                     igdb_rating real,
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP)
+                """
+            )
+
+            # Ensure older deployments get the new column without manual migration.
+            cur.execute(
+                """
+                ALTER TABLE games
+                ADD COLUMN IF NOT EXISTS developer text
                 """
             )
             conn.commit()
@@ -84,6 +97,22 @@ def create_user_library_table():
                     rating real,
                     notes text,
                     UNIQUE(user_id, game_id))
+                """
+            )
+            conn.commit()
+
+
+def create_user_followers_table():
+    """Creates the user_followers table if it doesn't exist"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_followers (
+                    id serial PRIMARY KEY,
+                    userid integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    follower_user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    UNIQUE(userid, follower_user_id))
                 """
             )
             conn.commit()
@@ -227,6 +256,7 @@ def add_game_to_db(
     igdb_id: int,
     title: str,
     summary: Optional[str] = None,
+    developer: Optional[str] = None,
     cover_url: Optional[str] = None,
     platforms: Optional[list[str]] = None,
     genres: Optional[list[str]] = None,
@@ -243,11 +273,12 @@ def add_game_to_db(
 
             cur.execute(
                 """
-                INSERT INTO games (igdb_id, title, summary, cover_url, platforms, genres, release_date, igdb_rating)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO games (igdb_id, title, summary, developer, cover_url, platforms, genres, release_date, igdb_rating)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (igdb_id) DO UPDATE SET
                     title = EXCLUDED.title,
                     summary = EXCLUDED.summary,
+                    developer = EXCLUDED.developer,
                     cover_url = EXCLUDED.cover_url,
                     platforms = EXCLUDED.platforms,
                     genres = EXCLUDED.genres,
@@ -259,6 +290,7 @@ def add_game_to_db(
                     igdb_id,
                     title,
                     summary,
+                    developer,
                     cover_url,
                     platforms,
                     genres,
