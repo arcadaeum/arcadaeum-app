@@ -18,7 +18,3 @@ grant_type=&username=Lennick&password=s3cret
 # from the JSON response and paste it below, or use a variable.
 
 ### use the token to hit a protected endpoint
-
-GET http://localhost:8000/submissions
-# Add the token after Bearer when generated from the previous request
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJMZW5uaWNrIiwiZXhwIjoxNzczMjM3NzcyfQ.CgaHD6_kEto4dJywOwSL1UBiPixsmG9Dl7iUA-Mr1QQ
