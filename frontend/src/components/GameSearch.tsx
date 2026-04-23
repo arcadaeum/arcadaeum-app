@@ -3,13 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 
 type Game = {
-	id: number;
+	id?: number;
+	igdb_id?: number;
 	title: string;
 	cover_url: string | null;
+	isFromIGDB?: boolean;
 };
-
-// Search database first by game title
-// Then search IGDB if not found (TO BE ADDED)
 
 export default function GameSearch() {
 	const [searchQuery, setSearchQuery] = useState("");
@@ -21,7 +20,7 @@ export default function GameSearch() {
 	const debounceTimerRef = useRef<NodeJS.Timeout>();
 	const loadingTimerRef = useRef<NodeJS.Timeout>();
 
-	// Debounced search with loading delay
+	// Debounced search with parallel IGDB fallback
 	useEffect(() => {
 		// Clear previous timers
 		if (debounceTimerRef.current) {
@@ -43,20 +42,51 @@ export default function GameSearch() {
 			setIsLoading(true);
 		}, 1000);
 
-		// Debounce the actual search by 200ms
+		// Debounce the actual search by 500ms
 		debounceTimerRef.current = setTimeout(() => {
 			const query = searchQuery.toLowerCase();
 
-			fetch(`${import.meta.env.VITE_API_URL}/games`)
-				.then((res) => res.json())
-				.then((data: Game[]) => {
-					const filtered = data.filter((game) =>
-						game.title.toLowerCase().includes(query),
-					);
-					setResults(filtered.slice(0, 10));
+			// Fetch both database and IGDB in parallel
+			Promise.all([
+				// Search database
+				fetch(`${import.meta.env.VITE_API_URL}/games`)
+					.then((res) => res.json())
+					.catch(() => []),
+				// Search IGDB
+				fetch(
+					`${import.meta.env.VITE_API_URL}/games/search-igdb?q=${encodeURIComponent(
+						query,
+					)}`,
+				)
+					.then((res) => res.json())
+					.catch(() => []),
+			])
+				.then(([dbGames, igdbGames]) => {
+					// Filter database results
+					const dbResults: Game[] = dbGames
+						.filter((game: Game) => game.title.toLowerCase().includes(query))
+						.slice(0, 10);
+
+					// Get all igdb_ids from database results to exclude duplicates
+					const dbIgdbIds = new Set(dbGames.map((game: Game) => game.igdb_id));
+
+					// Format IGDB results and exclude games already in database
+					const igdbResults: Game[] = (igdbGames || [])
+						.filter((game: any) => !dbIgdbIds.has(game.id)) // Exclude duplicates
+						.map((game: any) => ({
+							igdb_id: game.id,
+							title: game.name,
+							cover_url: game.cover_url || null,
+							isFromIGDB: true,
+						}))
+						.slice(0, 5); // Limit IGDB results
+
+					// Combine: database results first, then IGDB results
+					const combinedResults = [...dbResults, ...igdbResults];
+
+					setResults(combinedResults);
 					setIsOpen(true);
 					setIsLoading(false);
-					// Clear the loading timer since the results are now available
 					if (loadingTimerRef.current) {
 						clearTimeout(loadingTimerRef.current);
 					}
@@ -68,7 +98,7 @@ export default function GameSearch() {
 						clearTimeout(loadingTimerRef.current);
 					}
 				});
-		}, 200); // 200ms debounce
+		}, 500);
 
 		return () => {
 			if (debounceTimerRef.current) {
@@ -80,10 +110,39 @@ export default function GameSearch() {
 		};
 	}, [searchQuery]);
 
-	const handleSelectGame = (gameId: number) => {
-		navigate(`/games/${gameId}`);
-		setSearchQuery("");
-		setIsOpen(false);
+	const handleSelectGame = async (game: Game) => {
+		if (game.isFromIGDB && game.igdb_id) {
+			// Add game from IGDB to database
+			try {
+				const response = await fetch(
+					`${import.meta.env.VITE_API_URL}/games/add-from-igdb`,
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({ igdb_id: game.igdb_id }),
+					},
+				);
+
+				if (response.ok) {
+					const newGame = await response.json();
+					// Navigate using the database id returned from the backend
+					navigate(`/games/${newGame.id}`);
+					setSearchQuery("");
+					setIsOpen(false);
+				} else {
+					console.error("Failed to add game to database");
+				}
+			} catch (error) {
+				console.error("Error adding game:", error);
+			}
+		} else if (game.id) {
+			// Game already in database
+			navigate(`/games/${game.id}`);
+			setSearchQuery("");
+			setIsOpen(false);
+		}
 	};
 
 	// Close dropdown when clicking outside
@@ -117,6 +176,7 @@ export default function GameSearch() {
 							setSearchQuery("");
 							setResults([]);
 							setIsOpen(false);
+							setIsLoading(false);
 						}}
 						className="absolute right-3 text-arcade-white/60 hover:text-arcade-white"
 					>
@@ -132,10 +192,10 @@ export default function GameSearch() {
 						<div className="px-4 py-3 text-arcade-white/60 text-center">Loading...</div>
 					) : results.length > 0 ? (
 						<div className="py-2">
-							{results.map((game) => (
+							{results.map((game, idx) => (
 								<button
-									key={game.id}
-									onClick={() => handleSelectGame(game.id)}
+									key={`${game.id || game.igdb_id}-${idx}`}
+									onClick={() => handleSelectGame(game)}
 									className="w-full px-4 py-3 text-left hover:bg-arcade-blue/20 transition-colors flex items-center gap-3 border-b border-arcade-white/10 last:border-b-0"
 								>
 									{game.cover_url && (
@@ -145,9 +205,16 @@ export default function GameSearch() {
 											className="w-10 h-14 object-cover rounded"
 										/>
 									)}
-									<span className="text-arcade-white font-secondary truncate">
-										{game.title}
-									</span>
+									<div className="flex-1">
+										<span className="text-arcade-white font-secondary truncate">
+											{game.title}
+										</span>
+										{game.isFromIGDB && (
+											<span className="text-xs text-arcade-white/50">
+												(from IGDB)
+											</span>
+										)}
+									</div>
 								</button>
 							))}
 						</div>
