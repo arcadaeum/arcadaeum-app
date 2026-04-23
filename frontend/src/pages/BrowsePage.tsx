@@ -58,7 +58,7 @@ function BrowsePage() {
 	return (
 		<>
 			<ColorBends
-				className="fixed inset-0 -z-10 pointer-events-none opacity-90"
+				className="fixed inset-0 -z-10 pointer-events-none opacity-90 blur-3xl"
 				rotation={32}
 				colors={["#8122c0", "#5647f1", "#37b0ea"]}
 				speed={0.2}
@@ -74,11 +74,8 @@ function BrowsePage() {
 			<NavigationBar />
 
 			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
-				<h1
-					className="w-full mt-25 text-4xl font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter"
-					style={{ textShadow: "0 0 2px #fefddc" }}
-				>
-					Browse
+				<h1 className="w-full mt-25 text-4xl font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
+					The Arcadaeum.
 				</h1>
 				<p className="mt-4 text-sm font-default text-gray-200">
 					Discover new games and explore your library.
