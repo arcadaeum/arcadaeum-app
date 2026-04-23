@@ -4,11 +4,6 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-# Landing Page Submission
-class Submission(BaseModel):
-    title: str
-
-
 # Pydantic models used in responses / type hints
 class Token(BaseModel):
     access_token: str

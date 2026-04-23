@@ -19,17 +19,17 @@ def get_database_connection():
 
 def create_tables():
     """Create the necessary tables in the database if they don't exist."""
+    create_users_table()  # Creates the users table if it doesn't exist
+    create_games_table()  # Creates the games table if it doesn't exist
+    create_user_library_table()  # Creates the user_library table if it doesn't exist
+    create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
+
+
+def create_users_table():
+    """Creates the users table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(  # Creates the favourite_submissions table if it doesn't exist
-                """
-                CREATE TABLE IF NOT EXISTS favourite_submissions (
-                    id serial PRIMARY KEY,
-                    title text,
-                    timestamp timestamp)
-                """
-            )
-            cur.execute(  # Creates the users table if it doesn't exist
+            cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS users (
                     id serial PRIMARY KEY,
@@ -42,18 +42,14 @@ def create_tables():
                     profile_picture text)
                 """
             )
+            conn.commit()
 
-            cur.execute(  # Creates the user_followers table if it doesn't exist
-                """
-                CREATE TABLE IF NOT EXISTS user_followers (
-                    id serial PRIMARY KEY,
-                    userid integer NOT NULL REFERENCES users(id),
-                    follower_user_id integer NOT NULL REFERENCES users(id),
-                    UNIQUE(userid, follower_user_id))
-                """
-            )
 
-            cur.execute(  # Creates the games table if it doesn't exists
+def create_games_table():
+    """Creates the games table if it doesn't exists"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS games (
                     id serial PRIMARY KEY,
@@ -68,8 +64,14 @@ def create_tables():
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP)
                 """
             )
+            conn.commit()
 
-            cur.execute(  # Creates the user_library table if it doesn't exist
+
+def create_user_library_table():
+    """Creates the user_library table if it doesn't exist"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS user_library (
                     id serial PRIMARY KEY,
@@ -82,12 +84,7 @@ def create_tables():
                     UNIQUE(user_id, game_id))
                 """
             )
-
-            cur.execute
-
-            conn.commit()  # Makes permanent changes to the database
-
-    create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
+            conn.commit()
 
 
 def create_user(
