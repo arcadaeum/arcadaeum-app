@@ -140,7 +140,7 @@ export default function GameDetailPage() {
 						<h1 className="text-4xl font-title mt-4">{game?.title}</h1>
 						<h2 className="text-xl font-default text-gray-300 mt-2">
 							<i>
-								{"<Developer goes here>"},{game?.release_date?.slice(0, 4) ?? "-"}
+								{"<Developer goes here>"}, {game?.release_date?.slice(0, 4) ?? "-"}
 							</i>
 						</h2>
 						<p className="mt-8 text-md font-default text-gray-200rounded-lg  flex-1 overflow-auto">
