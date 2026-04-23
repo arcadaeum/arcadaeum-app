@@ -4,19 +4,7 @@ import NavigationBar from "../components/NavigationBar";
 import ColorBends from "../components/ColorBends";
 import heartIconFilled from "../assets/images/heart-icon-filled.svg";
 import heartIconUnfilled from "../assets/images/heart-icon-unfilled.svg";
-
-type Game = {
-	id: number;
-	igdb_id: number;
-	title: string;
-	cover_url?: string | null;
-	summary?: string | null;
-	developer?: string | null;
-	igdb_rating?: number | null;
-	platforms?: string[] | null;
-	release_date?: string | null;
-	created_at?: string | null;
-};
+import type { Game } from "../types/game";
 
 export default function GameDetailPage() {
 	const { id } = useParams<{ id: string }>();
