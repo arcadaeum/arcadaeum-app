@@ -45,6 +45,11 @@ class GameSearchResult(BaseModel):
     release_date: Optional[str] = None
 
 
+class UserFollowers(BaseModel):
+    userid: int
+    follower_user_id: int
+
+
 class UserLibraryEntry(BaseModel):
     id: int
     user_id: int

@@ -43,6 +43,16 @@ def create_tables():
                 """
             )
 
+            cur.execute(  # Creates the user_followers table if it doesn't exist
+                """
+                CREATE TABLE IF NOT EXISTS user_followers (
+                    id serial PRIMARY KEY,
+                    userid integer NOT NULL REFERENCES users(id),
+                    follower_user_id integer NOT NULL REFERENCES users(id),
+                    UNIQUE(userid, follower_user_id))
+                """
+            )
+
             cur.execute(  # Creates the games table if it doesn't exists
                 """
                 CREATE TABLE IF NOT EXISTS games (
