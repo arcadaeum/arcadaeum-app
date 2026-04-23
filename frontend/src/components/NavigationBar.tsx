@@ -11,6 +11,10 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 	const token = localStorage.getItem("access_token");
 	const isAuthenticated = token ? true : false;
 
+	// Routes where search bar should not be shown
+	const noSearchRoutes = ["/signin", "/forgot-password", "/reset-password", "/create-account"];
+	const shouldShowSearch = !noSearchRoutes.includes(location.pathname);
+
 	const handleLogout = () => {
 		localStorage.removeItem("access_token");
 		navigate("/signin");
@@ -30,8 +34,8 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 				/>
 			</Link>
 
-			{/* Search bar in center */}
-			{<GameSearch />}
+			{/* Search bar in center - only show on specific pages */}
+			{shouldShowSearch && <GameSearch />}
 
 			{/* Right-side links */}
 			<div className="flex items-center gap-4 ">
