@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import GameCard from "../components/GameCard";
 import { Pencil, UserRound } from "lucide-react";
@@ -224,10 +224,19 @@ function UserPage() {
 						<span className="text-arcade-white font-bold">17</span> Reviews
 					</span>
 				</div>
-
-				<h2 className="w-2/3 mt-25 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
-					Favorite Games
+				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
+					<Link to="/user" className="text-arcade-violet hover:underline">
+						{user?.display_name ?? user?.username ?? "User"}
+					</Link>{" "}
+					is currently playing:
 				</h2>
+				<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 min-h-56 text-arcade-white text-2xl text-center flex items-center justify-center">
+					ADD CURRENT PLAYED GAME CARD HERE
+				</div>
+
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
+					Favorite Games
+				</h3>
 				<div className="w-2/3 ml-50">
 					<div className="overflow-x-auto py-6 -mx-2">
 						<div className="flex gap-6 px-2">
