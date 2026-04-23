@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import GameCard from "../components/GameCard";
 import { Pencil, UserRound } from "lucide-react";
+import ColorBends from "../components/ColorBends";
 
 function UserPage() {
 	type Game = {
@@ -113,13 +114,24 @@ function UserPage() {
 	return (
 		<>
 			<NavigationBar />
+			<ColorBends
+				className="fixed inset-0 -z-10 pointer-events-none opacity-90 blur-3xl"
+				rotation={32}
+				colors={["#8122c0", "#5647f1", "#37b0ea"]}
+				speed={0.2}
+				scale={2}
+				frequency={1}
+				warpStrength={1}
+				mouseInfluence={1}
+				parallax={0.5}
+				noise={0.1}
+				transparent
+				autoRotate={0}
+			/>
 			{showHeader && (
 				<div className="fixed top-0 left-0 w-full z-50 bg-[#191617] opacity-100">
 					<div className="flex items-center gap-4 px-16 py-3">
-						<span
-							className="text-xl font-title text-arcade-white tracking-tighter"
-							style={{ textShadow: "0 0 3px #fefddc" }}
-						>
+						<span className="text-xl font-title text-arcade-white tracking-tighter">
 							{user?.display_name ?? user?.username}
 						</span>
 					</div>
@@ -149,13 +161,13 @@ function UserPage() {
 						)}
 					</div>
 					<div className="pointer-events-none absolute -left-16 top-1/2 z-0 -translate-y-1/2 flex flex-col w-screen">
-						<div className="h-5 w-screen bg-arcade-white drop-shadow-[0_0_8px_#ece4d5]" />
-						<div className="h-5 w-screen bg-arcade-blue drop-shadow-[0_0_8px_#37b0ea]" />
-						<div className="h-5 w-screen bg-arcade-violet drop-shadow-[0_0_8px_#5647f1]" />
-						<div className="h-5 w-screen bg-arcade-purple drop-shadow-[0_0_8px_#8122c0]" />
+						<div className="h-5 w-screen bg-arcade-white" />
+						<div className="h-5 w-screen bg-arcade-blue" />
+						<div className="h-5 w-screen bg-arcade-violet" />
+						<div className="h-5 w-screen bg-arcade-purple" />
 					</div>
 					<div className="relative z-10 -mt-40 self-center flex flex-col pl-10">
-						<h1 className="text-6xl font-title text-arcade-white flex items-center gap-2 whitespace-nowrap drop-shadow-[0_0_3px_#fefddc] mb-2 tracking-tighter">
+						<h1 className="text-6xl font-title text-arcade-white flex items-center gap-2 whitespace-nowrap mb-2 tracking-tighter">
 							{editing ? (
 								<>
 									<input
@@ -213,10 +225,7 @@ function UserPage() {
 					</span>
 				</div>
 
-				<h2
-					className="w-2/3 mt-25 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter"
-					style={{ textShadow: "0 0 2px #fefddc" }}
-				>
+				<h2 className="w-2/3 mt-25 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
 					Favorite Games
 				</h2>
 				<div className="w-2/3 ml-50">
@@ -234,26 +243,17 @@ function UserPage() {
 					</div>
 				</div>
 
-				<h2
-					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter"
-					style={{ textShadow: "0 0 2px #fefddc" }}
-				>
+				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter">
 					Reviews
 				</h2>
 				<div className="w-2/3 ml-50 h-48" />
 
-				<h2
-					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-violet tracking-tighter"
-					style={{ textShadow: "0 0 2px #fefddc" }}
-				>
+				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-violet tracking-tighter">
 					Collections
 				</h2>
 				<div className="w-2/3 ml-50 h-48" />
 
-				<h2
-					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter"
-					style={{ textShadow: "0 0 2px #fefddc" }}
-				>
+				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
 					Posts
 				</h2>
 				<div className="w-2/3 ml-50 h-48" />
