@@ -1,5 +1,5 @@
 from app.services.igdb_service import IGDBService
-from app.database import add_game_to_db
+from app.database import add_game_to_db, get_database_connection
 
 igdb = IGDBService()
 
@@ -68,4 +68,44 @@ def cache_popular_games(limit: int = 500):
         return {"message": f"Successfully cached {saved_count} games"}
     except Exception as error:
         print(f"Cache error: {error}")
+        return {"error": str(error)}
+
+
+def cache_users():
+    """Seed default users into the database"""
+    default_users = [
+        {"username": "Stephen Malkmus", "email": "stephen@arcadaeum.com"},
+        {"username": "Scott Kannberg", "email": "scott@arcadaeum.com"},
+        {"username": "Mark Ibold", "email": "mark@arcadaeum.com"},
+        {"username": "Bob Nastanovich", "email": "bob@arcadaeum.com"},
+        {"username": "Steve West", "email": "steve@arcadaeum.com"},
+    ]
+
+    try:
+        with get_database_connection() as conn:
+            with conn.cursor() as cur:
+                for user in default_users:
+                    # Check if user already exists
+                    cur.execute("SELECT id FROM users WHERE email = %s", (user["email"],))
+                    if cur.fetchone():
+                        continue
+
+                    # Insert new user
+                    cur.execute(
+                        """
+                        INSERT INTO users (username, email, hashed_password, is_active)
+                        VALUES (%s, %s, %s, %s)
+                        """,
+                        (
+                            user["username"],
+                            user["email"],
+                            "default_password_hash",
+                            True,
+                        ),
+                    )
+                conn.commit()
+
+        return {"message": "Default users seeded successfully"}
+    except Exception as error:
+        print(f"Cache users error: {error}")
         return {"error": str(error)}

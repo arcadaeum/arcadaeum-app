@@ -7,15 +7,17 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from app.routes import health, auth, cache, games
+from app.routes import health, auth, cache, games, users
 from app.database import create_tables
-from app.services.cache import cache_popular_games
+from app.services.cache import cache_popular_games, cache_users
 
 
 # On startup, create tables and cache popular games from IGDB to our DB
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_tables()
+    cache_users_result = cache_users()
+    print(f"Startup cache users result: {cache_users_result}")
     cache_result = cache_popular_games(limit=500)
     print(f"Startup cache result: {cache_result}")
     yield
@@ -43,3 +45,4 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(cache.router)
 app.include_router(games.router)
+app.include_router(users.router)

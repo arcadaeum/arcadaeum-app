@@ -8,6 +8,7 @@ import GameDetailPage from "./pages/GameDetailPage";
 import BrowsePage from "./pages/BrowsePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import PasswordResetPage from "./pages/PasswordResetPage";
+import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
 	return (
@@ -21,6 +22,7 @@ export default function App() {
 			<Route path="/browse" element={<BrowsePage />} />
 			<Route path="/forgot-password" element={<ForgotPasswordPage />} />
 			<Route path="/reset-password" element={<PasswordResetPage />} />
+			<Route path="/users/:userId" element={<ProfilePage />} />
 		</Routes>
 	);
 }
