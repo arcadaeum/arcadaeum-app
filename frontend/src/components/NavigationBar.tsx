@@ -34,7 +34,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 				<img
 					src={pngLogo}
 					alt="Arcadaeum Logo"
-					className="h-15 w-15p-1 rounded-br-2xl rounded-tl-2xl cursor-pointer hover:scale-110 transition-transform"
+					className="h-12 w-12p-1 rounded-br-2xl rounded-tl-2xl cursor-pointer hover:scale-110 transition-transform"
 				/>
 			</Link>
 
