@@ -1,10 +1,13 @@
-# Models are custom data structues we use
-# in our API for quereies and reponses.
+# Models are custom data structures we use
+# in our API for queries and responses.
 from typing import Optional
+
 from pydantic import BaseModel
 
 
-# Pydantic models used in responses / type hints
+# =========================
+# Auth
+# =========================
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -22,6 +25,13 @@ class User(BaseModel):
     profile_picture: Optional[str] = None
 
 
+class UserInDB(User):
+    password_hash: str
+
+
+# =========================
+# Game data
+# =========================
 class Game(BaseModel):
     id: int
     igdb_id: int
@@ -41,15 +51,6 @@ class GameSearchResult(BaseModel):
     release_date: Optional[str] = None
 
 
-class UserFollowers(BaseModel):
-    userid: int
-    follower_user_id: int
-
-class UserFollowing(BaseModel):
-    userid: int
-    following_user_id: int
-
-
 class UserLibraryEntry(BaseModel):
     id: int
     user_id: int
@@ -61,10 +62,22 @@ class UserLibraryEntry(BaseModel):
     notes: Optional[str] = None
 
 
-class UserInDB(User):
-    password_hash: str
+# =========================
+# User relationships
+# =========================
+class UserFollowers(BaseModel):
+    userid: int
+    follower_user_id: int
 
 
+class UserFollowing(BaseModel):
+    userid: int
+    following_user_id: int
+
+
+# =========================
+# Registration and password flows
+# =========================
 class RegisterRequest(BaseModel):
     username: str
     email: str
@@ -82,3 +95,14 @@ class PasswordReset(BaseModel):
 
 class PasswordResetResponse(BaseModel):
     message: str
+
+
+# =========================
+# Request models
+# =========================
+class CacheQueryParams(BaseModel):
+    limit: int = 500
+
+
+class AddGameFromIGDBRequest(BaseModel):
+    igdb_id: int

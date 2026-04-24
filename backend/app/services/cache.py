@@ -1,42 +1,50 @@
-from app.services.igdb_service import IGDBService
 from app.database import add_game_to_db, get_database_connection
+from app.services.igdb_service import IGDBService
 
 igdb = IGDBService()
 
 
-def cache_popular_games(limit: int = 500):
+def cache_popular_games(limit: int = 500) -> dict[str, str]:
     try:
-        # Fetch From Service
         games_data = igdb.fetch_top_games(limit=limit)
 
         if not games_data:
             return {"message": "No games fetched from IGDB"}
 
-        # Logic to save to our DB
         saved_count = 0
         for game_data in games_data:
             try:
-                cover_url = None
+                igdb_id = game_data.get("id")
+                title = game_data.get("name")
+                if (
+                    not isinstance(igdb_id, int)
+                    or not isinstance(title, str)
+                    or not title
+                ):
+                    continue
+
+                cover_url: str | None = None
                 cover = game_data.get("cover")
-                if isinstance(cover, dict) and cover.get("image_id"):
-                    image_id = cover["image_id"]
+                if isinstance(cover, dict):
+                    image_id = cover.get("image_id")
+                    if isinstance(image_id, str) and image_id:
+                        cover_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
 
-                    # Change size by changing 't_cover_big' to other size options, check IGDB docs for more: https://api-docs.igdb.com/#images
-                    cover_url = (
-                        f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
-                    )
-
-                platform_names = []
+                platform_names: list[str] = []
                 for platform in game_data.get("platforms", []):
-                    if isinstance(platform, dict) and platform.get("name"):
-                        platform_names.append(platform["name"])
+                    if isinstance(platform, dict):
+                        name = platform.get("name")
+                        if isinstance(name, str) and name:
+                            platform_names.append(name)
 
-                genre_names = []
+                genre_names: list[str] = []
                 for genre in game_data.get("genres", []):
-                    if isinstance(genre, dict) and genre.get("name"):
-                        genre_names.append(genre["name"])
+                    if isinstance(genre, dict):
+                        name = genre.get("name")
+                        if isinstance(name, str) and name:
+                            genre_names.append(name)
 
-                developer_names = []
+                developer_names: list[str] = []
                 for involved_company in game_data.get("involved_companies", []):
                     if not isinstance(involved_company, dict):
                         continue
@@ -44,23 +52,40 @@ def cache_popular_games(limit: int = 500):
                         continue
 
                     company = involved_company.get("company")
-                    if isinstance(company, dict) and company.get("name"):
-                        developer_names.append(company["name"])
+                    if isinstance(company, dict):
+                        company_name = company.get("name")
+                        if isinstance(company_name, str) and company_name:
+                            developer_names.append(company_name)
 
                 developer = ", ".join(developer_names) if developer_names else None
 
-                add_game_to_db(
-                    igdb_id=game_data.get("id"),
-                    title=game_data.get("name"),
-                    summary=game_data.get("summary"),
+                first_release_date = game_data.get("first_release_date")
+                release_date = (
+                    first_release_date if isinstance(first_release_date, int) else None
+                )
+
+                total_rating = game_data.get("total_rating")
+                igdb_rating = (
+                    float(total_rating)
+                    if isinstance(total_rating, (int, float))
+                    else None
+                )
+
+                saved_id = add_game_to_db(
+                    igdb_id=igdb_id,
+                    title=title,
+                    summary=game_data.get("summary")
+                    if isinstance(game_data.get("summary"), str)
+                    else None,
                     developer=developer,
                     cover_url=cover_url,
                     platforms=platform_names,
                     genres=genre_names,
-                    release_date=game_data.get("first_release_date"),
-                    igdb_rating=game_data.get("total_rating"),
+                    release_date=release_date,
+                    igdb_rating=igdb_rating,
                 )
-                saved_count += 1
+                if saved_id is not None:
+                    saved_count += 1
             except Exception as error:
                 print(f"Error saving game {game_data.get('name')}: {error}")
                 continue
@@ -71,8 +96,8 @@ def cache_popular_games(limit: int = 500):
         return {"error": str(error)}
 
 
-def cache_users():
-    """Seed default users into the database"""
+def add_default_users() -> dict[str, str]:
+    """Seed default users into the database."""
     default_users = [
         {"username": "Stephen Malkmus", "email": "stephen@arcadaeum.com"},
         {"username": "Scott Kannberg", "email": "scott@arcadaeum.com"},
@@ -85,22 +110,21 @@ def cache_users():
         with get_database_connection() as conn:
             with conn.cursor() as cur:
                 for user in default_users:
-                    # Check if user already exists
-                    cur.execute("SELECT id FROM users WHERE email = %s", (user["email"],))
+                    cur.execute(
+                        "SELECT id FROM users WHERE email = %s", (user["email"],)
+                    )
                     if cur.fetchone():
                         continue
 
-                    # Insert new user
                     cur.execute(
                         """
-                        INSERT INTO users (username, email, hashed_password, is_active)
-                        VALUES (%s, %s, %s, %s)
+                        INSERT INTO users (username, email, password_hash)
+                        VALUES (%s, %s, %s)
                         """,
                         (
                             user["username"],
                             user["email"],
                             "default_password_hash",
-                            True,
                         ),
                     )
                 conn.commit()

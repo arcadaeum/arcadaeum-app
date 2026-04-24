@@ -1,23 +1,24 @@
 import os
 from datetime import datetime
 from typing import Optional
+
 import psycopg
 
 
-def get_database_url():
+def get_database_url() -> str:
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
         raise RuntimeError("DATABASE_URL environment variable is not set")
     return database_url
 
 
-def get_database_connection():
+def get_database_connection() -> psycopg.Connection:
     """Establish a connection to the PostgreSQL database."""
     database_url = get_database_url()
     return psycopg.connect(database_url)
 
 
-def create_tables():
+def create_tables() -> None:
     """Create the necessary tables in the database if they don't exist."""
     create_users_table()  # Creates the users table if it doesn't exist
     create_games_table()  # Creates the games table if it doesn't exist
@@ -26,7 +27,7 @@ def create_tables():
     create_user_followers_table()  # Creates the user followers table if it doesn't exist
 
 
-def create_users_table():
+def create_users_table() -> None:
     """Creates the users table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -46,7 +47,7 @@ def create_users_table():
             conn.commit()
 
 
-def create_games_table():
+def create_games_table() -> None:
     """Creates the games table if it doesn't exists"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -77,7 +78,7 @@ def create_games_table():
             conn.commit()
 
 
-def create_user_library_table():
+def create_user_library_table() -> None:
     """Creates the user_library table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -97,7 +98,7 @@ def create_user_library_table():
             conn.commit()
 
 
-def create_user_followers_table():
+def create_user_followers_table() -> None:
     """Creates the user_followers table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -141,10 +142,17 @@ def create_user(
                     profile_picture,
                 ),
             )
-            return cur.fetchone()[0]
+            row = cur.fetchone()
+            if row is None:
+                raise RuntimeError("Failed to create user: no id returned")
+
+            user_id = row[0]
+            if not isinstance(user_id, int):
+                raise RuntimeError("Failed to create user: returned id is not an int")
+            return user_id
 
 
-def get_user_by_username(username: str):
+def get_user_by_username(username: str) -> Optional[dict]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -164,7 +172,7 @@ def get_user_by_username(username: str):
     return None
 
 
-def get_user_followers(user_id: int):
+def get_user_followers(user_id: int) -> list[int]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -175,7 +183,7 @@ def get_user_followers(user_id: int):
             return [row[0] for row in rows]
 
 
-def get_user_following(user_id: int):
+def get_user_following(user_id: int) -> list[int]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -186,7 +194,7 @@ def get_user_following(user_id: int):
             return [row[0] for row in rows]
 
 
-def get_user_by_email(email: str):
+def get_user_by_email(email: str) -> Optional[dict]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -206,7 +214,7 @@ def get_user_by_email(email: str):
     return None
 
 
-def update_user_display_name(username: str, display_name: str):
+def update_user_display_name(username: str, display_name: str) -> None:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -226,7 +234,7 @@ def add_game_to_db(
     genres: Optional[list[str]] = None,
     release_date: Optional[int] = None,
     igdb_rating: Optional[float] = None,
-):
+) -> Optional[int]:
     """Add a game to the database and return the game's ID."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -267,7 +275,7 @@ def add_game_to_db(
             return result[0] if result else None
 
 
-def create_password_reset_table():
+def create_password_reset_table() -> None:
     """Create the password reset tokens table if it doesn't exist."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -305,7 +313,7 @@ def create_password_reset_token(user_id: int, token: str, expires_at: datetime) 
                 return False
 
 
-def get_password_reset_token(token: str):
+def get_password_reset_token(token: str) -> Optional[dict]:
     """Retrieve a valid and unused password reset token."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -327,7 +335,7 @@ def get_password_reset_token(token: str):
     return None
 
 
-def mark_reset_token_as_used(token_id: int):
+def mark_reset_token_as_used(token_id: int) -> None:
     """Mark a reset token as used after successful password reset."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:

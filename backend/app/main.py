@@ -1,23 +1,24 @@
-from dotenv import load_dotenv
-
-load_dotenv()
-
 import os
 from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from app.routes import health, auth, cache, games, users
+
 from app.database import create_tables
-from app.services.cache import cache_popular_games, cache_users
+from app.routes import auth, cache, games, health, users
+from app.services.cache import add_default_users, cache_popular_games
+
+load_dotenv()
 
 
 # On startup, create tables and cache popular games from IGDB to our DB
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     create_tables()
-    cache_users_result = cache_users()
-    print(f"Startup cache users result: {cache_users_result}")
+    default_users_result = add_default_users()
+    print(f"Startup users result: {default_users_result}")
     cache_result = cache_popular_games(limit=500)
     print(f"Startup cache result: {cache_result}")
     yield
@@ -25,7 +26,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Arcadaeum API", lifespan=lifespan)
 
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY"))
+secret_key = os.getenv("SECRET_KEY")
+if not secret_key:
+    raise RuntimeError("SECRET_KEY environment variable is not set")
+app.add_middleware(SessionMiddleware, secret_key=secret_key)
 
 origins = [
     "http://localhost:5173",
