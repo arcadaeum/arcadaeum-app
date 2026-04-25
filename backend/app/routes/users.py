@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException
+
 from app.database import get_database_connection
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/search")
-def search_users(q: str):
-    """Search users by display name"""
+def search_users(q: str) -> list[dict[str, object]]:
+    """Search users by display name."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -20,14 +21,16 @@ def search_users(q: str):
                 (f"%{q}%",),
             )
             rows = cur.fetchall()
+            if cur.description is None:
+                return []
             columns = [desc[0] for desc in cur.description]
 
     return [dict(zip(columns, row)) for row in rows]
 
 
 @router.get("/{user_id}")
-def get_user(user_id: int):
-    """Get user profile by ID"""
+def get_user(user_id: int) -> dict[str, object]:
+    """Get user profile by ID."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -39,7 +42,11 @@ def get_user(user_id: int):
                 (user_id,),
             )
             row = cur.fetchone()
-            if row:
+            if row is not None:
+                if cur.description is None:
+                    raise HTTPException(
+                        status_code=500, detail="Invalid database cursor state"
+                    )
                 columns = [desc[0] for desc in cur.description]
                 return dict(zip(columns, row))
 
@@ -47,8 +54,8 @@ def get_user(user_id: int):
 
 
 @router.get("/{user_id}/favorites")
-def get_user_favorites(user_id: int):
-    """Get user's favorite games"""
+def get_user_favorites(user_id: int) -> list[dict[str, object]]:
+    """Get user's favorite games."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -62,6 +69,8 @@ def get_user_favorites(user_id: int):
                 (user_id,),
             )
             rows = cur.fetchall()
+            if cur.description is None:
+                return []
             columns = [desc[0] for desc in cur.description]
 
     return [dict(zip(columns, row)) for row in rows]

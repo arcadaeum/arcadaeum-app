@@ -1,7 +1,8 @@
 import os
-import aiosmtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+import aiosmtplib
 
 
 async def send_password_reset_email(
@@ -9,25 +10,22 @@ async def send_password_reset_email(
 ) -> bool:
     """Send a password reset email with a reset link."""
 
-    SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
-    SENDER_EMAIL = os.getenv("SENDER_EMAIL")
-    SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
+    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    sender_email = os.getenv("SENDER_EMAIL")
+    sender_password = os.getenv("SENDER_PASSWORD")
 
-    if not SENDER_EMAIL or not SENDER_PASSWORD:
+    if not sender_email or not sender_password:
         print("Warning: Email credentials not configured")
         return False
 
-    # Build reset link
     reset_link = f"{frontend_url}/reset-password?token={reset_token}"
 
-    # Create email message
     message = MIMEMultipart("alternative")
     message["Subject"] = "Arcadaeum - Password Reset Request"
-    message["From"] = SENDER_EMAIL
+    message["From"] = sender_email
     message["To"] = recipient_email
 
-    # HTML content
     html = f"""\
     <html>
       <body>
@@ -46,13 +44,15 @@ async def send_password_reset_email(
     </html>
     """
 
-    part = MIMEText(html, "html")
-    message.attach(part)
+    message.attach(MIMEText(html, "html"))
 
     try:
-        async with aiosmtplib.SMTP(hostname=SMTP_SERVER, port=SMTP_PORT) as smtp:
-            await smtp.login(SENDER_EMAIL, SENDER_PASSWORD)
-            await smtp.sendmail(SENDER_EMAIL, recipient_email, message.as_string())
+        async with aiosmtplib.SMTP(hostname=smtp_server, port=smtp_port) as smtp:
+            await smtp.connect()
+            if smtp_port == 587:
+                await smtp.starttls()
+            await smtp.login(sender_email, sender_password)
+            await smtp.sendmail(sender_email, recipient_email, message.as_string())
         return True
     except Exception as e:
         print(f"Error sending email: {e}")

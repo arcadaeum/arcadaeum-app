@@ -1,11 +1,8 @@
-import os
-import requests
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from app.database import get_database_connection, add_game_to_db
-from app.services.igdb_service import IGDBService
-from datetime import datetime
 
+from app.database import add_game_to_db, get_database_connection
+from app.models import AddGameFromIGDBRequest
+from app.services.igdb_service import IGDBService
 
 router = APIRouter()
 igdb_service = IGDBService()
@@ -13,19 +10,19 @@ igdb_service = IGDBService()
 
 # IMPORTANT: More specific routes should come first
 @router.get("/games/search-igdb")
-async def search_igdb(q: str):
-    """Search IGDB for games"""
+async def search_igdb(q: str) -> list[dict[str, object]]:
+    """Search IGDB for games."""
     try:
         games = igdb_service.search_games(q, limit=10)
 
-        # Format the response
-        formatted_games = []
+        formatted_games: list[dict[str, object]] = []
         for game in games:
-            cover_url = None
+            cover_url: str | None = None
             cover = game.get("cover")
-            if isinstance(cover, dict) and cover.get("image_id"):
-                image_id = cover["image_id"]
-                cover_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
+            if isinstance(cover, dict):
+                image_id = cover.get("image_id")
+                if isinstance(image_id, str) and image_id:
+                    cover_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
 
             formatted_games.append(
                 {
@@ -40,109 +37,100 @@ async def search_igdb(q: str):
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
 
 
-class AddGameFromIGDBRequest(BaseModel):
-    igdb_id: int
-
-
 @router.post("/games/add-from-igdb")
-async def add_game_from_igdb(request: AddGameFromIGDBRequest):
-    """Add a game from IGDB to the database"""
+async def add_game_from_igdb(request: AddGameFromIGDBRequest) -> dict[str, object]:
+    """Add a game from IGDB to the database."""
     try:
-        print(f"Adding game from IGDB with igdb_id: {request.igdb_id}")  # Debug
-
-        # Check if game already exists in database
         with get_database_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT id FROM games WHERE igdb_id = %s", (request.igdb_id,))
+                cur.execute(
+                    "SELECT id FROM games WHERE igdb_id = %s", (request.igdb_id,)
+                )
                 existing = cur.fetchone()
-                if existing:
-                    print(f"Game already exists with id: {existing[0]}")  # Debug
-                    return {"id": existing[0], "title": "Game already exists"}
+                if existing is not None:
+                    existing_id = existing[0]
+                    return {"id": existing_id, "title": "Game already exists"}
 
-        # Fetch game details from IGDB
-        print(f"Fetching game {request.igdb_id} from IGDB service...")  # Debug
         game_data = igdb_service.fetch_game_by_id(request.igdb_id)
-        print(f"Game data received: {game_data}")  # Debug
 
         if not game_data:
             raise HTTPException(status_code=404, detail="Game not found on IGDB")
 
-        # Extract cover URL
-        cover_url = None
+        cover_url: str | None = None
         cover = game_data.get("cover")
-        if isinstance(cover, dict) and cover.get("image_id"):
-            image_id = cover["image_id"]
-            cover_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
+        if isinstance(cover, dict):
+            image_id = cover.get("image_id")
+            if isinstance(image_id, str) and image_id:
+                cover_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
 
-        # Extract platform and genre names
-        platform_names = []
+        platform_names: list[str] = []
         for platform in game_data.get("platforms", []):
-            if isinstance(platform, dict) and platform.get("name"):
-                platform_names.append(platform["name"])
+            if isinstance(platform, dict):
+                name = platform.get("name")
+                if isinstance(name, str) and name:
+                    platform_names.append(name)
 
-        genre_names = []
+        genre_names: list[str] = []
         for genre in game_data.get("genres", []):
-            if isinstance(genre, dict) and genre.get("name"):
-                genre_names.append(genre["name"])
+            if isinstance(genre, dict):
+                name = genre.get("name")
+                if isinstance(name, str) and name:
+                    genre_names.append(name)
 
-        # Convert Unix timestamp to date
-        release_date = None
         first_release_date = game_data.get("first_release_date")
-        if first_release_date:
-            try:
-                release_date = datetime.fromtimestamp(first_release_date).date()
-            except (ValueError, TypeError):
-                release_date = None
+        release_timestamp: int | None = None
+        if isinstance(first_release_date, int):
+            release_timestamp = first_release_date
+        elif isinstance(first_release_date, float):
+            release_timestamp = int(first_release_date)
 
-        print(f"Inserting game: {game_data.get('name')}")  # Debug
+        total_rating = game_data.get("total_rating")
+        igdb_rating: float | None = None
+        if isinstance(total_rating, (int, float)):
+            igdb_rating = float(total_rating)
 
-        # Add to database and get the returned id
-        with get_database_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    INSERT INTO games (igdb_id, title, summary, cover_url, platforms, genres, release_date, igdb_rating)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    RETURNING id
-                    """,
-                    (
-                        request.igdb_id,
-                        game_data.get("name"),
-                        game_data.get("summary"),
-                        cover_url,
-                        platform_names,
-                        genre_names,
-                        release_date,  # Now a proper date object
-                        game_data.get("total_rating"),
-                    ),
-                )
-                new_game_id = cur.fetchone()[0]
-                conn.commit()
+        new_game_id = add_game_to_db(
+            igdb_id=request.igdb_id,
+            title=str(game_data.get("name") or ""),
+            summary=game_data.get("summary")
+            if isinstance(game_data.get("summary"), str)
+            else None,
+            developer=None,
+            cover_url=cover_url,
+            platforms=platform_names,
+            genres=genre_names,
+            release_date=release_timestamp,
+            igdb_rating=igdb_rating,
+        )
 
-        print(f"Successfully added game with database id: {new_game_id}")  # Debug
+        if new_game_id is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to add game to database"
+            )
+
         return {"id": new_game_id, "title": game_data.get("name")}
 
     except HTTPException:
-        raise  # Re-raise HTTPExceptions as-is
+        raise
     except Exception as e:
-        print(f"Error adding game: {str(e)}")  # Debug
-        import traceback
-
-        traceback.print_exc()  # Print full stack trace
         raise HTTPException(status_code=500, detail=f"Error adding game: {str(e)}")
 
 
 @router.get("/games")
-def get_games():
+def get_games() -> list[dict[str, object]]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
                 SELECT id, igdb_id, title, summary, developer, cover_url, platforms, release_date, igdb_rating, created_at
-				FROM games
-				ORDER BY id DESC
-				"""
+                FROM games
+                ORDER BY id DESC
+                """
             )
+
+            if cur.description is None:
+                return []
+
             rows = cur.fetchall()
             columns = [desc[0] for desc in cur.description]
 
@@ -150,7 +138,7 @@ def get_games():
 
 
 @router.get("/games/{game_id}")
-def get_game(game_id: int):
+def get_game(game_id: int) -> dict[str, object]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -163,7 +151,12 @@ def get_game(game_id: int):
             )
             row = cur.fetchone()
             if row is None:
-                return {"error": "Game not found"}
+                raise HTTPException(status_code=404, detail="Game not found")
+
+            if cur.description is None:
+                raise HTTPException(
+                    status_code=500, detail="Failed to retrieve game data"
+                )
 
             columns = [desc[0] for desc in cur.description]
             return dict(zip(columns, row))

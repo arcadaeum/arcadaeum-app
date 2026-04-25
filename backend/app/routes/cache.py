@@ -1,12 +1,7 @@
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+
+from app.models import CacheQueryParams
 from app.services.cache import cache_popular_games
-
-
-# This can be expanded easily if we need.
-class CacheQueryParams(BaseModel):
-    limit: int = 500
-
 
 router = APIRouter()
 
