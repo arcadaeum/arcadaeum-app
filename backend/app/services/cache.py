@@ -1,11 +1,10 @@
 from app.database import add_game_to_db, get_database_connection
 from app.services.igdb_service import IGDBService
 
-igdb = IGDBService()
-
 
 def cache_popular_games(limit: int = 500) -> dict[str, str]:
     try:
+        igdb = IGDBService()
         games_data = igdb.fetch_top_games(limit=limit)
 
         if not games_data:
