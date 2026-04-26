@@ -3,14 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import { GameDetailArtwork, GameDetailMainContent, GameDetailSidebar } from "@/components/game";
 import type { Game } from "@/types/game";
-import { createFallbackGame } from "@/utils/game";
 
 export default function GameDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
 	const [game, setGame] = useState<Game | null>(null);
 	const [loading, setLoading] = useState(true);
-	const [error] = useState<string | null>(null);
+	const [error, setError] = useState<string | null>(null);
 
 	// Temporary state for favouriting - will need to be replaced using the api and database.
 	const [favourited, setFavourited] = useState(false);
@@ -18,21 +17,25 @@ export default function GameDetailPage() {
 	useEffect(() => {
 		if (!id) return;
 
-		// Need to implement games/id in backend for this to work.
 		const url = `${import.meta.env.VITE_API_URL}/games/${id}`;
 
 		fetch(url)
 			.then((res) => {
-				if (!res.ok) throw new Error("not found");
+				if (!res.ok) throw new Error("Game not found");
 				return res.json();
 			})
-			.then((data) => setGame(data))
+			.then((data) => {
+				setGame(data);
+				setError(null);
+			})
 			.catch(() => {
-				setGame(createFallbackGame(id));
+				setGame(null);
+				setError("Unable to load game details.");
 			})
 			.finally(() => setLoading(false));
 	}, [id]);
 
+	if (!id) return <div>Invalid game id.</div>;
 	if (loading) return <div>Loading game...</div>;
 	if (error) return <div>{error}</div>;
 

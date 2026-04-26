@@ -29,7 +29,7 @@ export default function GameDetailMainContent({ game, onAddReview }: GameDetailM
 			<div className="mt-8">
 				<h3 className="text-2xl font-title mb-4">Screenshots</h3>
 				<div className="flex gap-4 overflow-x-auto">
-					{game?.screenshots?.map((screenshot, index) => (
+					{game?.screenshots?.map((screenshot: string, index: number) => (
 						<img
 							key={index}
 							src={screenshot}

@@ -5,7 +5,10 @@ from app.models import AddGameFromIGDBRequest
 from app.services.igdb_service import IGDBService
 
 router = APIRouter()
-igdb_service = IGDBService()
+
+
+def get_igdb_service() -> IGDBService:
+    return IGDBService()
 
 
 # IMPORTANT: More specific routes should come first
@@ -13,6 +16,7 @@ igdb_service = IGDBService()
 async def search_igdb(q: str) -> list[dict[str, object]]:
     """Search IGDB for games."""
     try:
+        igdb_service = get_igdb_service()
         games = igdb_service.search_games(q, limit=10)
 
         formatted_games: list[dict[str, object]] = []
@@ -51,6 +55,7 @@ async def add_game_from_igdb(request: AddGameFromIGDBRequest) -> dict[str, objec
                     existing_id = existing[0]
                     return {"id": existing_id, "title": "Game already exists"}
 
+        igdb_service = get_igdb_service()
         game_data = igdb_service.fetch_game_by_id(request.igdb_id)
 
         if not game_data:

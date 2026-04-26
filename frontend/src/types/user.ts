@@ -1,7 +1,7 @@
 export type UserProfile = {
 	username: string;
 	email: string;
-	display_name: string;
+	display_name: string | null;
 	profile_picture: string | null;
 };
 
