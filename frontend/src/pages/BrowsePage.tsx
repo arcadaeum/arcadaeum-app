@@ -1,15 +1,11 @@
-import ColorBends from "../components/ColorBends";
-import NavigationBar from "../components/NavigationBar";
-import GameCard from "../components/GameCard";
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import type { Game } from "../types/game";
-import {
-	BROWSE_SORT_OPTIONS,
-	filterAndSortGames,
-	type BrowseSortOption,
-} from "../utils/browseGames";
+import { useEffect, useMemo, useState } from "react";
+import { ColorBends, NavigationBar } from "@/components/ui";
+import { BrowseFilters, BrowseGamesGrid, BrowseIntro } from "@/components/browse";
+import type { BrowseSortOption } from "@/types/browse";
+import type { Game } from "@/types/game";
+import { BROWSE_SORT_OPTIONS, filterAndSortGames } from "@/utils/browse";
 
-function BrowsePage() {
+export default function BrowsePage() {
 	const PAGE_SIZE = 50;
 
 	const [games, setGames] = useState<Game[]>([]);
@@ -45,13 +41,13 @@ function BrowsePage() {
 		setVisibleCount((prev) => prev + PAGE_SIZE);
 	};
 
-	const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
-		setSearchQuery(event.target.value);
+	const handleSearchChange = (value: string) => {
+		setSearchQuery(value);
 		setVisibleCount(PAGE_SIZE);
 	};
 
-	const handleSortChange = (event: ChangeEvent<HTMLSelectElement>) => {
-		setSortBy(event.target.value as BrowseSortOption);
+	const handleSortChange = (value: BrowseSortOption) => {
+		setSortBy(value);
 		setVisibleCount(PAGE_SIZE);
 	};
 
@@ -74,84 +70,22 @@ function BrowsePage() {
 			<NavigationBar />
 
 			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
-				<h1 className="w-full mt-25 text-4xl font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
-					The Arcadaeum.
-				</h1>
-				<p className="mt-4 text-sm font-default text-gray-200">
-					Discover new games and explore your library.
-				</p>
-				<div className="w-full max-w-7xl mx-auto px-4 mt-6">
-					<div className="flex flex-col sm:flex-row gap-3 sm:items-end sm:justify-between">
-						<div className="w-full sm:max-w-md">
-							<label
-								htmlFor="game-title-filter"
-								className="block text-xs font-default text-gray-300 mb-1"
-							>
-								Search titles
-							</label>
-							<input
-								id="game-title-filter"
-								type="text"
-								value={searchQuery}
-								onChange={handleSearchChange}
-								placeholder="Type a game title..."
-								className="w-full rounded-lg border-2 border-arcade-white bg-arcade-black/70 px-3 py-2 font-default text-arcade-white placeholder:text-gray-400 outline-none focus:border-arcade-blue"
-							/>
-						</div>
-						<div className="w-full sm:w-52">
-							<label
-								htmlFor="sort-by"
-								className="block text-xs font-default text-gray-300 mb-1"
-							>
-								Sort by
-							</label>
-							<select
-								id="sort-by"
-								value={sortBy}
-								onChange={handleSortChange}
-								className="w-full rounded-lg border-2 border-arcade-white bg-arcade-black/70 px-3 py-2 font-default text-arcade-white outline-none focus:border-arcade-blue"
-							>
-								{BROWSE_SORT_OPTIONS.map((option) => (
-									<option key={option.value} value={option.value}>
-										{option.label}
-									</option>
-								))}
-							</select>
-						</div>
-					</div>
-				</div>
-				<div className="w-full max-w-7xl mx-auto px-4 py-6">
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-						{visibleGames.map((game) => (
-							<GameCard
-								key={game.id}
-								id={game.id}
-								title={game.title}
-								image={game.cover_url}
-							/>
-						))}
-					</div>
-
-					{filteredAndSortedGames.length === 0 && (
-						<p className="mt-8 text-center text-sm font-default text-gray-300">
-							No games matched your search.
-						</p>
-					)}
-
-					{hasMoreGames && (
-						<div className="mt-8 flex justify-center">
-							<button
-								onClick={handleLoadMore}
-								className="bg-arcade-black hover:bg-arcade-blue text-arcade-white font-title py-2 px-6 border-2 border-arcade-white rounded-lg"
-							>
-								Load 50 More
-							</button>
-						</div>
-					)}
-				</div>
+				<BrowseIntro />
+				<BrowseFilters
+					searchQuery={searchQuery}
+					sortBy={sortBy}
+					sortOptions={BROWSE_SORT_OPTIONS}
+					onSearchChange={handleSearchChange}
+					onSortChange={handleSortChange}
+				/>
+				<BrowseGamesGrid
+					visibleGames={visibleGames}
+					totalGamesCount={filteredAndSortedGames.length}
+					hasMoreGames={hasMoreGames}
+					onLoadMore={handleLoadMore}
+					pageSize={PAGE_SIZE}
+				/>
 			</div>
 		</>
 	);
 }
-
-export default BrowsePage;

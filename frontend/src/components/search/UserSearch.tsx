@@ -1,25 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
-
-type User = {
-	id: number;
-	username: string;
-	display_name: string;
-	email: string;
-	profile_picture?: string | null;
-};
+import type { UserSearchResult } from "@/types/search";
+import { useDebouncedSearch, useClickOutside } from "@/utils/search/hooks";
+import { searchUsers } from "@/utils/search/api";
 
 export default function UserSearch() {
 	const [searchQuery, setSearchQuery] = useState("");
-	const [results, setResults] = useState<User[]>([]);
+	const [results, setResults] = useState<UserSearchResult[]>([]);
 	const [isOpen, setIsOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 	const navigate = useNavigate();
 	const searchRef = useRef<HTMLDivElement>(null);
-	const debounceTimerRef = useRef<NodeJS.Timeout>();
-	const loadingTimerRef = useRef<NodeJS.Timeout>();
+	const trimmedQuery = searchQuery.trim();
+	const hasQuery = trimmedQuery.length > 0;
 
 	// Get current user ID on mount
 	useEffect(() => {
@@ -44,61 +39,25 @@ export default function UserSearch() {
 	}, []);
 
 	// Debounced search
-	useEffect(() => {
-		// Clear previous timers
-		if (debounceTimerRef.current) {
-			clearTimeout(debounceTimerRef.current);
-		}
-		if (loadingTimerRef.current) {
-			clearTimeout(loadingTimerRef.current);
-		}
-
-		if (!searchQuery.trim()) {
-			setResults([]);
-			setIsOpen(false);
-			setIsLoading(false);
-			return;
-		}
-
-		// Set loading to true only after 1 second
-		loadingTimerRef.current = setTimeout(() => {
-			setIsLoading(true);
-		}, 1000);
-
-		// Debounce the actual search by 200ms
-		debounceTimerRef.current = setTimeout(() => {
-			const query = searchQuery.toLowerCase();
-
-			fetch(`${import.meta.env.VITE_API_URL}/users/search?q=${encodeURIComponent(query)}`)
-				.then((res) => res.json())
-				.then((data: User[]) => {
-					// Filter out current user
-					const filtered = data.filter((user) => user.id !== currentUserId).slice(0, 10);
-					setResults(filtered);
-					setIsOpen(true);
-					setIsLoading(false);
-					if (loadingTimerRef.current) {
-						clearTimeout(loadingTimerRef.current);
-					}
-				})
-				.catch(() => {
-					setResults([]);
-					setIsLoading(false);
-					if (loadingTimerRef.current) {
-						clearTimeout(loadingTimerRef.current);
-					}
-				});
-		}, 200);
-
-		return () => {
-			if (debounceTimerRef.current) {
-				clearTimeout(debounceTimerRef.current);
+	useDebouncedSearch(
+		hasQuery && currentUserId !== null,
+		async () => {
+			const query = trimmedQuery.toLowerCase();
+			try {
+				const searchResults = await searchUsers(query, currentUserId);
+				setResults(searchResults);
+				setIsOpen(true);
+			} catch (error) {
+				console.error("Search failed:", error);
+				setResults([]);
 			}
-			if (loadingTimerRef.current) {
-				clearTimeout(loadingTimerRef.current);
-			}
-		};
-	}, [searchQuery, currentUserId]);
+		},
+		{
+			delay: 200,
+			loadingDelay: 1000,
+			onLoadingStart: () => setIsLoading(true),
+		},
+	);
 
 	const handleSelectUser = (userId: number) => {
 		navigate(`/users/${userId}`);
@@ -107,16 +66,7 @@ export default function UserSearch() {
 	};
 
 	// Close dropdown when clicking outside
-	useEffect(() => {
-		const handleClickOutside = (e: MouseEvent) => {
-			if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-				setIsOpen(false);
-			}
-		};
-
-		document.addEventListener("mousedown", handleClickOutside);
-		return () => document.removeEventListener("mousedown", handleClickOutside);
-	}, []);
+	useClickOutside(searchRef, () => setIsOpen(false));
 
 	return (
 		<div ref={searchRef} className="relative w-full max-w-md">
@@ -128,7 +78,7 @@ export default function UserSearch() {
 					placeholder="Search users by username..."
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
-					onFocus={() => searchQuery && setIsOpen(true)}
+					onFocus={() => hasQuery && setIsOpen(true)}
 					className="w-full pl-10 pr-10 py-2 bg-arcade-black border-2 border-arcade-white/30 rounded-lg text-arcade-white placeholder-arcade-white/50 focus:border-arcade-blue focus:outline-none transition-colors"
 				/>
 				{searchQuery && (
@@ -147,7 +97,7 @@ export default function UserSearch() {
 			</div>
 
 			{/* Search Results Dropdown */}
-			{isOpen && (
+			{isOpen && hasQuery && (
 				<div className="absolute top-full left-0 right-0 mt-2 bg-arcade-black border-2 border-arcade-white/30 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
 					{isLoading ? (
 						<div className="px-4 py-3 text-arcade-white/60 text-center">Loading...</div>
@@ -177,7 +127,7 @@ export default function UserSearch() {
 								</button>
 							))}
 						</div>
-					) : searchQuery ? (
+					) : hasQuery ? (
 						<div className="px-4 py-3 text-arcade-white/60 text-center">
 							No users found
 						</div>

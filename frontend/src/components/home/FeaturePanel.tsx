@@ -1,4 +1,4 @@
-import type { HomeFeatureItem } from "../types/home";
+import type { HomeFeatureItem } from "@/types/home";
 
 interface FeaturePanelProps {
 	items: HomeFeatureItem[];
