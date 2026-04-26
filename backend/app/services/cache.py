@@ -44,6 +44,16 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
                         if isinstance(name, str) and name:
                             genre_names.append(name)
 
+                screenshots: list[str] = []
+                for screenshot in game_data.get("screenshots", []):
+                    if not isinstance(screenshot, dict):
+                        continue
+                    image_id = screenshot.get("image_id")
+                    if isinstance(image_id, str) and image_id:
+                        screenshots.append(
+                            f"https://images.igdb.com/igdb/image/upload/t_screenshot_big/{image_id}.jpg"
+                        )
+
                 developer_names: list[str] = []
                 for involved_company in game_data.get("involved_companies", []):
                     if not isinstance(involved_company, dict):
@@ -79,6 +89,7 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
                     else None,
                     developer=developer,
                     cover_url=cover_url,
+                    screenshots=screenshots,
                     platforms=platform_names,
                     genres=genre_names,
                     release_date=release_date,
