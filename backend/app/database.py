@@ -60,19 +60,12 @@ def create_games_table() -> None:
                     summary text,
                     developer text,
                     cover_url text,
+                    screenshots text[],
                     platforms text[],
                     genres text[],
                     release_date date,
                     igdb_rating real,
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP)
-                """
-            )
-
-            # Ensure older deployments get the new column without manual migration.
-            cur.execute(
-                """
-                ALTER TABLE games
-                ADD COLUMN IF NOT EXISTS developer text
                 """
             )
             conn.commit()
@@ -232,6 +225,7 @@ def add_game_to_db(
     cover_url: Optional[str] = None,
     platforms: Optional[list[str]] = None,
     genres: Optional[list[str]] = None,
+    screenshots: Optional[list[str]] = None,
     release_date: Optional[int] = None,
     igdb_rating: Optional[float] = None,
 ) -> Optional[int]:
@@ -245,13 +239,25 @@ def add_game_to_db(
 
             cur.execute(
                 """
-                INSERT INTO games (igdb_id, title, summary, developer, cover_url, platforms, genres, release_date, igdb_rating)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO games (
+                    igdb_id,
+                    title,
+                    summary,
+                    developer,
+                    cover_url,
+                    screenshots,
+                    platforms,
+                    genres,
+                    release_date,
+                    igdb_rating
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (igdb_id) DO UPDATE SET
                     title = EXCLUDED.title,
                     summary = EXCLUDED.summary,
                     developer = EXCLUDED.developer,
                     cover_url = EXCLUDED.cover_url,
+                    screenshots = EXCLUDED.screenshots,
                     platforms = EXCLUDED.platforms,
                     genres = EXCLUDED.genres,
                     release_date = EXCLUDED.release_date,
@@ -264,12 +270,14 @@ def add_game_to_db(
                     summary,
                     developer,
                     cover_url,
+                    screenshots,
                     platforms,
                     genres,
                     formatted_date,
                     igdb_rating,
                 ),
             )
+
             result = cur.fetchone()
             conn.commit()
             return result[0] if result else None

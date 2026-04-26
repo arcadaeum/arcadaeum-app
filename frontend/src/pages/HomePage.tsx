@@ -1,11 +1,8 @@
-import NavigationBar from "../components/NavigationBar";
-import ColorBends from "../components/ColorBends";
-
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import HomeAuthenticatedContent from "../components/home/HomeAuthenticatedContent";
-import HomeGuestContent from "../components/home/HomeGuestContent";
-import { HOME_FEATURES } from "../utils/home/features";
+import { NavigationBar, ColorBends } from "@/components/ui";
+import { HomeAuthenticatedContent, HomeGuestContent } from "@/components/home";
+import { HOME_FEATURES } from "@/utils/home";
 
 function HomePage() {
 	const navigate = useNavigate();
@@ -55,60 +52,17 @@ function HomePage() {
 				autoRotate={0}
 			/>
 
-			{/* Unauthenticated homepage content */}
 			{!isAuthenticated ? (
-				<div className="flex flex-col items-center justify-center min-h-screen gap-6 px-4 relative">
-					<div className="flex flex-col items-center gap-3">
-						<span
-							className="font-title tracking-tighter text-arcade-white text-3xl sm:text-4xl md:text-5xl whitespace-nowrap
-                  drop-shadow-[0_0_1px_#fefddc]"
-						>
-							Welcome to Arcadaeum.
-						</span>
-					</div>
-
-					<div className="flex flex-row gap-2 justify-center z-2">
-						{features.map((feature) => (
-							<FeatureSquare
-								key={feature.key}
-								bgClass={feature.bgClass}
-								glowColor={feature.glowColor}
-								label={`Open ${feature.key} info panel`}
-								onClick={() => handleSquareClick(feature.key)}
-							/>
-						))}
-					</div>
-
-					<FeaturePanel
-						items={features}
-						activeKey={activePanel}
-						isVisible={isPanelVisible}
-						onClose={closePanel}
-					/>
-
-					<p className="font-title tracking-tighter drop-shadow-[0_0_2px_#fefddc] text-arcade-white text-lg sm:text-xl md:text-2xl text-center max-w-md">
-						Log, review and discover games.
-					</p>
-
-					<button
-						onClick={() => navigate("/signin")}
-						className="mt-1 px-8 py-3 bg-grey text-arcade-white font-title tracking-tighter drop-shadow-[0_0_1px_#fefddc] text-xl rounded-sm bg-arcade-blue hover:bg-arcade-white hover:text-arcade-black"
-					>
-						SIGN IN
-					</button>
-				</div>
+				<HomeGuestContent
+					features={HOME_FEATURES}
+					activePanel={activePanel}
+					isPanelVisible={isPanelVisible}
+					onSquareClick={handleSquareClick}
+					onClosePanel={closePanel}
+					onSignIn={() => navigate("/signin")}
+				/>
 			) : (
-				/* Placeholder authenticated homepage content */
-				<div className="flex flex-col items-center justify-center min-h-screen gap-6 px-4 relative">
-					<div className="flex flex-col items-center gap-3">
-						<span
-							className="font-title tracking-tighter text-arcade-white text-3xl sm:text-4xl md:text-5xl whitespace-nowrap
-				  drop-shadow-[0_0_1px_#fefddc]"
-						>
-							This is the authenticated homepage section.
-						</span>
-					</div>
-				</div>
+				<HomeAuthenticatedContent />
 			)}
 		</>
 	);

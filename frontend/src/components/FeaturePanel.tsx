@@ -1,14 +1,7 @@
-import type { ReactNode } from "react";
-
-export interface FeatureItem {
-	key: string;
-	title: string;
-	borderClass: string; // tailwind border color class, e.g. "border-arcade-white"
-	body: ReactNode;
-}
+import type { HomeFeatureItem } from "../types/home";
 
 interface FeaturePanelProps {
-	items: FeatureItem[];
+	items: HomeFeatureItem[];
 	activeKey: string | null;
 	isVisible: boolean;
 	onClose: () => void;
@@ -21,7 +14,7 @@ function FeaturePanel({ items, activeKey, isVisible, onClose }: FeaturePanelProp
 		<div className="w-1/2 overflow-hidden">
 			<div
 				className={`transition-[max-height,transform,opacity] duration-500 ease-out origin-top rounded-xl bg-arcade-white backdrop-blur-sm overflow-hidden
-					${isVisible ? "max-h-[320px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-3"}`}
+					${isVisible ? "max-h-80 opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-3"}`}
 			>
 				{activeItem && (
 					<div className="flex flex-col h-full">

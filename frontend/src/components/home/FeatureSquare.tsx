@@ -1,9 +1,9 @@
-interface FeatureSquareProps {
+type FeatureSquareProps = {
 	bgClass: string;
 	glowColor: string;
 	label: string;
 	onClick: () => void;
-}
+};
 
 function FeatureSquare({ bgClass, glowColor, label, onClick }: FeatureSquareProps) {
 	return (

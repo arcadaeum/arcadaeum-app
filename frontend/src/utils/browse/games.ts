@@ -1,14 +1,7 @@
-import type { Game } from "../types/game";
+import type { BrowseSortOption, BrowseSortOptionItem } from "@/types/browse";
+import type { Game } from "@/types/game";
 
-export type BrowseSortOption =
-	| "title-asc"
-	| "title-desc"
-	| "rating-desc"
-	| "rating-asc"
-	| "release-old-new"
-	| "release-new-old";
-
-export const BROWSE_SORT_OPTIONS: Array<{ value: BrowseSortOption; label: string }> = [
+export const BROWSE_SORT_OPTIONS: BrowseSortOptionItem[] = [
 	{ value: "title-asc", label: "Title (A-Z)" },
 	{ value: "title-desc", label: "Title (Z-A)" },
 	{ value: "rating-desc", label: "Rating (High-Low)" },

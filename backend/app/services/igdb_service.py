@@ -74,7 +74,7 @@ class IGDBService:
     def fetch_top_games(self, limit: int = 500) -> list[dict[str, Any]]:
         """Hit IGDB for the top games."""
         query = f"""
-        fields id, name, summary, involved_companies.company.name, involved_companies.developer, cover.image_id, platforms.name, genres.name, first_release_date, total_rating;
+        fields id, name, summary, involved_companies.company.name, involved_companies.developer, cover.image_id, screenshots.image_id, platforms.name, genres.name, first_release_date, total_rating;
         sort total_rating_count desc;
         where total_rating_count > 0;
         limit {limit};
@@ -113,7 +113,7 @@ class IGDBService:
     def fetch_game_by_id(self, igdb_id: int) -> dict[str, Any] | None:
         """Fetch game details from IGDB by ID."""
         query = f"""
-        fields name, summary, cover.image_id, platforms.name, genres.name, first_release_date, total_rating;
+        fields name, summary, cover.image_id, screenshots.image_id, platforms.name, genres.name, first_release_date, total_rating;
         where id = {igdb_id};
         """
 

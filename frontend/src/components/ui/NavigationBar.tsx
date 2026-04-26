@@ -1,8 +1,7 @@
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import GameSearch from "./GameSearch";
-import UserSearch from "./UserSearch";
-import pngLogo from "../assets/images/LOGO_PURPLE.png";
 import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import pngLogo from "../../assets/images/LOGO_PURPLE.png";
+import { GameSearch, UserSearch } from "@/components/search";
 
 type NavigationBarProps = {
 	isSignInPage?: boolean;

@@ -77,6 +77,16 @@ async def add_game_from_igdb(request: AddGameFromIGDBRequest) -> dict[str, objec
                 if isinstance(name, str) and name:
                     genre_names.append(name)
 
+        screenshots: list[str] = []
+        for screenshot in game_data.get("screenshots", []):
+            if not isinstance(screenshot, dict):
+                continue
+            image_id = screenshot.get("image_id")
+            if isinstance(image_id, str) and image_id:
+                screenshots.append(
+                    f"https://images.igdb.com/igdb/image/upload/t_screenshot_big/{image_id}.jpg"
+                )
+
         first_release_date = game_data.get("first_release_date")
         release_timestamp: int | None = None
         if isinstance(first_release_date, int):
@@ -97,6 +107,7 @@ async def add_game_from_igdb(request: AddGameFromIGDBRequest) -> dict[str, objec
             else None,
             developer=None,
             cover_url=cover_url,
+            screenshots=screenshots,
             platforms=platform_names,
             genres=genre_names,
             release_date=release_timestamp,
@@ -122,7 +133,7 @@ def get_games() -> list[dict[str, object]]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, igdb_id, title, summary, developer, cover_url, platforms, release_date, igdb_rating, created_at
+                SELECT id, igdb_id, title, summary, developer, cover_url, screenshots, platforms, release_date, igdb_rating, created_at
                 FROM games
                 ORDER BY id DESC
                 """
@@ -143,7 +154,7 @@ def get_game(game_id: int) -> dict[str, object]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, igdb_id, title, summary, developer, cover_url, platforms, release_date, igdb_rating, created_at
+                SELECT id, igdb_id, title, summary, developer, cover_url, screenshots, platforms, release_date, igdb_rating, created_at
                 FROM games
                 WHERE id = %s
                 """,

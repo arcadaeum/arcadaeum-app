@@ -40,6 +40,8 @@ class Game(BaseModel):
     developer: Optional[str] = None
     cover_url: Optional[str] = None
     platforms: Optional[list[str]] = None
+    genres: Optional[list[str]] = None
+    screenshots: Optional[list[str]] = None
     release_date: Optional[str] = None
     igdb_rating: Optional[float] = None
 

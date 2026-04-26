@@ -1,56 +1,69 @@
-import { useState } from "react";
-import NavigationBar from "../components/NavigationBar";
+import { useState, type SubmitEvent } from "react";
+import { NavigationBar } from "@/components/ui";
+import { AuthErrorAlert, AuthTextField, PasswordField } from "@/components/auth";
+import {
+	createAccountRequest,
+	toCreateAccountPayload,
+	validateCreateAccountInput,
+} from "@/utils/auth";
 
 export default function CreateAccountPage() {
 	const [email, setEmail] = useState("");
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirm, setConfirm] = useState("");
+
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 
 	const backend = (import.meta.env.VITE_BACKEND_URL as string) || "http://localhost:8000";
 
-	const validate = () => {
-		if (!email || !username || !password || !confirm) return "All fields are required.";
-		if (!/\S+@\S+\.\S+/.test(email)) return "Invalid email address.";
-		if (password.length < 6) return "Password must be at least 6 characters.";
-		if (password !== confirm) return "Passwords do not match.";
-		return null;
-	};
-
-	const handleSubmit = async (e: React.SubmitEvent) => {
+	const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setError(null);
 		setSuccess(null);
-		const v = validate();
-		if (v) {
-			setError(v);
+
+		const validationError = validateCreateAccountInput({
+			email,
+			username,
+			password,
+			confirm,
+		});
+
+		if (validationError) {
+			setError(validationError);
 			return;
 		}
+
 		setLoading(true);
-		try {
-			const res = await fetch(`${backend}/users/`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email, username, password }),
-			});
-			if (res.ok) {
-				setSuccess("Account created successfully. You can now log in.");
-				setEmail("");
-				setUsername("");
-				setPassword("");
-				setConfirm("");
-			} else {
-				const data = await res.json().catch(() => ({}));
-				setError((data && data.detail) || data.message || "Failed to create account.");
-			}
-		} catch (err) {
-			setError(`${err}: Is the backend running?`);
-		} finally {
+
+		const payload = toCreateAccountPayload({
+			email,
+			username,
+			password,
+			confirm,
+		});
+
+		const result = await createAccountRequest(payload, backend);
+
+		if (result.ok) {
+			setSuccess("Account created successfully. You can now log in.");
+			setEmail("");
+			setUsername("");
+			setPassword("");
+			setConfirm("");
+			setShowPassword(false);
+			setShowConfirmPassword(false);
 			setLoading(false);
+			return;
 		}
+
+		setError(result.message);
+		setLoading(false);
 	};
 
 	return (
@@ -59,60 +72,61 @@ export default function CreateAccountPage() {
 			<div className="flex flex-col items-center font-title min-h-screen pt-50 px-4">
 				<form
 					onSubmit={handleSubmit}
-					className="w-full max-w-md bg-arcade-black/80 p-8 rounded-lg border border-arcade-blue"
+					className="w-full max-w-md bg-arcade-black/80 p-8 rounded-lg border border-arcade-blue space-y-4"
 				>
-					<h1 className="text-2xl font-default text-center mb-6">Create Account</h1>
+					<h1 className="text-2xl font-default text-center mb-2">Create Account</h1>
 
-					<label className="block mb-3">
-						<span className="text-sm text-gray-300">Email</span>
-						<input
-							type="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							className="mt-1 w-full px-3 py-2 rounded bg-arcade-white text-arcade-black"
-							autoComplete="email"
-						/>
-					</label>
+					<AuthTextField
+						label="Email"
+						type="email"
+						value={email}
+						onChange={setEmail}
+						required
+						inputId="create-account-email"
+						autoComplete="email"
+					/>
 
-					<label className="block mb-3">
-						<span className="text-sm text-gray-300">Username</span>
-						<input
-							value={username}
-							onChange={(e) => setUsername(e.target.value)}
-							className="mt-1 w-full px-3 py-2 rounded bg-arcade-white text-arcade-black"
-							autoComplete="username"
-						/>
-					</label>
+					<AuthTextField
+						label="Username"
+						type="text"
+						value={username}
+						onChange={setUsername}
+						required
+						inputId="create-account-username"
+						autoComplete="username"
+					/>
 
-					<label className="block mb-3">
-						<span className="text-sm text-gray-300">Password</span>
-						<input
-							type="password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							className="mt-1 w-full px-3 py-2 rounded bg-arcade-white text-arcade-black"
-							autoComplete="new-password"
-						/>
-					</label>
+					<PasswordField
+						label="Password"
+						value={password}
+						showPassword={showPassword}
+						onChange={setPassword}
+						onToggleMouseDown={() => setShowPassword((s) => !s)}
+						onToggleMouseUp={() => setShowPassword(false)}
+						onToggleMouseLeave={() => setShowPassword(false)}
+						required
+						inputId="create-account-password"
+					/>
 
-					<label className="block mb-4">
-						<span className="text-sm text-gray-300">Confirm Password</span>
-						<input
-							type="password"
-							value={confirm}
-							onChange={(e) => setConfirm(e.target.value)}
-							className="mt-1 w-full px-3 py-2 rounded bg-arcade-white text-arcade-black"
-							autoComplete="new-password"
-						/>
-					</label>
+					<PasswordField
+						label="Confirm Password"
+						value={confirm}
+						showPassword={showConfirmPassword}
+						onChange={setConfirm}
+						onToggleMouseDown={() => setShowConfirmPassword((s) => !s)}
+						onToggleMouseUp={() => setShowConfirmPassword(false)}
+						onToggleMouseLeave={() => setShowConfirmPassword(false)}
+						required
+						inputId="create-account-confirm-password"
+					/>
 
-					{error && <div className="text-red-400 mb-3">{error}</div>}
-					{success && <div className="text-green-400 mb-3">{success}</div>}
+					{error && <AuthErrorAlert error={error} />}
+					{success && <div className="text-green-400">{success}</div>}
 
 					<button
 						type="submit"
 						disabled={loading}
-						className="w-full py-2 rounded bg-arcade-blue text-arcade-black font-semibold hover:opacity-90"
+						className="w-full py-2 rounded bg-arcade-blue text-arcade-black font-semibold hover:opacity-90 disabled:opacity-60"
 					>
 						{loading ? "Creating..." : "Create Account"}
 					</button>
