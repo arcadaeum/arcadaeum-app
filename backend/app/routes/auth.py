@@ -8,7 +8,20 @@ from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
-from app.auth import (
+from app.database import (
+    create_user,
+    get_user_by_email,
+    update_user_display_name,
+)
+from app.models.auth import (
+    PasswordReset,
+    PasswordResetRequest,
+    PasswordResetResponse,
+    RegisterRequest,
+    Token,
+    User,
+)
+from app.services.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     authenticate_user,
     create_access_token,
@@ -16,15 +29,6 @@ from app.auth import (
     get_current_user,
     get_password_hash,
     reset_password_with_token,
-)
-from app.database import create_user, get_user_by_email, update_user_display_name
-from app.models import (
-    PasswordReset,
-    PasswordResetRequest,
-    PasswordResetResponse,
-    RegisterRequest,
-    Token,
-    User,
 )
 
 router = APIRouter()
