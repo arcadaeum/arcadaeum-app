@@ -1,4 +1,4 @@
-import type { PasswordResetApiResponse } from "../../types/password";
+import type { PasswordResetApiResponse } from "@/types/password";
 
 export const validatePasswordResetInput = (newPassword: string, confirmPassword: string) => {
 	if (newPassword !== confirmPassword) {

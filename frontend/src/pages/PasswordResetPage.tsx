@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { PasswordField } from "@/components/auth";
 import { PasswordPageLayout, PasswordStatusAlert } from "@/components/password";
@@ -18,7 +18,7 @@ export default function PasswordResetPage() {
 	const token = searchParams.get("token");
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 
-	const handleReset = async (e: FormEvent<HTMLFormElement>) => {
+	const handleReset = async (e: SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
 		const validationError = validatePasswordResetInput(newPassword, confirmPassword);
@@ -65,10 +65,7 @@ export default function PasswordResetPage() {
 	}
 
 	return (
-		<PasswordPageLayout
-			title="Reset Password"
-			description="Enter your new password below."
-		>
+		<PasswordPageLayout title="Reset Password" description="Enter your new password below.">
 			<PasswordStatusAlert message={error} variant="error" />
 			<PasswordStatusAlert message={message} variant="success" />
 

@@ -14,3 +14,8 @@ export type UserFavoriteGame = {
 	title: string;
 	cover_url?: string | null;
 };
+
+export type UserStickyHeaderProps = {
+	displayName: string;
+	withGlow?: boolean;
+};

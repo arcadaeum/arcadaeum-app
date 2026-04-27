@@ -1,14 +1,16 @@
 import { Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import SignInPage from "./pages/SignInPage";
-import UserPage from "./pages/UserPage";
-import CreateAccountPage from "./pages/CreateAccountPage";
-import AuthCallbackPage from "./pages/AuthCallbackPage";
-import GameDetailPage from "./pages/GameDetailPage";
-import BrowsePage from "./pages/BrowsePage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import PasswordResetPage from "./pages/PasswordResetPage";
-import ProfilePage from "./pages/ProfilePage";
+import {
+	HomePage,
+	SignInPage,
+	UserPage,
+	CreateAccountPage,
+	AuthCallbackPage,
+	GameDetailPage,
+	BrowsePage,
+	ForgotPasswordPage,
+	PasswordResetPage,
+	ProfilePage,
+} from "@/pages";
 
 export default function App() {
 	return (

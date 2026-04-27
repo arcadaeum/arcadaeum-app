@@ -1,12 +1,4 @@
-import type { BrowseSortOption, BrowseSortOptionItem } from "@/types/browse";
-
-type BrowseFiltersProps = {
-	searchQuery: string;
-	sortBy: BrowseSortOption;
-	sortOptions: BrowseSortOptionItem[];
-	onSearchChange: (query: string) => void;
-	onSortChange: (sortBy: BrowseSortOption) => void;
-};
+import type { BrowseSortOption, BrowseFiltersProps } from "@/types/browse";
 
 export default function BrowseFilters({
 	searchQuery,
@@ -35,7 +27,10 @@ export default function BrowseFilters({
 					/>
 				</div>
 				<div className="w-full sm:w-52">
-					<label htmlFor="sort-by" className="block text-xs font-default text-gray-300 mb-1">
+					<label
+						htmlFor="sort-by"
+						className="block text-xs font-default text-gray-300 mb-1"
+					>
 						Sort by
 					</label>
 					<select

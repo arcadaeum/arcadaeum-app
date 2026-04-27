@@ -1,13 +1,7 @@
-import type { ReactNode } from "react";
+import type { PasswordPageLayoutProps } from "@/types/password";
 
 import pngLogo from "../../assets/images/LOGO_PURPLE.png";
 import { ColorBends, NavigationBar } from "@/components/ui";
-
-type PasswordPageLayoutProps = {
-	title?: string;
-	description?: string;
-	children: ReactNode;
-};
 
 export default function PasswordPageLayout({
 	title,

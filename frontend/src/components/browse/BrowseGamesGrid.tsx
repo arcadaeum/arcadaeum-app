@@ -1,13 +1,5 @@
 import { GameCard } from "@/components/game";
-import type { Game } from "@/types/game";
-
-type BrowseGamesGridProps = {
-	visibleGames: Game[];
-	totalGamesCount: number;
-	hasMoreGames: boolean;
-	onLoadMore: () => void;
-	pageSize: number;
-};
+import type { BrowseGamesGridProps } from "@/types/browse";
 
 export default function BrowseGamesGrid({
 	visibleGames,
@@ -20,7 +12,12 @@ export default function BrowseGamesGrid({
 		<div className="w-full max-w-7xl mx-auto px-4 py-6">
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
 				{visibleGames.map((game) => (
-					<GameCard key={game.id} id={game.id} title={game.title} image={game.cover_url} />
+					<GameCard
+						key={game.id}
+						id={game.id}
+						title={game.title}
+						image={game.cover_url}
+					/>
 				))}
 			</div>
 

@@ -1,5 +1,5 @@
-import heartIconFilled from "../../assets/images/heart-icon-filled.svg";
-import heartIconUnfilled from "../../assets/images/heart-icon-unfilled.svg";
+import heartIconFilled from "@/assets/images/heart-icon-filled.svg";
+import heartIconUnfilled from "@/assets/images/heart-icon-unfilled.svg";
 import type { Game } from "@/types/game";
 
 type GameDetailArtworkProps = {

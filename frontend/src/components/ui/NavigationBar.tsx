@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import pngLogo from "../../assets/images/LOGO_PURPLE.png";
+import pngLogo from "@/assets/images/LOGO_PURPLE.png";
 import { GameSearch, UserSearch } from "@/components/search";
 
 type NavigationBarProps = {
