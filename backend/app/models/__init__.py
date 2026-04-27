@@ -15,6 +15,11 @@ from app.models.games import (
     Game,
     GameSearchResult,
 )
+from app.models.library import (
+    AddToLibraryRequest,
+    LibraryEntry,
+    UpdateLibraryStatusRequest,
+)
 from app.models.users import UserFollowers, UserFollowing
 
 __all__ = [
@@ -35,4 +40,8 @@ __all__ = [
     # Users
     "UserFollowers",
     "UserFollowing",
+    # Library
+    "LibraryEntry",
+    "AddToLibraryRequest",
+    "UpdateLibraryStatusRequest",
 ]
