@@ -1,3 +1,4 @@
+import asyncio
 import os
 from datetime import timedelta
 
@@ -187,14 +188,32 @@ async def proxy_profile_image(url: str) -> Response:
 @router.post("/password-reset/request", response_model=PasswordResetResponse)
 async def request_password_reset(req: PasswordResetRequest) -> PasswordResetResponse:
     """Request a password reset by providing an email address."""
-    result = await create_password_reset_link(req.email)
-    message = result.get("message")
-    if not isinstance(message, str):
-        raise HTTPException(status_code=500, detail="Invalid password reset response")
-    return PasswordResetResponse(message=message)
+    try:
+        print(f"DEBUG: Password reset request endpoint called for: {req.email}")
+        result = await asyncio.wait_for(create_password_reset_link(req.email), timeout=15.0)
+        success = result.get("success")
+        message = result.get("message")
+        if not isinstance(message, str):
+            raise HTTPException(status_code=500, detail="Invalid password reset response")
+
+        if not success:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+
+        return PasswordResetResponse(message=message)
+    except asyncio.TimeoutError:
+        print("ERROR: Password reset request timed out (SMTP connection issue)")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password reset request timed out. Email service may be unavailable.",
+        )
+    except Exception as e:
+        print(f"ERROR in password reset endpoint: {type(e).__name__}: {e}")
+        import traceback
+
+        traceback.print_exc()
+        raise
 
 
-@router.post("/password-reset/reset", response_model=PasswordResetResponse)
 async def reset_password(req: PasswordReset) -> PasswordResetResponse:
     """Reset password using a valid reset token."""
     result = reset_password_with_token(req.token, req.new_password)

@@ -60,9 +60,7 @@ def authenticate_user(username_or_email: str, password: str) -> User | None:
     return User(**user)
 
 
-def create_access_token(
-    data: dict[str, object], expires_delta: timedelta | None = None
-) -> str:
+def create_access_token(data: dict[str, object], expires_delta: timedelta | None = None) -> str:
     """Create a JWT access token with an optional expiration time."""
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (
@@ -116,25 +114,33 @@ async def create_password_reset_link(
     email: str, frontend_url: str = "http://localhost:5173"
 ) -> dict[str, object]:
     """Create and send a password reset token for a user."""
+    print(f"DEBUG: create_password_reset_link called for email: {email}")
     user = get_user_by_email(email)
 
     if not user:
+        print(f"DEBUG: User not found for email: {email}")
         return {
             "success": True,
             "message": "If an account with that email exists, a reset link has been sent.",
         }
 
+    print(f"DEBUG: User found: {user.get('id')}")
     reset_token = generate_reset_token()
     expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
 
+    print(f"DEBUG: Storing reset token in database...")
     stored = create_password_reset_token(user["id"], reset_token, expires_at)
     if not stored:
+        print(f"ERROR: Failed to create reset token in database")
         return {"success": False, "message": "Failed to create reset token"}
 
+    print(f"DEBUG: Reset token stored. Now sending email...")
     email_sent = await send_password_reset_email(email, reset_token, frontend_url)
     if not email_sent:
+        print(f"ERROR: Failed to send reset email")
         return {"success": False, "message": "Failed to send reset email"}
 
+    print(f"DEBUG: Password reset flow completed successfully for {email}")
     return {
         "success": True,
         "message": "If an account with that email exists, a reset link has been sent.",
