@@ -72,7 +72,18 @@ def get_user_library(user_id: int, offset: int = 0, limit: int = 50) -> list[dic
             if cur.description is None:
                 return []
             columns = [desc[0] for desc in cur.description]
-            return [dict(zip(columns, row)) for row in rows]
+            results = []
+            for row in rows:
+                entry = dict(zip(columns, row))
+                # Convert datetime/date fields to ISO strings for JSON serialization
+                if entry.get("added_at") is not None:
+                    entry["added_at"] = entry["added_at"].isoformat()
+                if entry.get("release_date") is not None:
+                    entry["release_date"] = entry["release_date"].isoformat()
+                if entry.get("created_at") is not None:
+                    entry["created_at"] = entry["created_at"].isoformat()
+                results.append(entry)
+            return results
 
 
 def get_library_entry(user_id: int, game_id: int) -> Optional[dict]:
@@ -110,7 +121,15 @@ def get_library_entry(user_id: int, game_id: int) -> Optional[dict]:
             if cur.description is None:
                 return None
             columns = [desc[0] for desc in cur.description]
-            return dict(zip(columns, row))
+            entry = dict(zip(columns, row))
+            # Convert datetime/date fields to ISO strings for JSON serialization
+            if entry.get("added_at") is not None:
+                entry["added_at"] = entry["added_at"].isoformat()
+            if entry.get("release_date") is not None:
+                entry["release_date"] = entry["release_date"].isoformat()
+            if entry.get("created_at") is not None:
+                entry["created_at"] = entry["created_at"].isoformat()
+            return entry
 
 
 def update_library_status(user_id: int, game_id: int, status: str) -> bool:

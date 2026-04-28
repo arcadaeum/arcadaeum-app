@@ -80,6 +80,15 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 							BROWSE
 						</Link>
 						<Link
+							to="/library"
+							className={
+								actionClassName +
+								" relative cursor-pointer hover:scale-110 transition-transform"
+							}
+						>
+							LIBRARY
+						</Link>
+						<Link
 							to="/user"
 							className={
 								actionClassName +

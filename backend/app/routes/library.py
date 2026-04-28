@@ -1,3 +1,4 @@
+import psycopg
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.database.queries.library import (
@@ -38,8 +39,7 @@ def add_to_user_library(
     """Add a game to current user's library."""
     try:
         add_to_library(current_user.id, request.game_id)
-    except Exception:
-        # Could be IntegrityError for duplicate
+    except psycopg.errors.UniqueViolation:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Game already in library"
         )

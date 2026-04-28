@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -9,7 +10,7 @@ class LibraryEntry(BaseModel):
     id: int
     user_id: int
     game_id: int
-    added_at: Optional[str] = None
+    added_at: Optional[datetime] = None
     status: Optional[str] = None
     # -----------------------------
     title: str
@@ -20,9 +21,9 @@ class LibraryEntry(BaseModel):
     platforms: Optional[list[str]] = None
     genres: Optional[list[str]] = None
     screenshots: Optional[list[str]] = None
-    release_date: Optional[str] = None
+    release_date: Optional[date] = None
     igdb_rating: Optional[float] = None
-    created_at: Optional[str] = None
+    created_at: Optional[datetime] = None
 
 
 class AddToLibraryRequest(BaseModel):
