@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ColorBends, NavigationBar, PageHeader } from "@/components/ui";
-import { BrowseFilters, BrowseGamesGrid } from "@/components/browse";
+import { BrowseFilters } from "@/components/browse";
+import { GameGrid } from "@/components/game";
 import type { BrowseSortOption } from "@/types/browse";
 import type { Game } from "@/types/game";
 import { BROWSE_SORT_OPTIONS, filterAndSortGames } from "@/utils/browse";
@@ -81,13 +82,20 @@ export default function BrowsePage() {
 					onSearchChange={handleSearchChange}
 					onSortChange={handleSortChange}
 				/>
-				<BrowseGamesGrid
-					visibleGames={visibleGames}
-					totalGamesCount={filteredAndSortedGames.length}
-					hasMoreGames={hasMoreGames}
-					onLoadMore={handleLoadMore}
-					pageSize={PAGE_SIZE}
-				/>
+				<div className="w-full max-w-7xl mx-auto px-4 py-6">
+					<GameGrid games={visibleGames} emptyMessage="No games matched your search." />
+
+					{hasMoreGames && (
+						<div className="mt-8 flex justify-center">
+							<button
+								onClick={handleLoadMore}
+								className="bg-arcade-black hover:bg-arcade-blue text-arcade-white font-title py-2 px-6 border-2 border-arcade-white rounded-lg"
+							>
+								Load {PAGE_SIZE} More
+							</button>
+						</div>
+					)}
+				</div>
 			</div>
 		</>
 	);

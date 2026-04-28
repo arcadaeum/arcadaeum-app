@@ -35,6 +35,7 @@ export default function GameDetailArtwork({
 					className="shadow-lg object-cover rounded-xl h-auto w-full border-5 border-arcade-white"
 				/>
 
+				{/* This should be refactored into a component once the style is finalised @FRED */}
 				{isAuthenticated && (
 					<div className="mt-4">
 						<div className="flex items-center justify-center gap-4">

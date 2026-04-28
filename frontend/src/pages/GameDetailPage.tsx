@@ -3,6 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import { GameDetailArtwork, GameDetailMainContent, GameDetailSidebar } from "@/components/game";
 import type { Game } from "@/types/game";
+import {
+	fetchGameDetail,
+	fetchLibraryMembership,
+	showLibraryPopup,
+	toggleLibrary,
+	type LibraryPopupType,
+} from "@/utils/game";
 
 export default function GameDetailPage() {
 	const { id } = useParams<{ id: string }>();
@@ -16,7 +23,7 @@ export default function GameDetailPage() {
 	const [favourited, setFavourited] = useState(false);
 
 	const [libraryPopup, setLibraryPopup] = useState<string | null>(null);
-	const [libraryPopupType, setLibraryPopupType] = useState<"success" | "error">("success");
+	const [libraryPopupType, setLibraryPopupType] = useState<LibraryPopupType>("success");
 	const popupTimerRef = useRef<number | null>(null);
 
 	const apiUrl = import.meta.env.VITE_API_URL as string;
@@ -24,13 +31,7 @@ export default function GameDetailPage() {
 	useEffect(() => {
 		if (!id) return;
 
-		const url = `${apiUrl}/games/${id}`;
-
-		fetch(url)
-			.then((res) => {
-				if (!res.ok) throw new Error("Game not found");
-				return res.json();
-			})
+		fetchGameDetail(apiUrl, id)
 			.then((data) => {
 				setGame(data);
 				setError(null);
@@ -48,33 +49,23 @@ export default function GameDetailPage() {
 		const token = localStorage.getItem("access_token");
 		if (!token) return;
 
-		fetch(`${apiUrl}/users/me/library`, {
-			headers: { Authorization: `Bearer ${token}` },
-		})
-			.then((res) => {
-				if (!res.ok) throw new Error("Failed to fetch library");
-				return res.json();
-			})
-			.then((entries: { game_id: number }[]) => {
-				const gameId = Number(id);
-				setInLibrary(entries.some((entry) => entry.game_id === gameId));
+		fetchLibraryMembership(apiUrl, token, id)
+			.then((isInLibrary) => {
+				setInLibrary(isInLibrary);
 			})
 			.catch(() => {
 				setInLibrary(false);
 			});
 	}, [apiUrl, id]);
 
-	const showLibraryPopup = (message: string, type: "success" | "error" = "success") => {
-		setLibraryPopup(message);
-		setLibraryPopupType(type);
-
-		if (popupTimerRef.current) {
-			window.clearTimeout(popupTimerRef.current);
-		}
-
-		popupTimerRef.current = window.setTimeout(() => {
-			setLibraryPopup(null);
-		}, 2500);
+	const handleShowLibraryPopup = (message: string, type: LibraryPopupType = "success") => {
+		showLibraryPopup({
+			message,
+			type,
+			setLibraryPopup,
+			setLibraryPopupType,
+			popupTimerRef,
+		});
 	};
 
 	useEffect(() => {
@@ -85,58 +76,16 @@ export default function GameDetailPage() {
 		};
 	}, []);
 
-	// Toggle library
-	const toggleLibrary = async () => {
-		const token = localStorage.getItem("access_token");
-		if (!token) {
-			navigate("/signin");
-			return;
-		}
-
-		const gameId = Number(id);
-		const isRemoving = inLibrary;
-		const url = isRemoving
-			? `${apiUrl}/users/me/library/${gameId}`
-			: `${apiUrl}/users/me/library`;
-		const method = isRemoving ? "DELETE" : "POST";
-
-		const headers = {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${token}`,
-		};
-		const body = isRemoving ? undefined : JSON.stringify({ game_id: gameId });
-
-		const previousInLibrary = inLibrary;
-		setInLibrary(!previousInLibrary);
-
-		try {
-			const res = await fetch(url, { method, headers, body });
-			if (res.ok) {
-				showLibraryPopup(
-					previousInLibrary ? "Removed from your library." : "Added to your library.",
-					"success",
-				);
-			} else {
-				setInLibrary(previousInLibrary);
-
-				if (res.status === 409) {
-					setInLibrary(true);
-					showLibraryPopup("Already in your library.", "error");
-					return;
-				}
-
-				const errorData = await res.json().catch(() => ({}));
-				const message =
-					errorData.detail ||
-					`Failed to ${isRemoving ? "remove from" : "add to"} library`;
-				console.error(message);
-				showLibraryPopup(message, "error");
-			}
-		} catch (error) {
-			setInLibrary(previousInLibrary);
-			console.error("Network error:", error);
-			showLibraryPopup("Network error. Please try again.", "error");
-		}
+	const handleToggleLibrary = async () => {
+		await toggleLibrary({
+			id,
+			apiUrl,
+			inLibrary,
+			setInLibrary,
+			token: localStorage.getItem("access_token"),
+			onRequireSignIn: () => navigate("/signin"),
+			showPopup: handleShowLibraryPopup,
+		});
 	};
 
 	if (!id) return <div>Invalid game id.</div>;
@@ -167,7 +116,7 @@ export default function GameDetailPage() {
 						favourited={favourited}
 						inLibrary={inLibrary}
 						onToggleFavourite={() => setFavourited(!favourited)}
-						onToggleLibrary={toggleLibrary}
+						onToggleLibrary={handleToggleLibrary}
 						libraryPopupMessage={libraryPopup}
 						libraryPopupType={libraryPopupType}
 					/>
