@@ -16,8 +16,12 @@ async def send_password_reset_email(
     sender_password = os.getenv("SENDER_PASSWORD")
 
     if not sender_email or not sender_password:
-        print("Warning: Email credentials not configured")
+        print("ERROR: Email credentials not configured")
+        print(f"  SENDER_EMAIL: {sender_email}")
+        print(f"  SENDER_PASSWORD: {'*' * len(sender_password) if sender_password else 'None'}")
         return False
+
+    print(f"DEBUG: Attempting to send password reset email to {recipient_email}")
 
     reset_link = f"{frontend_url}/reset-password?token={reset_token}"
 
@@ -47,13 +51,19 @@ async def send_password_reset_email(
     message.attach(MIMEText(html, "html"))
 
     try:
-        async with aiosmtplib.SMTP(hostname=smtp_server, port=smtp_port) as smtp:
-            await smtp.connect()
-            if smtp_port == 587:
-                await smtp.starttls()
+        print(f"DEBUG: Connecting to {smtp_server}:{smtp_port}...")
+        async with aiosmtplib.SMTP(hostname=smtp_server, port=smtp_port, start_tls=True) as smtp:
+            print("DEBUG: Connected to SMTP server")
+            print("DEBUG: Logging in...")
             await smtp.login(sender_email, sender_password)
+            print("DEBUG: Login successful")
+            print("DEBUG: Sending email...")
             await smtp.sendmail(sender_email, recipient_email, message.as_string())
+            print(f"SUCCESS: Password reset email sent to {recipient_email}")
         return True
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"ERROR sending email: {type(e).__name__}: {e}")
+        import traceback
+
+        traceback.print_exc()
         return False
