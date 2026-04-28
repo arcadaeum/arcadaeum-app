@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ColorBends, NavigationBar } from "@/components/ui";
-import { BrowseFilters, BrowseGamesGrid, BrowseIntro } from "@/components/browse";
+import { ColorBends, NavigationBar, PageHeader } from "@/components/ui";
+import { BrowseFilters, BrowseGamesGrid } from "@/components/browse";
 import type { BrowseSortOption } from "@/types/browse";
 import type { Game } from "@/types/game";
 import { BROWSE_SORT_OPTIONS, filterAndSortGames } from "@/utils/browse";
@@ -70,7 +70,10 @@ export default function BrowsePage() {
 			<NavigationBar />
 
 			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
-				<BrowseIntro />
+				<PageHeader
+					title="The Arcadaeum."
+					subtitle="Discover new games and explore your library."
+				/>
 				<BrowseFilters
 					searchQuery={searchQuery}
 					sortBy={sortBy}

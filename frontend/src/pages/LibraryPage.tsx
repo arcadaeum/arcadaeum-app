@@ -1,25 +1,48 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { NavigationBar, ColorBends } from "@/components/ui";
+import { NavigationBar, ColorBends, PageHeader } from "@/components/ui";
+import { BrowseFilters } from "@/components/browse";
 import { GameCard } from "@/components/game";
-import { UserProfileHero, UserStickyHeader } from "@/components/user";
+import type { BrowseSortOption } from "@/types/browse";
+import type { Game } from "@/types/game";
 import type { LibraryEntry, UserProfile } from "@/types/user";
-import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
+import { BROWSE_SORT_OPTIONS, filterAndSortGames } from "@/utils/browse";
 
 export default function LibraryPage() {
 	const [user, setUser] = useState<UserProfile | null>(null);
 	const [library, setLibrary] = useState<LibraryEntry[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
-	const [editing, setEditing] = useState(false);
-	const [newDisplayName, setNewDisplayName] = useState("");
-	const [showHeader, setShowHeader] = useState(false);
-	const profileRef = useRef<HTMLDivElement>(null);
+	const [searchQuery, setSearchQuery] = useState("");
+	const [sortBy, setSortBy] = useState<BrowseSortOption>("title-asc");
 	const navigate = useNavigate();
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 
-	const displayName = getUserDisplayName(user);
-	const borderColor = getUserProfileBorderColor(user);
+	const filteredAndSortedLibrary = useMemo(() => {
+		const libraryAsGames: Game[] = library.map((entry) => ({
+			id: entry.game_id,
+			igdb_id: entry.igdb_id,
+			title: entry.title,
+			summary: entry.summary ?? null,
+			developer: entry.developer ?? null,
+			cover_url: entry.cover_url ?? null,
+			screenshots: entry.screenshots ?? null,
+			platforms: entry.platforms ?? null,
+			release_date: entry.release_date ?? null,
+			igdb_rating: entry.igdb_rating ?? null,
+			created_at: entry.created_at ?? null,
+		}));
+
+		const filteredGames = filterAndSortGames(libraryAsGames, searchQuery, sortBy);
+		const filteredGameIds = new Set(filteredGames.map((game) => game.id));
+		const orderByGameId = new Map(filteredGames.map((game, index) => [game.id, index]));
+
+		return library
+			.filter((entry) => filteredGameIds.has(entry.game_id))
+			.sort(
+				(a, b) => (orderByGameId.get(a.game_id) ?? 0) - (orderByGameId.get(b.game_id) ?? 0),
+			);
+	}, [library, searchQuery, sortBy]);
 
 	useEffect(() => {
 		const token = localStorage.getItem("access_token");
@@ -43,19 +66,7 @@ export default function LibraryPage() {
 			.finally(() => setLoading(false));
 	}, [apiUrl, navigate]);
 
-	// Intersection observer to show header when profile section is scrolled out of view.
-	useEffect(() => {
-		const el = profileRef.current;
-		if (!el) return;
-		const observer = new IntersectionObserver(
-			([entry]) => setShowHeader(!entry.isIntersecting),
-			{ rootMargin: "-200px 0px 0px 0px", threshold: 0 },
-		);
-		observer.observe(el);
-		return () => observer.disconnect();
-	}, [loading]);
-
-	// Fetch user's library from API (only after user is loaded)
+	// Fetch user's library from API
 	useEffect(() => {
 		if (!user) return; // Wait for user to be authenticated
 
@@ -73,30 +84,6 @@ export default function LibraryPage() {
 			.then((data: LibraryEntry[]) => setLibrary(data))
 			.catch(() => setLibrary([]));
 	}, [apiUrl, user]);
-
-	const handleEdit = () => {
-		setNewDisplayName(user?.display_name || "");
-		setEditing(true);
-	};
-
-	const handleSave = async () => {
-		const token = localStorage.getItem("access_token");
-		const res = await fetch(`${apiUrl}/me`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
-			},
-			body: JSON.stringify({ display_name: newDisplayName }),
-		});
-		if (res.ok) {
-			const updated = await res.json();
-			setUser(updated);
-			setEditing(false);
-		} else {
-			setError("Failed to update display name.");
-		}
-	};
 
 	if (loading) return <div>Loading...</div>;
 	if (error) return <div>{error}</div>;
@@ -118,28 +105,20 @@ export default function LibraryPage() {
 				transparent
 				autoRotate={0}
 			/>
-			{showHeader && <UserStickyHeader displayName={displayName} />}
 			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
-				<UserProfileHero
-					user={user}
-					profileRef={profileRef}
-					borderColor={borderColor}
-					apiUrl={apiUrl}
-					editing={editing}
-					newDisplayName={newDisplayName}
-					displayName={displayName}
-					onDisplayNameChange={setNewDisplayName}
-					canEdit={false}
-					onEdit={handleEdit}
-					onSave={handleSave}
-					onCancel={() => setEditing(false)}
+				<PageHeader title="Your Library." subtitle="The home of for all your games." />
+
+				<BrowseFilters
+					searchQuery={searchQuery}
+					sortBy={sortBy}
+					sortOptions={BROWSE_SORT_OPTIONS}
+					onSearchChange={setSearchQuery}
+					onSortChange={setSortBy}
 				/>
-				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
-					Your Library
-				</h2>
+
 				<div className="w-full max-w-7xl mx-auto px-4 py-6">
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-						{library.map((entry) => (
+						{filteredAndSortedLibrary.map((entry) => (
 							<GameCard
 								key={entry.id}
 								id={entry.game_id}
@@ -149,7 +128,7 @@ export default function LibraryPage() {
 						))}
 					</div>
 
-					{library.length === 0 && (
+					{library.length === 0 ? (
 						<h3 className="mt-8 text-center text-2xl font-title text-arcade-white tracking-tighter">
 							Your library is currently empty. Browse the{" "}
 							<Link to="/browse" className="text-arcade-violet hover:underline">
@@ -157,6 +136,12 @@ export default function LibraryPage() {
 							</Link>{" "}
 							to find games to add!
 						</h3>
+					) : (
+						filteredAndSortedLibrary.length === 0 && (
+							<h3 className="mt-8 text-center text-2xl font-title text-arcade-white tracking-tighter">
+								No games in your library match your search.
+							</h3>
+						)
 					)}
 				</div>
 			</div>
