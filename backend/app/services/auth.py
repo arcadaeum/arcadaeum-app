@@ -7,8 +7,15 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-from app import database
-from app.models import TokenData, User
+from app.database import (
+    create_password_reset_token,
+    get_password_reset_token,
+    get_user_by_email,
+    get_user_by_username,
+    mark_reset_token_as_used,
+    update_user_password,
+)
+from app.models.auth import TokenData, User
 from app.services.email import send_password_reset_email
 
 secret_key = os.getenv("SECRET_KEY")
@@ -37,9 +44,9 @@ def get_password_hash(password: str) -> str:
 
 
 def authenticate_user(username_or_email: str, password: str) -> User | None:
-    user = database.get_user_by_username(username_or_email)
+    user = get_user_by_username(username_or_email)
     if user is None:
-        user = database.get_user_by_email(username_or_email)
+        user = get_user_by_email(username_or_email)
     if user is None:
         return None
 
@@ -86,7 +93,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     if username is None:
         raise credentials_exception
 
-    user_dict = database.get_user_by_username(username)
+    user_dict = get_user_by_username(username)
     if user_dict is None:
         raise credentials_exception
 
@@ -109,7 +116,7 @@ async def create_password_reset_link(
     email: str, frontend_url: str = "http://localhost:5173"
 ) -> dict[str, object]:
     """Create and send a password reset token for a user."""
-    user = database.get_user_by_email(email)
+    user = get_user_by_email(email)
 
     if not user:
         return {
@@ -120,7 +127,7 @@ async def create_password_reset_link(
     reset_token = generate_reset_token()
     expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
 
-    stored = database.create_password_reset_token(user["id"], reset_token, expires_at)
+    stored = create_password_reset_token(user["id"], reset_token, expires_at)
     if not stored:
         return {"success": False, "message": "Failed to create reset token"}
 
@@ -136,7 +143,7 @@ async def create_password_reset_link(
 
 def reset_password_with_token(token: str, new_password: str) -> dict[str, object]:
     """Verify token and reset user's password."""
-    token_data = database.get_password_reset_token(token)
+    token_data = get_password_reset_token(token)
 
     if not token_data:
         return {"success": False, "message": "Invalid or expired reset token"}
@@ -149,9 +156,9 @@ def reset_password_with_token(token: str, new_password: str) -> dict[str, object
         return {"success": False, "message": "Reset token has expired"}
 
     password_hash = get_password_hash(new_password)
-    updated = database.update_user_password(token_data["user_id"], password_hash)
+    updated = update_user_password(token_data["user_id"], password_hash)
     if not updated:
         return {"success": False, "message": "Failed to update password"}
 
-    database.mark_reset_token_as_used(token_data["id"])
+    mark_reset_token_as_used(token_data["id"])
     return {"success": True, "message": "Password has been reset successfully"}

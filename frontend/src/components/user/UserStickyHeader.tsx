@@ -1,12 +1,6 @@
-type UserStickyHeaderProps = {
-	displayName: string;
-	withGlow?: boolean;
-};
+import type { UserStickyHeaderProps } from "@/types/user";
 
-export default function UserStickyHeader({
-	displayName,
-	withGlow = false,
-}: UserStickyHeaderProps) {
+export default function UserStickyHeader({ displayName, withGlow = false }: UserStickyHeaderProps) {
 	return (
 		<div className="fixed top-0 left-0 w-full z-50 bg-arcade-black opacity-100">
 			<div className="flex items-center gap-4 px-16 py-3">

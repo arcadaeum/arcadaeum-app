@@ -1,15 +1,5 @@
 import type { ChangeEvent } from "react";
-
-type AuthTextFieldProps = {
-	label: string;
-	value: string;
-	onChange: (value: string) => void;
-	type?: "text" | "email";
-	required?: boolean;
-	inputId?: string;
-	placeholder?: string;
-	autoComplete?: string;
-};
+import type { AuthTextFieldProps } from "@/types/auth";
 
 function AuthTextField({
 	label,

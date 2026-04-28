@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.database import create_tables
-from app.routes import auth, cache, games, health, users
+from app.routes import auth, cache, games, health, library, users
 from app.services.cache import add_default_users, cache_popular_games
 
 load_dotenv()
@@ -50,3 +50,4 @@ app.include_router(auth.router)
 app.include_router(cache.router)
 app.include_router(games.router)
 app.include_router(users.router)
+app.include_router(library.router)

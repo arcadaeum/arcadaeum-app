@@ -1,14 +1,17 @@
 import { Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import SignInPage from "./pages/SignInPage";
-import UserPage from "./pages/UserPage";
-import CreateAccountPage from "./pages/CreateAccountPage";
-import AuthCallbackPage from "./pages/AuthCallbackPage";
-import GameDetailPage from "./pages/GameDetailPage";
-import BrowsePage from "./pages/BrowsePage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import PasswordResetPage from "./pages/PasswordResetPage";
-import ProfilePage from "./pages/ProfilePage";
+import {
+	HomePage,
+	SignInPage,
+	UserPage,
+	CreateAccountPage,
+	AuthCallbackPage,
+	GameDetailPage,
+	BrowsePage,
+	ForgotPasswordPage,
+	PasswordResetPage,
+	ProfilePage,
+	LibraryPage,
+} from "@/pages";
 
 export default function App() {
 	return (
@@ -23,6 +26,7 @@ export default function App() {
 			<Route path="/forgot-password" element={<ForgotPasswordPage />} />
 			<Route path="/reset-password" element={<PasswordResetPage />} />
 			<Route path="/users/:userId" element={<ProfilePage />} />
+			<Route path="/library" element={<LibraryPage />} />
 		</Routes>
 	);
 }

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import type { GameSearchResult } from "@/types/search";
@@ -15,26 +15,35 @@ export default function GameSearch() {
 	const trimmedQuery = searchQuery.trim();
 	const hasQuery = trimmedQuery.length > 0;
 
-	// Debounced search with parallel IGDB fallback
-	useDebouncedSearch(
-		hasQuery,
-		async () => {
-			const query = trimmedQuery.toLowerCase();
-			try {
-				const searchResults = await searchGames(query);
-				setResults(searchResults);
-				setIsOpen(true);
-			} catch (error) {
-				console.error("Search failed:", error);
-				setResults([]);
-			}
-		},
-		{
+	const runGameSearch = useCallback(async () => {
+		const query = trimmedQuery.toLowerCase();
+		try {
+			const searchResults = await searchGames(query);
+			setResults(searchResults);
+			setIsOpen(true);
+			setIsLoading(false);
+		} catch (error) {
+			console.error("Search failed:", error);
+			setResults([]);
+			setIsLoading(false);
+		}
+	}, [trimmedQuery]);
+
+	const handleLoadingStart = useCallback(() => {
+		setIsLoading(true);
+	}, []);
+
+	const debouncedSearchOptions = useMemo(
+		() => ({
 			delay: 500,
 			loadingDelay: 1000,
-			onLoadingStart: () => setIsLoading(true),
-		},
+			onLoadingStart: handleLoadingStart,
+		}),
+		[handleLoadingStart],
 	);
+
+	// Debounced search with parallel IGDB fallback
+	useDebouncedSearch(hasQuery, runGameSearch, debouncedSearchOptions);
 
 	const handleSelectGame = async (game: GameSearchResult) => {
 		if (game.isFromIGDB && game.igdb_id) {

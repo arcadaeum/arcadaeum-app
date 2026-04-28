@@ -1,7 +1,4 @@
-type PasswordStatusAlertProps = {
-	message: string;
-	variant: "error" | "success";
-};
+import type { PasswordStatusAlertProps } from "@/types/password";
 
 export default function PasswordStatusAlert({ message, variant }: PasswordStatusAlertProps) {
 	if (!message) {

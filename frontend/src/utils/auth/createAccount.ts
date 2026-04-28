@@ -1,4 +1,4 @@
-import type { CreateAccountInput, CreateAccountPayload, ErrorResponse } from "../../types/auth";
+import type { CreateAccountInput, CreateAccountPayload, ErrorResponse } from "@/types/auth";
 
 export function validateCreateAccountInput(input: CreateAccountInput): string | null {
 	const { email, username, password, confirm } = input;

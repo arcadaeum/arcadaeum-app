@@ -1,4 +1,5 @@
-from app.database import add_game_to_db, get_database_connection
+from app.database.connection import get_database_connection
+from app.database.queries.games import add_game_to_db
 from app.services.igdb_service import IGDBService
 
 

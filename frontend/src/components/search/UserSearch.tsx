@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import type { UserSearchResult } from "@/types/search";
@@ -39,25 +39,34 @@ export default function UserSearch() {
 	}, []);
 
 	// Debounced search
-	useDebouncedSearch(
-		hasQuery && currentUserId !== null,
-		async () => {
-			const query = trimmedQuery.toLowerCase();
-			try {
-				const searchResults = await searchUsers(query, currentUserId);
-				setResults(searchResults);
-				setIsOpen(true);
-			} catch (error) {
-				console.error("Search failed:", error);
-				setResults([]);
-			}
-		},
-		{
+	const runUserSearch = useCallback(async () => {
+		const query = trimmedQuery.toLowerCase();
+		try {
+			const searchResults = await searchUsers(query, currentUserId);
+			setResults(searchResults);
+			setIsOpen(true);
+			setIsLoading(false);
+		} catch (error) {
+			console.error("Search failed:", error);
+			setResults([]);
+			setIsLoading(false);
+		}
+	}, [trimmedQuery, currentUserId]);
+
+	const handleLoadingStart = useCallback(() => {
+		setIsLoading(true);
+	}, []);
+
+	const debouncedSearchOptions = useMemo(
+		() => ({
 			delay: 200,
 			loadingDelay: 1000,
-			onLoadingStart: () => setIsLoading(true),
-		},
+			onLoadingStart: handleLoadingStart,
+		}),
+		[handleLoadingStart],
 	);
+
+	useDebouncedSearch(hasQuery && currentUserId !== null, runUserSearch, debouncedSearchOptions);
 
 	const handleSelectUser = (userId: number) => {
 		navigate(`/users/${userId}`);

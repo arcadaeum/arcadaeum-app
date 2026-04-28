@@ -8,3 +8,4 @@ export { default as PasswordResetPage } from "./PasswordResetPage";
 export { default as ProfilePage } from "./ProfilePage";
 export { default as SignInPage } from "./SignInPage";
 export { default as UserPage } from "./UserPage";
+export { default as LibraryPage } from "./LibraryPage";

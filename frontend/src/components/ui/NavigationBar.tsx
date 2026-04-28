@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import pngLogo from "../../assets/images/LOGO_PURPLE.png";
+import pngLogo from "@/assets/images/LOGO_PURPLE.png";
 import { GameSearch, UserSearch } from "@/components/search";
 
 type NavigationBarProps = {
@@ -78,6 +78,15 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 							}
 						>
 							BROWSE
+						</Link>
+						<Link
+							to="/library"
+							className={
+								actionClassName +
+								" relative cursor-pointer hover:scale-110 transition-transform"
+							}
+						>
+							LIBRARY
 						</Link>
 						<Link
 							to="/user"

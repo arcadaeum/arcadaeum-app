@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from app.database import get_database_connection
+from app.database.connection import get_database_connection
 
 router = APIRouter(prefix="/users", tags=["users"])
 

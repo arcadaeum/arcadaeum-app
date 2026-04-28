@@ -1,4 +1,4 @@
-import type { UserProfile } from "../../types/user";
+import type { UserProfile } from "@/types/user";
 
 const PROFILE_BORDER_COLORS = [
 	"border-arcade-blue",

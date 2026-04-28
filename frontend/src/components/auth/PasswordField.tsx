@@ -1,17 +1,5 @@
 import { Eye, EyeOff } from "lucide-react";
-
-type PasswordFieldProps = {
-	label: string;
-	value: string;
-	showPassword: boolean;
-	onChange: (value: string) => void;
-	onToggleMouseDown: () => void;
-	onToggleMouseUp: () => void;
-	onToggleMouseLeave: () => void;
-	required?: boolean;
-	inputId?: string;
-	placeholder?: string;
-};
+import type { PasswordFieldProps } from "@/types/auth";
 
 function PasswordField({
 	label,
@@ -27,10 +15,7 @@ function PasswordField({
 }: PasswordFieldProps) {
 	return (
 		<div>
-			<label
-				htmlFor={inputId}
-				className="block text-arcade-white font-kilimanjaro mb-2"
-			>
+			<label htmlFor={inputId} className="block text-arcade-white font-kilimanjaro mb-2">
 				{label}
 			</label>
 			<div className="relative">
@@ -52,11 +37,7 @@ function PasswordField({
 					aria-label={showPassword ? "Hide password" : "Show password"}
 					className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-arcade-black/60 hover:text-arcade-black"
 				>
-					{showPassword ? (
-						<EyeOff className="w-5 h-5" />
-					) : (
-						<Eye className="w-5 h-5" />
-					)}
+					{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
 				</button>
 			</div>
 		</div>

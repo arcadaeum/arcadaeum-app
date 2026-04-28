@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from app.models import CacheQueryParams
+from app.models.games import CacheQueryParams
 from app.services.cache import cache_popular_games
 
 router = APIRouter()

@@ -1,4 +1,5 @@
 export { default as GameCard } from "./GameCard";
+export { default as GameGrid } from "./GameGrid";
 export { default as GameDetailArtwork } from "./GameDetailArtwork";
 export { default as GameDetailMainContent } from "./GameDetailMainContent";
 export { default as GameDetailReviewsSection } from "./GameDetailReviewsSection";
