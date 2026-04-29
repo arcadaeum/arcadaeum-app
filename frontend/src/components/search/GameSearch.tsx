@@ -121,7 +121,7 @@ export default function GameSearch() {
 											{game.title}
 										</span>
 										{game.isFromIGDB && (
-											<span className="text-xs text-arcade-white/50">
+											<span className="text-xs text-arcade-white/50 pl-1">
 												(from IGDB)
 											</span>
 										)}

@@ -113,7 +113,7 @@ class IGDBService:
     def fetch_game_by_id(self, igdb_id: int) -> dict[str, Any] | None:
         """Fetch game details from IGDB by ID."""
         query = f"""
-        fields name, summary, cover.image_id, screenshots.image_id, platforms.name, genres.name, first_release_date, total_rating;
+        fields name, summary, involved_companies.company.name, involved_companies.developer, cover.image_id, screenshots.image_id, platforms.name, genres.name, first_release_date, total_rating;
         where id = {igdb_id};
         """
 

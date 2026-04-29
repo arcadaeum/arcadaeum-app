@@ -85,21 +85,25 @@ export default function LibraryPage() {
 			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
 				<PageHeader title="Your Library." subtitle="The home of for all your games." />
 
-				<BrowseFilters
-					searchQuery={searchQuery}
-					sortBy={sortBy}
-					sortOptions={BROWSE_SORT_OPTIONS}
-					onSearchChange={setSearchQuery}
-					onSortChange={setSortBy}
-				/>
+				{library.length > 0 && (
+					<>
+						<BrowseFilters
+							searchQuery={searchQuery}
+							sortBy={sortBy}
+							sortOptions={BROWSE_SORT_OPTIONS}
+							onSearchChange={setSearchQuery}
+							onSortChange={setSortBy}
+						/>
 
-				<GameGrid
-					games={mapLibraryEntriesToGameGridItems(filteredAndSortedLibrary)}
-					emptyMessage="No games in your library match your search."
-				/>
+						<GameGrid
+							games={mapLibraryEntriesToGameGridItems(filteredAndSortedLibrary)}
+							emptyMessage="No games in your library match your search."
+						/>
+					</>
+				)}
 
 				{library.length === 0 && (
-					<h3 className="mt-8 text-center text-2xl font-title text-arcade-white tracking-tighter">
+					<h3 className="mx-auto mt-8 text-center text-2xl font-title text-arcade-white tracking-tighter">
 						Your library is currently empty. Browse the{" "}
 						<Link to="/browse" className="text-arcade-violet hover:underline">
 							Arcadaeum
