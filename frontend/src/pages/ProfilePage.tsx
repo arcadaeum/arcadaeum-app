@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
-import { UserFavoritesRow, UserProfileHero, UserStatsBar, UserStickyHeader } from "@/components/user";
+import {
+	UserFavoritesRow,
+	UserProfileHero,
+	UserStatsBar,
+	UserStickyHeader,
+} from "@/components/user";
 import type { UserFavoriteGame, UserProfileWithId } from "@/types/user";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
 

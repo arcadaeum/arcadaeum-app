@@ -1,7 +1,9 @@
 import type { RefObject } from "react";
+import { useState } from "react";
 import { Pencil, UserRound } from "lucide-react";
 import type { UserProfile } from "@/types/user";
 import { getUserProfileImageProxyUrl } from "@/utils/user";
+import { MainButton } from "@/components/ui";
 
 type UserProfileHeroProps = {
 	user: UserProfile | null;
@@ -32,6 +34,8 @@ export default function UserProfileHero({
 	onSave,
 	onCancel,
 }: UserProfileHeroProps) {
+	const [following, setFollowing] = useState(false);
+
 	return (
 		<div ref={profileRef} className="relative flex w-full overflow-visible h-64">
 			<div
@@ -87,6 +91,19 @@ export default function UserProfileHero({
 								</button>
 							)}
 						</>
+					)}
+					{!canEdit && !following ? (
+						<MainButton
+							text="FOLLOW"
+							className="ml-3"
+							onClick={() => setFollowing(!following)}
+						/>
+					) : (
+						<MainButton
+							text="UNFOLLOW"
+							className="ml-3"
+							onClick={() => setFollowing(!following)}
+						/>
 					)}
 				</h1>
 			</div>

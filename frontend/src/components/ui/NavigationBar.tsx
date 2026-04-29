@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import pngLogo from "@/assets/images/LOGO_PURPLE.png";
 import { GameSearch, UserSearch } from "@/components/search";
+import { MainButton } from "@/components/ui";
 
 type NavigationBarProps = {
 	isSignInPage?: boolean;
@@ -22,9 +23,6 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 		localStorage.removeItem("access_token");
 		navigate("/signin");
 	};
-
-	const actionClassName =
-		"font-secondary inline-flex items-center justify-center rounded-2xl border-4 border-arcade-white px-8 py-2 bg-transparent font-bold tracking-tighter text-sm leading-none";
 
 	return (
 		<nav className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center text-arcade-white">
@@ -58,55 +56,14 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 			{/* Right-side links */}
 			<div className="flex items-center gap-4">
 				{!isAuthenticated && !isSignInPage ? (
-					<Link
-						to="/signin"
-						className={
-							actionClassName +
-							" relative cursor-pointer hover:scale-110 transition-transform"
-						}
-					>
-						SIGN IN
-					</Link>
+					<MainButton text="SIGN IN" navigateTo="/signin" />
 				) : null}
 				{isAuthenticated && (
 					<>
-						<Link
-							to="/browse"
-							className={
-								actionClassName +
-								" relative cursor-pointer hover:scale-110 transition-transform"
-							}
-						>
-							BROWSE
-						</Link>
-						<Link
-							to="/library"
-							className={
-								actionClassName +
-								" relative cursor-pointer hover:scale-110 transition-transform"
-							}
-						>
-							LIBRARY
-						</Link>
-						<Link
-							to="/user"
-							className={
-								actionClassName +
-								" relative cursor-pointer hover:scale-110 transition-transform "
-							}
-						>
-							USER PAGE
-						</Link>
-						<button
-							type="button"
-							onClick={handleLogout}
-							className={
-								actionClassName +
-								" cursor-pointer hover:scale-110 transition-transform"
-							}
-						>
-							LOGOUT
-						</button>
+						<MainButton text="BROWSE" navigateTo="/browse" />
+						<MainButton text="LIBRARY" navigateTo="/library" />
+						<MainButton text="PROFILE" navigateTo="/user" />
+						<MainButton text="LOG OUT" onClick={handleLogout} />
 					</>
 				)}
 			</div>
