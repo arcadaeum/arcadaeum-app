@@ -92,19 +92,20 @@ export default function UserProfileHero({
 							)}
 						</>
 					)}
-					{!canEdit && !following ? (
-						<MainButton
-							text="FOLLOW"
-							className="ml-3"
-							onClick={() => setFollowing(!following)}
-						/>
-					) : (
-						<MainButton
-							text="UNFOLLOW"
-							className="ml-3"
-							onClick={() => setFollowing(!following)}
-						/>
-					)}
+					{!canEdit &&
+						(following ? (
+							<MainButton
+								text="UNFOLLOW"
+								className="ml-3"
+								onClick={() => setFollowing(!following)}
+							/>
+						) : (
+							<MainButton
+								text="FOLLOW"
+								className="ml-3"
+								onClick={() => setFollowing(!following)}
+							/>
+						))}
 				</h1>
 			</div>
 		</div>
