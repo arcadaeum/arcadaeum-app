@@ -93,6 +93,21 @@ async def add_game_from_igdb(request: AddGameFromIGDBRequest) -> dict[str, objec
                     f"https://images.igdb.com/igdb/image/upload/t_screenshot_big/{image_id}.jpg"
                 )
 
+        developer_names: list[str] = []
+        for involved_company in game_data.get("involved_companies", []):
+            if not isinstance(involved_company, dict):
+                continue
+            if not involved_company.get("developer"):
+                continue
+
+            company = involved_company.get("company")
+            if isinstance(company, dict):
+                company_name = company.get("name")
+                if isinstance(company_name, str) and company_name:
+                    developer_names.append(company_name)
+
+        developer = ", ".join(developer_names) if developer_names else None
+
         first_release_date = game_data.get("first_release_date")
         release_timestamp: int | None = None
         if isinstance(first_release_date, int):
@@ -111,7 +126,7 @@ async def add_game_from_igdb(request: AddGameFromIGDBRequest) -> dict[str, objec
             summary=game_data.get("summary")
             if isinstance(game_data.get("summary"), str)
             else None,
-            developer=None,
+            developer=developer,
             cover_url=cover_url,
             screenshots=screenshots,
             platforms=platform_names,
