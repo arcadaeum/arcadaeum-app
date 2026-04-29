@@ -16,11 +16,7 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
             try:
                 igdb_id = game_data.get("id")
                 title = game_data.get("name")
-                if (
-                    not isinstance(igdb_id, int)
-                    or not isinstance(title, str)
-                    or not title
-                ):
+                if not isinstance(igdb_id, int) or not isinstance(title, str) or not title:
                     continue
 
                 cover_url: str | None = None
@@ -28,7 +24,9 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
                 if isinstance(cover, dict):
                     image_id = cover.get("image_id")
                     if isinstance(image_id, str) and image_id:
-                        cover_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
+                        cover_url = (
+                            f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
+                        )
 
                 platform_names: list[str] = []
                 for platform in game_data.get("platforms", []):
@@ -70,23 +68,21 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
                 developer = ", ".join(developer_names) if developer_names else None
 
                 first_release_date = game_data.get("first_release_date")
-                release_date = (
-                    first_release_date if isinstance(first_release_date, int) else None
-                )
+                release_date = first_release_date if isinstance(first_release_date, int) else None
 
                 total_rating = game_data.get("total_rating")
                 igdb_rating = (
-                    float(total_rating)
-                    if isinstance(total_rating, (int, float))
-                    else None
+                    float(total_rating) if isinstance(total_rating, (int, float)) else None
                 )
 
                 saved_id = add_game_to_db(
                     igdb_id=igdb_id,
                     title=title,
-                    summary=game_data.get("summary")
-                    if isinstance(game_data.get("summary"), str)
-                    else None,
+                    summary=(
+                        game_data.get("summary")
+                        if isinstance(game_data.get("summary"), str)
+                        else None
+                    ),
                     developer=developer,
                     cover_url=cover_url,
                     screenshots=screenshots,
@@ -110,32 +106,43 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
 def add_default_users() -> dict[str, str]:
     """Seed default users into the database."""
     default_users = [
-        {"username": "Stephen Malkmus", "email": "stephen@arcadaeum.com"},
-        {"username": "Scott Kannberg", "email": "scott@arcadaeum.com"},
-        {"username": "Mark Ibold", "email": "mark@arcadaeum.com"},
-        {"username": "Bob Nastanovich", "email": "bob@arcadaeum.com"},
-        {"username": "Steve West", "email": "steve@arcadaeum.com"},
+        {
+            "username": "Stephen Malkmus",
+            "email": "stephen@arcadaeum.com",
+            "display_name": "Stephen Malkmus",
+        },
+        {
+            "username": "Scott Kannberg",
+            "email": "scott@arcadaeum.com",
+            "display_name": "Scott Kannberg",
+        },
+        {"username": "Mark Ibold", "email": "mark@arcadaeum.com", "display_name": "Mark Ibold"},
+        {
+            "username": "Bob Nastanovich",
+            "email": "bob@arcadaeum.com",
+            "display_name": "Bob Nastanovich",
+        },
+        {"username": "Steve West", "email": "steve@arcadaeum.com", "display_name": "Steve West"},
     ]
 
     try:
         with get_database_connection() as conn:
             with conn.cursor() as cur:
                 for user in default_users:
-                    cur.execute(
-                        "SELECT id FROM users WHERE email = %s", (user["email"],)
-                    )
+                    cur.execute("SELECT id FROM users WHERE email = %s", (user["email"],))
                     if cur.fetchone():
                         continue
 
                     cur.execute(
                         """
-                        INSERT INTO users (username, email, password_hash)
-                        VALUES (%s, %s, %s)
+                        INSERT INTO users (username, email, password_hash, display_name)
+                        VALUES (%s, %s, %s, %s)
                         """,
                         (
                             user["username"],
                             user["email"],
                             "default_password_hash",
+                            user["display_name"],
                         ),
                     )
                 conn.commit()

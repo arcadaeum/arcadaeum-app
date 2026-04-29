@@ -92,7 +92,7 @@ def register_user(req: RegisterRequest) -> User:
         password_hash=hashed,
         oauth_provider=None,
         oauth_id=None,
-        display_name=None,
+        display_name=req.username,
         profile_picture=None,
     )
     return User(id=user_id, username=req.username, email=req.email)

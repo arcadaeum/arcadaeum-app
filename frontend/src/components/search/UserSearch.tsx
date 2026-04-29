@@ -129,9 +129,6 @@ export default function UserSearch() {
 										<span className="text-arcade-white font-secondary block">
 											{user.display_name}
 										</span>
-										<span className="text-xs text-arcade-white/50">
-											{user.display_name}
-										</span>
 									</div>
 								</button>
 							))}

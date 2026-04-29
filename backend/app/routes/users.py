@@ -12,10 +12,10 @@ def search_users(q: str) -> list[dict[str, object]]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, username, email, display_name, profile_picture
+                SELECT id, username, display_name, profile_picture
                 FROM users
-                WHERE display_name ILIKE %s
-                ORDER BY display_name, username
+                WHERE COALESCE(display_name, username) ILIKE %s
+                ORDER BY COALESCE(display_name, username), username
                 LIMIT 10
                 """,
                 (f"%{q}%",),
@@ -44,9 +44,7 @@ def get_user(user_id: int) -> dict[str, object]:
             row = cur.fetchone()
             if row is not None:
                 if cur.description is None:
-                    raise HTTPException(
-                        status_code=500, detail="Invalid database cursor state"
-                    )
+                    raise HTTPException(status_code=500, detail="Invalid database cursor state")
                 columns = [desc[0] for desc in cur.description]
                 return dict(zip(columns, row))
 
