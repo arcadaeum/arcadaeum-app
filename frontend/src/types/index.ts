@@ -1,5 +1,6 @@
 export * from "./auth";
 export * from "./browse";
+export * from "./collections";
 export * from "./game";
 export * from "./gameDetail";
 export * from "./home";
