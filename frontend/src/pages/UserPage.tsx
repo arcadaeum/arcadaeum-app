@@ -2,18 +2,22 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import {
-	UserFavoritesRow,
+	UserCollectionsRow,
 	UserProfileHero,
 	UserStatsBar,
 	UserStickyHeader,
 } from "@/components/user";
-import type { LibraryEntry, UserFavoriteGame, UserProfile } from "@/types/user";
+import type { Game } from "@/types/game";
+import type { LibraryEntry, UserCollectionGame, UserProfile } from "@/types/user";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
 import { getUserLibraryUrl } from "@/utils/game/detail";
+import { fetchCollections, fetchCollectionGames, mapCollectionGames } from "@/utils/collections";
 
 export default function UserPage() {
 	const [user, setUser] = useState<UserProfile | null>(null);
-	const [favorites, setFavorites] = useState<UserFavoriteGame[]>([]);
+	const [favorites, setFavorites] = useState<UserCollectionGame[]>([]);
+	const [wantToPlay, setWantToPlay] = useState<UserCollectionGame[]>([]);
+	const [completed, setCompleted] = useState<UserCollectionGame[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 	const [followersCount, setFollowersCount] = useState(0);
@@ -67,16 +71,37 @@ export default function UserPage() {
 		return () => observer.disconnect();
 	}, [loading]);
 
-	// Get games from the URL, This needs to be changed to get favourites instead of popular.
+	// Fetch real favourites, want to play, and completed collections
 	useEffect(() => {
-		// Stores the data from the game api into the favorites state.
-		fetch(`${apiUrl}/games`)
-			.then((res) => {
-				if (!res.ok) throw new Error("Failed to fetch games");
-				return res.json();
+		const token = localStorage.getItem("access_token");
+		if (!token) return;
+
+		fetchCollections(apiUrl, token)
+			.then((collections) => {
+				const getGames = (name: string) => {
+					const collection = collections.find((c) => c.name === name);
+					if (!collection) {
+						return Promise.resolve<Game[]>([]);
+					}
+					return fetchCollectionGames(apiUrl, token, collection.id);
+				};
+
+				return Promise.all([
+					getGames("Favourites"),
+					getGames("Want To Play"),
+					getGames("Completed"),
+				]);
 			})
-			.then((data: UserFavoriteGame[]) => setFavorites(data))
-			.catch(() => setFavorites([]));
+			.then(([favoriteGames, wantToPlayGames, completedGames]) => {
+				setFavorites(mapCollectionGames(favoriteGames));
+				setWantToPlay(mapCollectionGames(wantToPlayGames));
+				setCompleted(mapCollectionGames(completedGames));
+			})
+			.catch(() => {
+				setFavorites([]);
+				setWantToPlay([]);
+				setCompleted([]);
+			});
 	}, [apiUrl]);
 
 	useEffect(() => {
@@ -191,22 +216,30 @@ export default function UserPage() {
 				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
 					Favorite Games
 				</h3>
-				<UserFavoritesRow favorites={favorites} />
+				<UserCollectionsRow
+					collections={favorites}
+					emptyMessage="No games in this collection yet."
+				/>
 
-				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter">
-					Reviews
-				</h2>
-				<div className="w-2/3 ml-50 h-48" />
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter">
+					Want to Play
+				</h3>
+				<UserCollectionsRow
+					collections={wantToPlay}
+					emptyMessage="No games in this collection yet."
+				/>
 
-				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-violet tracking-tighter">
-					Collections
-				</h2>
-				<div className="w-2/3 ml-50 h-48" />
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
+					Completed
+				</h3>
+				<UserCollectionsRow
+					collections={completed}
+					emptyMessage="No games in this collection yet."
+				/>
 
 				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
 					Posts
 				</h2>
-				<div className="w-2/3 ml-50 h-48" />
 			</div>
 		</>
 	);
