@@ -21,6 +21,11 @@ export default function ProfilePage() {
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 	const [favorites, setFavorites] = useState<UserFavoriteGame[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [followersCount, setFollowersCount] = useState(0);
+	const [followingCount, setFollowingCount] = useState(0);
+	const [followerIds, setFollowerIds] = useState<number[]>([]);
+	const [isFollowing, setIsFollowing] = useState(false);
+	const [followLoading, setFollowLoading] = useState(false);
 	const [error, setError] = useState("");
 	const [editing, setEditing] = useState(false);
 	const [newDisplayName, setNewDisplayName] = useState("");
@@ -75,6 +80,46 @@ export default function ProfilePage() {
 		return () => observer.disconnect();
 	}, [loading]);
 
+	// Get user's followers
+	useEffect(() => {
+		if (!userId) return;
+
+		fetch(`${apiUrl}/users/${userId}/followers`)
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to fetch followers");
+				return res.json();
+			})
+			.then((data: Array<{ id: number }>) => {
+				setFollowersCount(data.length);
+				setFollowerIds(data.map((follower) => follower.id));
+			})
+			.catch(() => {
+				setFollowersCount(0);
+				setFollowerIds([]);
+			});
+	}, [apiUrl, userId]);
+
+	// Get user's following
+	useEffect(() => {
+		if (!userId) return;
+
+		fetch(`${apiUrl}/users/${userId}/following`)
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to fetch following");
+				return res.json();
+			})
+			.then((data: Array<{ id: number }>) => setFollowingCount(data.length))
+			.catch(() => setFollowingCount(0));
+	}, [apiUrl, userId]);
+
+	useEffect(() => {
+		if (!currentUserId) {
+			setIsFollowing(false);
+			return;
+		}
+		setIsFollowing(followerIds.includes(currentUserId));
+	}, [currentUserId, followerIds]);
+
 	// Get user's favorite games
 	useEffect(() => {
 		if (!userId) return;
@@ -91,6 +136,48 @@ export default function ProfilePage() {
 	const handleEdit = () => {
 		setNewDisplayName(user?.display_name || "");
 		setEditing(true);
+	};
+
+	const handleFollowToggle = async () => {
+		if (!userId) return;
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			navigate("/signin");
+			return;
+		}
+
+		setFollowLoading(true);
+		try {
+			const method = isFollowing ? "DELETE" : "POST";
+			const res = await fetch(`${apiUrl}/users/${userId}/follow`, {
+				method,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			if (!res.ok) {
+				if (res.status === 409) {
+					setIsFollowing(true);
+				}
+				return;
+			}
+
+			setIsFollowing((prev) => !prev);
+			setFollowersCount((prev) => {
+				const delta = isFollowing ? -1 : 1;
+				return Math.max(0, prev + delta);
+			});
+			if (currentUserId) {
+				setFollowerIds((prev) =>
+					isFollowing
+						? prev.filter((id) => id !== currentUserId)
+						: [...prev, currentUserId],
+				);
+			}
+		} finally {
+			setFollowLoading(false);
+		}
 	};
 
 	const handleSave = async () => {
@@ -148,8 +235,15 @@ export default function ProfilePage() {
 					onEdit={handleEdit}
 					onSave={handleSave}
 					onCancel={() => setEditing(false)}
+					isFollowing={isFollowing}
+					followLoading={followLoading}
+					onFollowToggle={isOwnProfile ? undefined : handleFollowToggle}
 				/>
-				<UserStatsBar />
+				<UserStatsBar
+					followersCount={followersCount}
+					followingCount={followingCount}
+					gamesCount={favorites.length}
+				/>
 
 				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
 					<Link to="/user" className="text-arcade-violet hover:underline">

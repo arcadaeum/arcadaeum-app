@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import { GameDetailArtwork, GameDetailMainContent, GameDetailSidebar } from "@/components/game";
 import type { Game } from "@/types/game";
-import { fetchGameDetail, fetchLibraryMembership, toggleLibrary } from "@/utils/game";
+import { fetchGameDetail, fetchLibraryMembership, toggleLibrary } from "@/utils/game/detail";
 
 export default function GameDetailPage() {
 	const { id } = useParams<{ id: string }>();

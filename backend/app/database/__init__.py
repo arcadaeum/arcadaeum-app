@@ -1,8 +1,24 @@
 # Re-export all database functions for backward compatibility
 from app.database.connection import get_database_connection, get_database_url
+from app.database.queries.collections import (
+    add_game_to_collection,
+    create_collection,
+    create_default_collections,
+    delete_collection,
+    get_collection_by_id,
+    get_collection_games,
+    get_collections,
+    remove_game_from_collection,
+    rename_collection,
+)
 from app.database.queries.followers import (
+    add_user_follower,
     get_user_followers,
+    get_user_followers_summaries,
     get_user_following,
+    get_user_following_summaries,
+    is_following,
+    remove_user_follower,
 )
 from app.database.queries.games import add_game_to_db
 from app.database.queries.password_reset import (
@@ -14,10 +30,13 @@ from app.database.queries.password_reset import (
 from app.database.queries.users import (
     create_user,
     get_user_by_email,
+    get_user_by_id,
     get_user_by_username,
     update_user_display_name,
 )
 from app.database.tables import (
+    create_collection_games_table,
+    create_collections_table,
     create_games_table,
     create_password_reset_table,
     create_tables,
@@ -35,15 +54,32 @@ __all__ = [
     "create_user_library_table",
     "create_user_followers_table",
     "create_password_reset_table",
+    "create_collections_table",
+    "create_collection_games_table",
     "create_user",
     "get_user_by_username",
     "get_user_by_email",
+    "get_user_by_id",
     "update_user_display_name",
     "add_game_to_db",
+    "add_user_follower",
+    "remove_user_follower",
+    "is_following",
     "get_user_followers",
+    "get_user_followers_summaries",
     "get_user_following",
+    "get_user_following_summaries",
     "create_password_reset_token",
     "get_password_reset_token",
     "mark_reset_token_as_used",
     "update_user_password",
+    "create_default_collections",
+    "get_collections",
+    "get_collection_by_id",
+    "create_collection",
+    "rename_collection",
+    "delete_collection",
+    "add_game_to_collection",
+    "remove_game_from_collection",
+    "get_collection_games",
 ]

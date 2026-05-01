@@ -1,4 +1,12 @@
 # Re-export all models for backward compatibility
+from app.models.collections import (
+    AddGameToCollectionRequest,
+    Collection,
+    CollectionGame,
+    CreateCollectionRequest,
+    RenameCollectionRequest,
+)
+
 from app.models.auth import (
     PasswordReset,
     PasswordResetRequest,
@@ -9,6 +17,12 @@ from app.models.auth import (
     User,
     UserInDB,
 )
+from app.models.followers import (
+    FollowResponse,
+    UserFollowers,
+    UserFollowing,
+    UserSummary,
+)
 from app.models.games import (
     AddGameFromIGDBRequest,
     CacheQueryParams,
@@ -18,9 +32,7 @@ from app.models.games import (
 from app.models.library import (
     AddToLibraryRequest,
     LibraryEntry,
-    UpdateLibraryStatusRequest,
 )
-from app.models.users import UserFollowers, UserFollowing
 
 __all__ = [
     # Auth
@@ -37,11 +49,18 @@ __all__ = [
     "GameSearchResult",
     "AddGameFromIGDBRequest",
     "CacheQueryParams",
-    # Users
+    # Followers
+    "UserSummary",
+    "FollowResponse",
     "UserFollowers",
     "UserFollowing",
     # Library
     "LibraryEntry",
     "AddToLibraryRequest",
-    "UpdateLibraryStatusRequest",
+    # Collections
+    "Collection",
+    "CollectionGame",
+    "CreateCollectionRequest",
+    "RenameCollectionRequest",
+    "AddGameToCollectionRequest",
 ]

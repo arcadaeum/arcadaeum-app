@@ -3,17 +3,17 @@ from typing import Optional
 from app.database.connection import get_database_connection
 
 
-def add_to_library(user_id: int, game_id: int, status: str = "active") -> int:
+def add_to_library(user_id: int, game_id: int) -> int:
     """Add a game to user's library. Returns library entry ID."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO user_library (user_id, game_id, status)
-                VALUES (%s, %s, %s)
+                INSERT INTO user_library (user_id, game_id)
+                VALUES (%s, %s)
                 RETURNING id
                 """,
-                (user_id, game_id, status),
+                (user_id, game_id),
             )
             result = cur.fetchone()
             conn.commit()
@@ -48,7 +48,6 @@ def get_user_library(user_id: int, offset: int = 0, limit: int = 50) -> list[dic
                     ul.user_id,
                     ul.game_id,
                     ul.added_at,
-                    ul.status,
                     g.igdb_id,
                     g.title,
                     g.summary,
@@ -97,7 +96,6 @@ def get_library_entry(user_id: int, game_id: int) -> Optional[dict]:
                     ul.user_id,
                     ul.game_id,
                     ul.added_at,
-                    ul.status,
                     g.igdb_id,
                     g.title,
                     g.summary,
@@ -130,21 +128,3 @@ def get_library_entry(user_id: int, game_id: int) -> Optional[dict]:
             if entry.get("created_at") is not None:
                 entry["created_at"] = entry["created_at"].isoformat()
             return entry
-
-
-def update_library_status(user_id: int, game_id: int, status: str) -> bool:
-    """Update the status of a library entry. Returns True if updated."""
-    with get_database_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                UPDATE user_library
-                SET status = %s
-                WHERE user_id = %s AND game_id = %s
-                RETURNING id
-                """,
-                (status, user_id, game_id),
-            )
-            result = cur.fetchone()
-            conn.commit()
-            return result is not None
