@@ -21,6 +21,14 @@ from app.models.library import (
     UpdateLibraryStatusRequest,
 )
 from app.models.users import UserFollowers, UserFollowing
+from app.models.steam import (
+    SteamLinkRequest,
+    SteamGameData,
+    SteamSyncStatus,
+    SteamSyncResult,
+    SteamGameMatch,
+    SteamGameUnmatched,
+)
 
 __all__ = [
     # Auth
@@ -44,4 +52,11 @@ __all__ = [
     "LibraryEntry",
     "AddToLibraryRequest",
     "UpdateLibraryStatusRequest",
+    # Steam
+    "SteamLinkRequest",
+    "SteamGameData",
+    "SteamSyncStatus",
+    "SteamSyncResult",
+    "SteamGameMatch",
+    "SteamGameUnmatched",
 ]
