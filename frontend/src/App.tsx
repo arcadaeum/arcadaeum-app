@@ -12,6 +12,7 @@ import {
 	ProfilePage,
 	LibraryPage,
 	SocialPage,
+	SettingsPage,
 } from "@/pages";
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
 			<Route path="/users/:userId" element={<ProfilePage />} />
 			<Route path="/library" element={<LibraryPage />} />
 			<Route path="/social" element={<SocialPage />} />
+			<Route path="/settings" element={<SettingsPage />} />
 		</Routes>
 	);
 }

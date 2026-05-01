@@ -160,6 +160,23 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 					</div>
 				</div>
 			)}
+
+			{/* Right-side links */}
+			<div className="flex items-center gap-4">
+				{!isAuthenticated && !isSignInPage ? (
+					<MainButton text="SIGN IN" navigateTo="/signin" />
+				) : null}
+				{isAuthenticated && (
+					<>
+						<MainButton text="BROWSE" navigateTo="/browse" />
+						<MainButton text="LIBRARY" navigateTo="/library" />
+						<MainButton text="SOCIAL" navigateTo="/social" />
+						<MainButton text="PROFILE" navigateTo="/user" />
+						<MainButton text="LOG OUT" onClick={handleLogout} />
+						<MainButton text="SETTINGS" navigateTo="/settings" />
+					</>
+				)}
+			</div>
 		</nav>
 	);
 }
