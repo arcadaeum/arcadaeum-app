@@ -37,6 +37,31 @@ def remove_from_library(user_id: int, game_id: int) -> bool:
             return cur.rowcount > 0
 
 
+def update_library_status(user_id: int, game_id: int, status: Optional[str]) -> bool:
+    """Update the status of a game in user's library. Returns True if updated."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            if status == "currently_playing":
+                cur.execute(
+                    """
+                    UPDATE user_library
+                    SET status = NULL
+                    WHERE user_id = %s AND status = 'currently_playing'
+                    """,
+                    (user_id,),
+                )
+            cur.execute(
+                """
+                UPDATE user_library
+                SET status = %s
+                WHERE user_id = %s AND game_id = %s
+                """,
+                (status, user_id, game_id),
+            )
+            conn.commit()
+            return cur.rowcount > 0
+
+
 def get_user_library(user_id: int, offset: int = 0, limit: int = 50) -> list[dict]:
     """Get user's library with pagination, joining with games table."""
     with get_database_connection() as conn:
@@ -48,6 +73,7 @@ def get_user_library(user_id: int, offset: int = 0, limit: int = 50) -> list[dic
                     ul.user_id,
                     ul.game_id,
                     ul.added_at,
+                    ul.status,
                     g.igdb_id,
                     g.title,
                     g.summary,
@@ -96,6 +122,7 @@ def get_library_entry(user_id: int, game_id: int) -> Optional[dict]:
                     ul.user_id,
                     ul.game_id,
                     ul.added_at,
+                    ul.status,
                     g.igdb_id,
                     g.title,
                     g.summary,

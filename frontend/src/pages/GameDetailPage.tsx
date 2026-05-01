@@ -3,7 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import { GameDetailArtwork, GameDetailMainContent, GameDetailSidebar } from "@/components/game";
 import type { Game } from "@/types/game";
-import { fetchGameDetail, fetchLibraryMembership, toggleLibrary } from "@/utils/game/detail";
+import {
+	fetchGameDetail,
+	fetchLibraryEntry,
+	setCurrentlyPlaying,
+	toggleLibrary,
+} from "@/utils/game/detail";
 import {
 	fetchCollections,
 	fetchCollectionGames,
@@ -18,6 +23,7 @@ export default function GameDetailPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [inLibrary, setInLibrary] = useState(false);
+	const [isCurrentlyPlaying, setIsCurrentlyPlaying] = useState(false);
 
 	const [favourited, setFavourited] = useState(false);
 	const [favouritesCollectionId, setFavouritesCollectionId] = useState<number | null>(null);
@@ -45,12 +51,14 @@ export default function GameDetailPage() {
 		const token = localStorage.getItem("access_token");
 		if (!token) return;
 
-		fetchLibraryMembership(apiUrl, token, id)
-			.then((isInLibrary) => {
-				setInLibrary(isInLibrary);
+		fetchLibraryEntry(apiUrl, token, id)
+			.then((entry) => {
+				setInLibrary(entry !== null);
+				setIsCurrentlyPlaying(entry?.status === "currently_playing");
 			})
 			.catch(() => {
 				setInLibrary(false);
+				setIsCurrentlyPlaying(false);
 			});
 	}, [apiUrl, id]);
 
@@ -80,6 +88,9 @@ export default function GameDetailPage() {
 	}, [apiUrl, id]);
 
 	const handleToggleLibrary = async () => {
+		const wasInLibrary = inLibrary;
+		const wasCurrentlyPlaying = isCurrentlyPlaying;
+
 		await toggleLibrary({
 			id,
 			apiUrl,
@@ -89,6 +100,29 @@ export default function GameDetailPage() {
 			onRequireSignIn: () => navigate("/signin"),
 			showPopup: () => {},
 		});
+
+		if (wasInLibrary && wasCurrentlyPlaying) {
+			setIsCurrentlyPlaying(false);
+		}
+	};
+
+	const handleToggleCurrentlyPlaying = async () => {
+		if (!id || !inLibrary) return;
+
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			navigate("/signin");
+			return;
+		}
+
+		const nextStatus = isCurrentlyPlaying ? null : "currently_playing";
+
+		try {
+			const entry = await setCurrentlyPlaying(apiUrl, token, id, nextStatus);
+			setIsCurrentlyPlaying(entry.status === "currently_playing");
+		} catch (error) {
+			console.error("Failed to update currently playing status:", error);
+		}
 	};
 
 	const handleToggleFavourite = async (): Promise<boolean> => {
@@ -145,8 +179,10 @@ export default function GameDetailPage() {
 						game={game}
 						favourited={favourited}
 						inLibrary={inLibrary}
+						isCurrentlyPlaying={isCurrentlyPlaying}
 						onToggleFavourite={handleToggleFavourite}
 						onToggleLibrary={handleToggleLibrary}
+						onToggleCurrentlyPlaying={handleToggleCurrentlyPlaying}
 						apiUrl={apiUrl}
 					/>
 					<GameDetailMainContent

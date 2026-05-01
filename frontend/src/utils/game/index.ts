@@ -1,6 +1,6 @@
 export {
 	fetchGameDetail,
-	fetchLibraryMembership,
+	fetchLibraryEntry,
 	formatIgdbRating,
 	formatPlatforms,
 	getGameDetailUrl,
@@ -8,8 +8,10 @@ export {
 	getLibraryPopupType,
 	getReleaseYear,
 	getUserLibraryItemUrl,
+	getUserLibraryStatusUrl,
 	getUserLibraryUrl,
 	PLACEHOLDER_REVIEWS,
+	setCurrentlyPlaying,
 	showLibraryPopup,
 	toggleLibrary,
 	toggleLibraryMembership,

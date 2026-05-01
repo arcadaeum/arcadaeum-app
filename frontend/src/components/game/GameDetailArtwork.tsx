@@ -11,8 +11,10 @@ type GameDetailArtworkProps = {
 	game: Game | null;
 	favourited: boolean;
 	inLibrary: boolean;
+	isCurrentlyPlaying: boolean;
 	onToggleFavourite: () => void | Promise<boolean>;
 	onToggleLibrary?: () => void;
+	onToggleCurrentlyPlaying?: () => void | Promise<void>;
 	apiUrl: string;
 };
 
@@ -20,8 +22,10 @@ export default function GameDetailArtwork({
 	game,
 	favourited,
 	inLibrary,
+	isCurrentlyPlaying,
 	onToggleFavourite,
 	onToggleLibrary,
+	onToggleCurrentlyPlaying,
 	apiUrl,
 }: GameDetailArtworkProps) {
 	const token = localStorage.getItem("access_token");
@@ -52,8 +56,17 @@ export default function GameDetailArtwork({
 		}
 	};
 
+	const handleToggleCurrentlyPlaying = async () => {
+		setIsMenuOpen(false);
+		await onToggleCurrentlyPlaying?.();
+		setActionMessage(
+			isCurrentlyPlaying ? "Cleared currently playing" : "Set as currently playing",
+		);
+	};
+
 	const favouritesIcon = favourited ? heartIconFilled : heartIconUnfilled;
 	const libraryIcon = inLibrary ? removeIcon : addIcon;
+	const currentlyPlayingIcon = isCurrentlyPlaying ? removeIcon : addIcon;
 	const menuLabel = isMenuOpen ? "Close actions" : "Open actions";
 
 	useEffect(() => {
@@ -139,6 +152,28 @@ export default function GameDetailArtwork({
 												<span className="text-arcade-violet">Library</span>
 											</span>
 										</button>
+										{inLibrary && onToggleCurrentlyPlaying && (
+											<>
+												<div className="h-px bg-arcade-white/10" />
+												<button
+													type="button"
+													onClick={handleToggleCurrentlyPlaying}
+													className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-arcade-white hover:bg-arcade-white/10"
+												>
+													<img
+														src={currentlyPlayingIcon}
+														alt=""
+														className="h-4 w-4"
+													/>
+													<span>
+														{isCurrentlyPlaying ? "Clear " : "Set as "}
+														<span className="text-arcade-violet">
+															Currently Playing
+														</span>
+													</span>
+												</button>
+											</>
+										)}
 										<div className="h-px bg-arcade-white/10" />
 										<button
 											type="button"

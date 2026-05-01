@@ -85,8 +85,16 @@ def create_user_library_table() -> None:
                     id serial PRIMARY KEY,
                     user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     game_id integer NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+                    status text,
                     added_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, game_id))
+                """
+            )
+            cur.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS user_library_currently_playing_unique
+                ON user_library (user_id)
+                WHERE status = 'currently_playing'
                 """
             )
             conn.commit()
