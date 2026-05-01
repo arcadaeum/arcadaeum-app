@@ -1,5 +1,16 @@
 # Re-export all database functions for backward compatibility
 from app.database.connection import get_database_connection, get_database_url
+from app.database.queries.collections import (
+    add_game_to_collection,
+    create_collection,
+    create_default_collections,
+    delete_collection,
+    get_collection_by_id,
+    get_collection_games,
+    get_collections,
+    remove_game_from_collection,
+    rename_collection,
+)
 from app.database.queries.followers import (
     add_user_follower,
     get_user_followers,
@@ -24,6 +35,8 @@ from app.database.queries.users import (
     update_user_display_name,
 )
 from app.database.tables import (
+    create_collection_games_table,
+    create_collections_table,
     create_games_table,
     create_password_reset_table,
     create_tables,
@@ -41,6 +54,8 @@ __all__ = [
     "create_user_library_table",
     "create_user_followers_table",
     "create_password_reset_table",
+    "create_collections_table",
+    "create_collection_games_table",
     "create_user",
     "get_user_by_username",
     "get_user_by_email",
@@ -58,4 +73,13 @@ __all__ = [
     "get_password_reset_token",
     "mark_reset_token_as_used",
     "update_user_password",
+    "create_default_collections",
+    "get_collections",
+    "get_collection_by_id",
+    "create_collection",
+    "rename_collection",
+    "delete_collection",
+    "add_game_to_collection",
+    "remove_game_from_collection",
+    "get_collection_games",
 ]

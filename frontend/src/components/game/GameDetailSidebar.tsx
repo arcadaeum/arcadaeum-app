@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Game } from "@/types/game";
-import { formatIgdbRating, formatPlatforms } from "@/utils/game";
+import { formatIgdbRating, formatPlatforms } from "@/utils/game/detail";
 
 type GameDetailSidebarProps = {
 	game: Game | null;

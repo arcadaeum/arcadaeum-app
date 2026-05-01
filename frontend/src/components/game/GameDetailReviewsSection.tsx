@@ -1,4 +1,4 @@
-import { PLACEHOLDER_REVIEWS } from "@/utils/game";
+import { PLACEHOLDER_REVIEWS } from "@/utils/game/detail";
 
 type GameDetailReviewsSectionProps = {
 	onAddReview: () => void;

@@ -21,14 +21,14 @@
     - `PUT /reviews/{id}`: Update a review.
     - `DELETE /reviews/{id}`: Delete a review.
 
-5. **Lists**
-    - `GET /lists`: Get all lists for the current user.
-    - `POST /lists`: Create a new list (inputs: name, description).
-    - `GET /lists/{id}`: Get a specific list with its games.
-    - `PUT /lists/{id}`: Update a list (inputs: name, description).
-    - `DELETE /lists/{id}`: Delete a list.
-    - `POST /lists/{id}/games`: Add a game to a list (inputs: game_id).
-    - `DELETE /lists/{id}/games/{game_id}`: Remove a game from a list.
+5. **Collections**
+    - `GET /Collections`: Get all Collections for the current user.
+    - `POST /Collections`: Create a new list (inputs: name, description).
+    - `GET /Collections/{id}`: Get a specific list with its games.
+    - `PUT /Collections/{id}`: Update a list (inputs: name, description).
+    - `DELETE /Collections/{id}`: Delete a list.
+    - `POST /Collections/{id}/games`: Add a game to a list (inputs: game_id).
+    - `DELETE /Collections/{id}/games/{game_id}`: Remove a game from a list.
 
 ## Database Schema
 
@@ -61,7 +61,7 @@
     - `review_text`: Text
     - `created_at`: Timestamp
 
-5. **Lists**
+5. **Collections**
     - `id`: Primary key
     - `user_id`: Foreign key to Users
     - `name`: List name (e.g., "Want to Play", "Favorites")
@@ -70,9 +70,9 @@
     - `created_at`: Timestamp
     - `updated_at`: Timestamp
 
-6. **ListGames** (Junction table)
+6. **CollectionGames** (Junction table)
     - `id`: Primary key
-    - `list_id`: Foreign key to Lists
+    - `list_id`: Foreign key to Collections
     - `game_id`: Foreign key to Games
     - `added_at`: Timestamp
     - `position`: Integer (for ordering games within a list)

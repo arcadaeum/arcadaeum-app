@@ -10,6 +10,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
 from app.database import (
+    create_default_collections,
     create_user,
     get_user_by_email,
     update_user_display_name,
@@ -95,6 +96,7 @@ def register_user(req: RegisterRequest) -> User:
         display_name=req.username,
         profile_picture=None,
     )
+    create_default_collections(user_id)
     return User(id=user_id, username=req.username, email=req.email)
 
 
@@ -145,7 +147,7 @@ async def google_callback(request: Request) -> RedirectResponse:
 
     user = get_user_by_email(email)
     if not user:
-        create_user(
+        new_user_id = create_user(
             username=email,
             email=email,
             password_hash=None,
@@ -154,6 +156,7 @@ async def google_callback(request: Request) -> RedirectResponse:
             display_name=safe_name,
             profile_picture=safe_profile_picture,
         )
+        create_default_collections(new_user_id)
         username = email
     else:
         username_obj = user.get("username")
@@ -190,11 +193,15 @@ async def request_password_reset(req: PasswordResetRequest) -> PasswordResetResp
     """Request a password reset by providing an email address."""
     try:
         print(f"DEBUG: Password reset request endpoint called for: {req.email}")
-        result = await asyncio.wait_for(create_password_reset_link(req.email), timeout=15.0)
+        result = await asyncio.wait_for(
+            create_password_reset_link(req.email), timeout=15.0
+        )
         success = result.get("success")
         message = result.get("message")
         if not isinstance(message, str):
-            raise HTTPException(status_code=500, detail="Invalid password reset response")
+            raise HTTPException(
+                status_code=500, detail="Invalid password reset response"
+            )
 
         if not success:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)

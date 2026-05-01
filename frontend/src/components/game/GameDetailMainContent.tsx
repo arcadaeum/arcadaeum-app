@@ -1,5 +1,5 @@
 import type { Game } from "@/types/game";
-import { getReleaseYear } from "@/utils/game";
+import { getReleaseYear } from "@/utils/game/detail";
 import { GameDetailReviewsSection } from "@/components/game";
 
 type GameDetailMainContentProps = {

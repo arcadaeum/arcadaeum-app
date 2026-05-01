@@ -11,7 +11,6 @@ class LibraryEntry(BaseModel):
     user_id: int
     game_id: int
     added_at: Optional[datetime] = None
-    status: Optional[str] = None
     # -----------------------------
     title: str
     igdb_id: int
@@ -30,9 +29,3 @@ class AddToLibraryRequest(BaseModel):
     """Request to add a game to the user's library."""
 
     game_id: int
-
-
-class UpdateLibraryStatusRequest(BaseModel):
-    """Request to update the status of a game in the library."""
-
-    status: str
