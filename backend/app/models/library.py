@@ -33,6 +33,6 @@ class AddToLibraryRequest(BaseModel):
 
 
 class UpdateLibraryStatusRequest(BaseModel):
-    """Request to update the status of a game in the library."""
+    """Request to update status for a game in the user's library."""
 
-    status: str
+    status: Optional[str] = None

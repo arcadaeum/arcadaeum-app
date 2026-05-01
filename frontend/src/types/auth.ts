@@ -32,6 +32,7 @@ export type PasswordFieldProps = {
 	required?: boolean;
 	inputId?: string;
 	placeholder?: string;
+	fontClass?: string;
 };
 
 export type AuthTextFieldProps = {
@@ -43,4 +44,5 @@ export type AuthTextFieldProps = {
 	inputId?: string;
 	placeholder?: string;
 	autoComplete?: string;
+	fontClass?: string;
 };

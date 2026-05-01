@@ -9,6 +9,19 @@ from app.models.auth import (
     User,
     UserInDB,
 )
+from app.models.collections import (
+    AddGameToCollectionRequest,
+    Collection,
+    CollectionGame,
+    CreateCollectionRequest,
+    RenameCollectionRequest,
+)
+from app.models.followers import (
+    FollowResponse,
+    UserFollowers,
+    UserFollowing,
+    UserSummary,
+)
 from app.models.games import (
     AddGameFromIGDBRequest,
     CacheQueryParams,
@@ -45,7 +58,9 @@ __all__ = [
     "GameSearchResult",
     "AddGameFromIGDBRequest",
     "CacheQueryParams",
-    # Users
+    # Followers
+    "UserSummary",
+    "FollowResponse",
     "UserFollowers",
     "UserFollowing",
     # Library
@@ -59,4 +74,10 @@ __all__ = [
     "SteamSyncResult",
     "SteamGameMatch",
     "SteamGameUnmatched",
+    # Collections
+    "Collection",
+    "CollectionGame",
+    "CreateCollectionRequest",
+    "RenameCollectionRequest",
+    "AddGameToCollectionRequest",
 ]

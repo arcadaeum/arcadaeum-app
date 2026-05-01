@@ -1,5 +1,5 @@
 import type { Game } from "@/types/game";
-import { getReleaseYear } from "@/utils/game";
+import { getReleaseYear } from "@/utils/game/detail";
 import { GameDetailReviewsSection } from "@/components/game";
 
 type GameDetailMainContentProps = {
@@ -24,8 +24,6 @@ export default function GameDetailMainContent({ game, onAddReview }: GameDetailM
 				<p>Additional content can go here, such as screenshots, videos, reviews, etc.</p>
 			</div>
 
-			{/* Example of how to use screenshots for Fred, obviously change this and make it look better,
-				maybe try and do the blured screenshot background thing you were thinking of trying */}
 			<div className="mt-8">
 				<h3 className="text-2xl font-title mb-4">Screenshots</h3>
 				<div className="flex gap-4 overflow-x-auto">
@@ -34,7 +32,10 @@ export default function GameDetailMainContent({ game, onAddReview }: GameDetailM
 							key={index}
 							src={screenshot}
 							alt={`Screenshot ${index + 1}`}
-							className="w-64 h-36 object-cover rounded-lg"
+							className="w-64 h-36 object-cover rounded-lg hover:scale-105 transition-transform cursor-pointer"
+							onClick={() => {
+								window.open(screenshot, "_blank");
+							}}
 						/>
 					))}
 				</div>

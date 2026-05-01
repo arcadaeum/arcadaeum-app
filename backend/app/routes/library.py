@@ -49,6 +49,29 @@ def add_to_user_library(
     return LibraryEntry(**entry)
 
 
+@router.patch("/users/me/library/{game_id}/status", response_model=LibraryEntry)
+def update_user_library_status(
+    game_id: int,
+    request: UpdateLibraryStatusRequest,
+    current_user: User = Depends(get_current_user),
+) -> LibraryEntry:
+    """Update status for a game in current user's library."""
+    status_value = request.status
+    if status_value not in (None, "currently_playing"):
+        raise HTTPException(status_code=400, detail="Invalid status value")
+
+    updated = update_library_status(current_user.id, game_id, status_value)
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in library"
+        )
+
+    entry = get_library_entry(current_user.id, game_id)
+    if entry is None:
+        raise HTTPException(status_code=500, detail="Failed to retrieve updated entry")
+    return LibraryEntry(**entry)
+
+
 @router.delete("/users/me/library/{game_id}")
 def remove_from_user_library(
     game_id: int, current_user: User = Depends(get_current_user)
@@ -60,22 +83,3 @@ def remove_from_user_library(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in library"
         )
     return {"message": "Game removed from library"}
-
-
-@router.patch("/users/me/library/{game_id}/status", response_model=LibraryEntry)
-def update_status(
-    game_id: int,
-    request: UpdateLibraryStatusRequest,
-    current_user: User = Depends(get_current_user),
-) -> LibraryEntry:
-    """Update the status of a game in the library."""
-    entry = get_library_entry(current_user.id, game_id)
-    if entry is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in library"
-        )
-    updated = update_library_status(current_user.id, game_id, request.status)
-    if not updated:
-        raise HTTPException(status_code=500, detail="Failed to update status")
-    entry = get_library_entry(current_user.id, game_id)
-    return LibraryEntry.model_validate(entry)

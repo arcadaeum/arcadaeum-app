@@ -1,4 +1,4 @@
-import { PLACEHOLDER_REVIEWS } from "@/utils/game";
+import { PLACEHOLDER_REVIEWS } from "@/utils/game/detail";
 
 type GameDetailReviewsSectionProps = {
 	onAddReview: () => void;
@@ -25,7 +25,9 @@ export default function GameDetailReviewsSection({ onAddReview }: GameDetailRevi
 						<div className="text-sm font-default text-gray-300">
 							{review.author} · {review.date}
 						</div>
-						<div className="mt-2 text-md font-default text-gray-200">{review.content}</div>
+						<div className="mt-2 text-md font-default text-gray-200">
+							{review.content}
+						</div>
 					</div>
 				))}
 			</div>

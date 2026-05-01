@@ -43,3 +43,22 @@ body {
 	background-color: var(--color-arcade-black);
 	color: white;
 }
+
+@keyframes sparkle-pop {
+	0% {
+		transform: scale(0.4);
+		opacity: 0;
+	}
+	40% {
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1.6);
+		opacity: 0;
+	}
+}
+
+.sparkle-pop {
+	animation: sparkle-pop 500ms ease-out;
+	filter: drop-shadow(0 0 6px rgba(86, 71, 241, 0.7));
+}

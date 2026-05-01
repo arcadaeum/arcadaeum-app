@@ -1,15 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import { GameDetailArtwork, GameDetailMainContent, GameDetailSidebar } from "@/components/game";
 import type { Game } from "@/types/game";
 import {
 	fetchGameDetail,
-	fetchLibraryMembership,
-	showLibraryPopup,
+	fetchLibraryEntry,
+	setCurrentlyPlaying,
 	toggleLibrary,
-	type LibraryPopupType,
-} from "@/utils/game";
+} from "@/utils/game/detail";
+import {
+	fetchCollections,
+	fetchCollectionGames,
+	addGameToCollection,
+	removeGameFromCollection,
+} from "@/utils/collections/api";
 
 export default function GameDetailPage() {
 	const { id } = useParams<{ id: string }>();
@@ -18,13 +23,10 @@ export default function GameDetailPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [inLibrary, setInLibrary] = useState(false);
+	const [isCurrentlyPlaying, setIsCurrentlyPlaying] = useState(false);
 
-	// Temporary state for favouriting - will need to be replaced using the api and database.
 	const [favourited, setFavourited] = useState(false);
-
-	const [libraryPopup, setLibraryPopup] = useState<string | null>(null);
-	const [libraryPopupType, setLibraryPopupType] = useState<LibraryPopupType>("success");
-	const popupTimerRef = useRef<number | null>(null);
+	const [favouritesCollectionId, setFavouritesCollectionId] = useState<number | null>(null);
 
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 
@@ -49,34 +51,46 @@ export default function GameDetailPage() {
 		const token = localStorage.getItem("access_token");
 		if (!token) return;
 
-		fetchLibraryMembership(apiUrl, token, id)
-			.then((isInLibrary) => {
-				setInLibrary(isInLibrary);
+		fetchLibraryEntry(apiUrl, token, id)
+			.then((entry) => {
+				setInLibrary(entry !== null);
+				setIsCurrentlyPlaying(entry?.status === "currently_playing");
 			})
 			.catch(() => {
 				setInLibrary(false);
+				setIsCurrentlyPlaying(false);
 			});
 	}, [apiUrl, id]);
 
-	const handleShowLibraryPopup = (message: string, type: LibraryPopupType = "success") => {
-		showLibraryPopup({
-			message,
-			type,
-			setLibraryPopup,
-			setLibraryPopupType,
-			popupTimerRef,
-		});
-	};
-
+	// Check if game is in the "Favourites" collection
 	useEffect(() => {
-		return () => {
-			if (popupTimerRef.current) {
-				window.clearTimeout(popupTimerRef.current);
-			}
-		};
-	}, []);
+		if (!id) return;
+
+		const token = localStorage.getItem("access_token");
+		if (!token) return;
+
+		fetchCollections(apiUrl, token)
+			.then((collections) => {
+				const favCollection = collections.find((c) => c.name === "Favourites");
+				if (!favCollection) return;
+				setFavouritesCollectionId(favCollection.id);
+				return fetchCollectionGames(apiUrl, token, favCollection.id);
+			})
+			.then((games) => {
+				if (games) {
+					setFavourited(games.some((g) => g.id === Number(id)));
+				}
+			})
+			.catch(() => {
+				setFavourited(false);
+				setFavouritesCollectionId(null);
+			});
+	}, [apiUrl, id]);
 
 	const handleToggleLibrary = async () => {
+		const wasInLibrary = inLibrary;
+		const wasCurrentlyPlaying = isCurrentlyPlaying;
+
 		await toggleLibrary({
 			id,
 			apiUrl,
@@ -84,8 +98,58 @@ export default function GameDetailPage() {
 			setInLibrary,
 			token: localStorage.getItem("access_token"),
 			onRequireSignIn: () => navigate("/signin"),
-			showPopup: handleShowLibraryPopup,
+			showPopup: () => {},
 		});
+
+		if (wasInLibrary && wasCurrentlyPlaying) {
+			setIsCurrentlyPlaying(false);
+		}
+	};
+
+	const handleToggleCurrentlyPlaying = async () => {
+		if (!id || !inLibrary) return;
+
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			navigate("/signin");
+			return;
+		}
+
+		const nextStatus = isCurrentlyPlaying ? null : "currently_playing";
+
+		try {
+			const entry = await setCurrentlyPlaying(apiUrl, token, id, nextStatus);
+			setIsCurrentlyPlaying(entry.status === "currently_playing");
+		} catch (error) {
+			console.error("Failed to update currently playing status:", error);
+		}
+	};
+
+	const handleToggleFavourite = async (): Promise<boolean> => {
+		const token = localStorage.getItem("access_token");
+		if (!token || !favouritesCollectionId || !id) return false;
+
+		const numericGameId = Number(id);
+		const previousFavourited = favourited;
+		setFavourited(!previousFavourited);
+
+		try {
+			if (previousFavourited) {
+				await removeGameFromCollection(
+					apiUrl,
+					token,
+					favouritesCollectionId,
+					numericGameId,
+				);
+			} else {
+				await addGameToCollection(apiUrl, token, favouritesCollectionId, numericGameId);
+			}
+			return true;
+		} catch (error) {
+			setFavourited(previousFavourited);
+			console.error("Failed to toggle favourite:", error);
+			return false;
+		}
 	};
 
 	if (!id) return <div>Invalid game id.</div>;
@@ -115,10 +179,11 @@ export default function GameDetailPage() {
 						game={game}
 						favourited={favourited}
 						inLibrary={inLibrary}
-						onToggleFavourite={() => setFavourited(!favourited)}
+						isCurrentlyPlaying={isCurrentlyPlaying}
+						onToggleFavourite={handleToggleFavourite}
 						onToggleLibrary={handleToggleLibrary}
-						libraryPopupMessage={libraryPopup}
-						libraryPopupType={libraryPopupType}
+						onToggleCurrentlyPlaying={handleToggleCurrentlyPlaying}
+						apiUrl={apiUrl}
 					/>
 					<GameDetailMainContent
 						game={game}

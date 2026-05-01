@@ -1,8 +1,10 @@
 import { useState, type SubmitEvent } from "react";
-import { NavigationBar } from "@/components/ui";
+import { useNavigate } from "react-router-dom";
+import { ColorBends, NavigationBar } from "@/components/ui";
 import { AuthErrorAlert, AuthTextField, PasswordField } from "@/components/auth";
 import {
 	createAccountRequest,
+	signInWithPassword,
 	toCreateAccountPayload,
 	validateCreateAccountInput,
 } from "@/utils/auth";
@@ -19,8 +21,10 @@ export default function CreateAccountPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
+	const navigate = useNavigate();
 
 	const backend = (import.meta.env.VITE_BACKEND_URL as string) || "http://localhost:8000";
+	const apiUrl = (import.meta.env.VITE_API_URL as string) || backend;
 
 	const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -51,15 +55,17 @@ export default function CreateAccountPage() {
 		const result = await createAccountRequest(payload, backend);
 
 		if (result.ok) {
-			setSuccess("Account created successfully. You can now log in.");
-			setEmail("");
-			setUsername("");
-			setPassword("");
-			setConfirm("");
-			setShowPassword(false);
-			setShowConfirmPassword(false);
-			setLoading(false);
-			return;
+			try {
+				const data = await signInWithPassword(email, password, apiUrl);
+				localStorage.setItem("access_token", data.access_token);
+				setLoading(false);
+				navigate("/user");
+				return;
+			} catch {
+				setError("Account created, but auto sign-in failed. Please sign in.");
+				setLoading(false);
+				return;
+			}
 		}
 
 		setError(result.message);
@@ -68,13 +74,27 @@ export default function CreateAccountPage() {
 
 	return (
 		<>
+			<ColorBends
+				className="fixed inset-0 -z-10 pointer-events-none opacity-90"
+				rotation={32}
+				colors={["#8122c0", "#5647f1", "#37b0ea"]}
+				speed={0.2}
+				scale={2}
+				frequency={1}
+				warpStrength={1}
+				mouseInfluence={1}
+				parallax={0.5}
+				noise={0.1}
+				transparent
+				autoRotate={0}
+			/>
 			<NavigationBar />
 			<div className="flex flex-col items-center font-title min-h-screen pt-50 px-4">
 				<form
 					onSubmit={handleSubmit}
-					className="w-full max-w-md bg-arcade-black/80 p-8 rounded-lg border border-arcade-blue space-y-4"
+					className="w-full max-w-md bg-arcade-black p-8 rounded-lg space-y-4"
 				>
-					<h1 className="text-2xl font-default text-center mb-2">Create Account</h1>
+					<h1 className="text-2xl font-title text-center mb-2">Create Account</h1>
 
 					<AuthTextField
 						label="Email"
@@ -84,6 +104,7 @@ export default function CreateAccountPage() {
 						required
 						inputId="create-account-email"
 						autoComplete="email"
+						fontClass="font-title"
 					/>
 
 					<AuthTextField
@@ -94,6 +115,7 @@ export default function CreateAccountPage() {
 						required
 						inputId="create-account-username"
 						autoComplete="username"
+						fontClass="font-title"
 					/>
 
 					<PasswordField
@@ -106,6 +128,7 @@ export default function CreateAccountPage() {
 						onToggleMouseLeave={() => setShowPassword(false)}
 						required
 						inputId="create-account-password"
+						fontClass="font-title"
 					/>
 
 					<PasswordField
@@ -118,6 +141,7 @@ export default function CreateAccountPage() {
 						onToggleMouseLeave={() => setShowConfirmPassword(false)}
 						required
 						inputId="create-account-confirm-password"
+						fontClass="font-title"
 					/>
 
 					{error && <AuthErrorAlert error={error} />}

@@ -1,14 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
-import { UserFavoritesRow, UserProfileHero, UserStatsBar, UserStickyHeader, SteamLinking } from "@/components/user";
-import type { UserFavoriteGame, UserProfile } from "@/types/user";
+import {
+	UserCollectionsRow,
+	UserProfileHero,
+	UserStatsBar,
+	UserStickyHeader,
+} from "@/components/user";
+import type { Game } from "@/types/game";
+import type { LibraryEntry, UserCollectionGame, UserProfile } from "@/types/user";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
+import { getUserLibraryUrl } from "@/utils/game/detail";
+import { fetchCollections, fetchCollectionGames, mapCollectionGames } from "@/utils/collections";
 
 export default function UserPage() {
 	const [user, setUser] = useState<UserProfile | null>(null);
-	const [favorites, setFavorites] = useState<UserFavoriteGame[]>([]);
+	const [favorites, setFavorites] = useState<UserCollectionGame[]>([]);
+	const [wantToPlay, setWantToPlay] = useState<UserCollectionGame[]>([]);
+	const [completed, setCompleted] = useState<UserCollectionGame[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+	const [followersCount, setFollowersCount] = useState(0);
+	const [followingCount, setFollowingCount] = useState(0);
+	const [libraryEntries, setLibraryEntries] = useState<LibraryEntry[]>([]);
 	const [error, setError] = useState("");
 	const [editing, setEditing] = useState(false);
 	const [newDisplayName, setNewDisplayName] = useState("");
@@ -21,6 +35,9 @@ export default function UserPage() {
 
 	const displayName = getUserDisplayName(user);
 	const borderColor = getUserProfileBorderColor(user);
+	const currentlyPlayingEntry = libraryEntries.find(
+		(entry) => entry.status === "currently_playing",
+	);
 
 	useEffect(() => {
 		const storedToken = localStorage.getItem("access_token");
@@ -36,7 +53,10 @@ export default function UserPage() {
 				if (!res.ok) throw new Error("Unauthorized");
 				return res.json();
 			})
-			.then((data) => setUser(data))
+			.then((data) => {
+				setUser(data);
+				setCurrentUserId(data.id);
+			})
 			.catch(() => {
 				setError("You must be logged in.");
 				localStorage.removeItem("access_token");
@@ -57,17 +77,73 @@ export default function UserPage() {
 		return () => observer.disconnect();
 	}, [loading]);
 
-	// Get games from the URL, This needs to be changed to get favourites instead of popular.
+	// Fetch real favourites, want to play, and completed collections
 	useEffect(() => {
-		// Stores the data from the game api into the favorites state.
-		fetch(`${apiUrl}/games`)
+		const token = localStorage.getItem("access_token");
+		if (!token) return;
+
+		fetchCollections(apiUrl, token)
+			.then((collections) => {
+				const getGames = (name: string) => {
+					const collection = collections.find((c) => c.name === name);
+					if (!collection) {
+						return Promise.resolve<Game[]>([]);
+					}
+					return fetchCollectionGames(apiUrl, token, collection.id);
+				};
+
+				return Promise.all([
+					getGames("Favourites"),
+					getGames("Want To Play"),
+					getGames("Completed"),
+				]);
+			})
+			.then(([favoriteGames, wantToPlayGames, completedGames]) => {
+				setFavorites(mapCollectionGames(favoriteGames));
+				setWantToPlay(mapCollectionGames(wantToPlayGames));
+				setCompleted(mapCollectionGames(completedGames));
+			})
+			.catch(() => {
+				setFavorites([]);
+				setWantToPlay([]);
+				setCompleted([]);
+			});
+	}, [apiUrl]);
+
+	useEffect(() => {
+		if (!currentUserId) return;
+
+		fetch(`${apiUrl}/users/${currentUserId}/followers`)
 			.then((res) => {
-				if (!res.ok) throw new Error("Failed to fetch games");
+				if (!res.ok) throw new Error("Failed to fetch followers");
 				return res.json();
 			})
-			.then((data: UserFavoriteGame[]) => setFavorites(data))
-			.catch(() => setFavorites([]));
-	}, [apiUrl]);
+			.then((data: Array<{ id: number }>) => setFollowersCount(data.length))
+			.catch(() => setFollowersCount(0));
+
+		fetch(`${apiUrl}/users/${currentUserId}/following`)
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to fetch following");
+				return res.json();
+			})
+			.then((data: Array<{ id: number }>) => setFollowingCount(data.length))
+			.catch(() => setFollowingCount(0));
+
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			return;
+		}
+
+		fetch(getUserLibraryUrl(apiUrl), {
+			headers: { Authorization: `Bearer ${token}` },
+		})
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to fetch library");
+				return res.json();
+			})
+			.then((data: LibraryEntry[]) => setLibraryEntries(data))
+			.catch(() => setLibraryEntries([]));
+	}, [apiUrl, currentUserId]);
 
 	const handleEdit = () => {
 		setNewDisplayName(user?.display_name || "");
@@ -129,49 +205,76 @@ export default function UserPage() {
 					onCancel={() => setEditing(false)}
 					onSteamClick={() => setShowSteamModal(true)}
 				/>
-				<UserStatsBar />
-				
-				{token && showSteamModal && (
-					<SteamLinking 
-						token={token} 
-						apiUrl={apiUrl}
-						onClose={() => setShowSteamModal(false)}
-						onLinked={() => {
-							setShowSteamModal(false);
-							// Optional: refresh user data or show success message
-						}}
-					/>
-				)}
-
+				<UserStatsBar
+					followersCount={followersCount}
+					followingCount={followingCount}
+					gamesCount={libraryEntries.length}
+				/>
 				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
 					<Link to="/user" className="text-arcade-violet hover:underline">
 						{getUserDisplayName(user, "User")}
 					</Link>{" "}
 					is currently playing:
 				</h2>
-				<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 min-h-56 text-arcade-white text-2xl text-center flex items-center justify-center">
-					ADD CURRENT PLAYED GAME CARD HERE
-				</div>
+				{currentlyPlayingEntry ? (
+					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 text-arcade-white text-2xl">
+						<Link
+							to={`/games/${currentlyPlayingEntry.game_id}`}
+							className="flex items-center gap-6 p-6"
+						>
+							<img
+								src={
+									currentlyPlayingEntry.cover_url ??
+									`https://via.placeholder.com/480x270?text=${encodeURIComponent(
+										currentlyPlayingEntry.title,
+									)}`
+								}
+								alt={currentlyPlayingEntry.title}
+								className="h-36 w-56 object-cover rounded-md border-2 border-arcade-white/30"
+							/>
+							<div className="flex flex-col">
+								<span className="text-3xl text-arcade-violet">
+									{currentlyPlayingEntry.title}
+								</span>
+								<span className="text-sm text-arcade-white/70 mt-2">
+									View game details
+								</span>
+							</div>
+						</Link>
+					</div>
+				) : (
+					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 min-h-56 text-arcade-white text-2xl text-center flex items-center justify-center">
+						No game selected as currently playing.
+					</div>
+				)}
 
 				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
 					Favorite Games
 				</h3>
-				<UserFavoritesRow favorites={favorites} />
+				<UserCollectionsRow
+					collections={favorites}
+					emptyMessage="No games in this collection yet."
+				/>
 
-				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter">
-					Reviews
-				</h2>
-				<div className="w-2/3 ml-50 h-48" />
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter">
+					Want to Play
+				</h3>
+				<UserCollectionsRow
+					collections={wantToPlay}
+					emptyMessage="No games in this collection yet."
+				/>
 
-				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-violet tracking-tighter">
-					Collections
-				</h2>
-				<div className="w-2/3 ml-50 h-48" />
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
+					Completed
+				</h3>
+				<UserCollectionsRow
+					collections={completed}
+					emptyMessage="No games in this collection yet."
+				/>
 
 				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
 					Posts
 				</h2>
-				<div className="w-2/3 ml-50 h-48" />
 			</div>
 		</>
 	);

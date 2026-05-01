@@ -6,6 +6,12 @@ export { default as GameDetailPage } from "./GameDetailPage";
 export { default as HomePage } from "./HomePage";
 export { default as PasswordResetPage } from "./PasswordResetPage";
 export { default as ProfilePage } from "./ProfilePage";
+export { default as SocialPage } from "./SocialPage";
 export { default as SignInPage } from "./SignInPage";
 export { default as UserPage } from "./UserPage";
 export { default as LibraryPage } from "./LibraryPage";
+export { default as SettingsPage } from "./SettingsPage";
+
+
+
+//

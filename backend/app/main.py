@@ -7,7 +7,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.database import create_tables
-from app.routes import auth, cache, games, health, library, users, steam
+from app.routes import (
+    auth,
+    cache,
+    collections,
+    followers,
+    games,
+    health,
+    library,
+    users,
+)
 from app.services.cache import add_default_users, cache_popular_games
 from app.services.scheduler import start_steam_sync_scheduler
 
@@ -69,5 +78,7 @@ app.include_router(auth.router)
 app.include_router(cache.router)
 app.include_router(games.router)
 app.include_router(users.router)
+app.include_router(followers.router)
 app.include_router(library.router)
 app.include_router(steam.router)
+app.include_router(collections.router)

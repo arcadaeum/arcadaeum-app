@@ -1,5 +1,6 @@
 export * as auth from "./auth";
 export * as browse from "./browse";
+export * as collections from "./collections";
 export * as game from "./game";
 export * as home from "./home";
 export * as password from "./password";

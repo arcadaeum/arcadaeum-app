@@ -3,17 +3,17 @@ from typing import Optional
 from app.database.connection import get_database_connection
 
 
-def add_to_library(user_id: int, game_id: int, status: str = "active") -> int:
+def add_to_library(user_id: int, game_id: int) -> int:
     """Add a game to user's library. Returns library entry ID."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO user_library (user_id, game_id, status)
-                VALUES (%s, %s, %s)
+                INSERT INTO user_library (user_id, game_id)
+                VALUES (%s, %s)
                 RETURNING id
                 """,
-                (user_id, game_id, status),
+                (user_id, game_id),
             )
             result = cur.fetchone()
             conn.commit()
@@ -32,6 +32,31 @@ def remove_from_library(user_id: int, game_id: int) -> bool:
                 WHERE user_id = %s AND game_id = %s
                 """,
                 (user_id, game_id),
+            )
+            conn.commit()
+            return cur.rowcount > 0
+
+
+def update_library_status(user_id: int, game_id: int, status: Optional[str]) -> bool:
+    """Update the status of a game in user's library. Returns True if updated."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            if status == "currently_playing":
+                cur.execute(
+                    """
+                    UPDATE user_library
+                    SET status = NULL
+                    WHERE user_id = %s AND status = 'currently_playing'
+                    """,
+                    (user_id,),
+                )
+            cur.execute(
+                """
+                UPDATE user_library
+                SET status = %s
+                WHERE user_id = %s AND game_id = %s
+                """,
+                (status, user_id, game_id),
             )
             conn.commit()
             return cur.rowcount > 0
@@ -130,21 +155,3 @@ def get_library_entry(user_id: int, game_id: int) -> Optional[dict]:
             if entry.get("created_at") is not None:
                 entry["created_at"] = entry["created_at"].isoformat()
             return entry
-
-
-def update_library_status(user_id: int, game_id: int, status: str) -> bool:
-    """Update the status of a library entry. Returns True if updated."""
-    with get_database_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                UPDATE user_library
-                SET status = %s
-                WHERE user_id = %s AND game_id = %s
-                RETURNING id
-                """,
-                (status, user_id, game_id),
-            )
-            result = cur.fetchone()
-            conn.commit()
-            return result is not None

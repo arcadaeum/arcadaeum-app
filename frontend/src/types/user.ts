@@ -9,7 +9,14 @@ export type UserProfileWithId = UserProfile & {
 	id: number;
 };
 
-export type UserFavoriteGame = {
+export type UserSummary = {
+	id: number;
+	username: string;
+	display_name?: string | null;
+	profile_picture?: string | null;
+};
+
+export type UserCollectionGame = {
 	id: number;
 	title: string;
 	cover_url?: string | null;

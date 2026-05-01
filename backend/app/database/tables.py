@@ -8,8 +8,10 @@ def create_tables() -> None:
     create_user_library_table()  # Creates the user_library table if it doesn't exist
     create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
     create_user_followers_table()  # Creates the user followers table if it doesn't exist
-    create_user_steam_accounts_table()  # Creates the user_steam_accounts table
+q    create_user_steam_accounts_table()  # Creates the user_steam_accounts table
     create_user_steam_games_table()  # Creates the user_steam_games table
+    create_collections_table()  # Creates the collections table if it doesn't exist
+    create_collection_games_table()  # Creates the collection_games table if it doesn't exist
 
 
 def create_users_table() -> None:
@@ -52,6 +54,25 @@ def create_games_table() -> None:
             conn.commit()
 
 
+def create_reviews_table() -> None:
+    """Creates the reviews table if it doesn't exist"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS reviews (
+                    id serial PRIMARY KEY,
+                    user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    game_id integer NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+                    rating integer CHECK (rating >= 1 AND rating <= 10) NOT NULL,
+                    review_text text,
+                    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, game_id))
+                """
+            )
+            conn.commit()
+
+
 def create_user_library_table() -> None:
     """Creates the user_library table if it doesn't exist"""
     with get_database_connection() as conn:
@@ -61,10 +82,18 @@ def create_user_library_table() -> None:
                     id serial PRIMARY KEY,
                     user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     game_id integer NOT NULL REFERENCES games(id) ON DELETE CASCADE,
-                    added_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     status text,
+                    added_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, game_id))
-                """)
+                """
+            )
+            cur.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS user_library_currently_playing_unique
+                ON user_library (user_id)
+                WHERE status = 'currently_playing'
+                """
+            )
             conn.commit()
 
 
@@ -134,4 +163,39 @@ def create_user_steam_games_table() -> None:
                     synced_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, steam_app_id))
                 """)
+            conn.commit()
+
+
+def create_collections_table() -> None:
+    """Creates the collections table if it doesn't exist"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS collections (
+                    id serial PRIMARY KEY,
+                    user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    name text NOT NULL,
+                    is_default boolean NOT NULL DEFAULT false,
+                    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, name))
+                """
+            )
+            conn.commit()
+
+
+def create_collection_games_table() -> None:
+    """Creates the collection_games table if it doesn't exist"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS collection_games (
+                    id serial PRIMARY KEY,
+                    collection_id integer NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+                    game_id integer NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+                    added_at timestamp DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(collection_id, game_id))
+                """
+            )
             conn.commit()
