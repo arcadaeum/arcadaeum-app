@@ -97,7 +97,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 					onClick={handleMenuClose}
 				>
 					<div
-						className="flex min-w-[260px] flex-col items-center gap-6 rounded-3xl px-10 py-12 font-title text-lg"
+						className="flex min-w-65 flex-col items-center gap-6 rounded-3xl px-10 py-12 font-title text-lg"
 						onClick={(event) => event.stopPropagation()}
 					>
 						{!isAuthenticated && !isSignInPage && (

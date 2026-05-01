@@ -16,7 +16,7 @@ export type UserSummary = {
 	profile_picture?: string | null;
 };
 
-export type UserFavoriteGame = {
+export type UserCollectionGame = {
 	id: number;
 	title: string;
 	cover_url?: string | null;
