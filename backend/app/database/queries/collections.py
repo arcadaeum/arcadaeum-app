@@ -21,7 +21,7 @@ def create_default_collections(user_id: int) -> None:
             conn.commit()
 
 
-def get_collections(user_id: int) -> list[dict[str, object]]:
+def get_collections(user_id: int) -> list[dict]:
     """Get all collections for a user."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -38,7 +38,7 @@ def get_collections(user_id: int) -> list[dict[str, object]]:
             if cur.description is None:
                 return []
             columns = [desc[0] for desc in cur.description]
-            results: list[dict[str, object]] = []
+            results: list[dict] = []
             for row in rows:
                 entry = dict(zip(columns, row))
                 created_at = entry.get("created_at")
@@ -137,7 +137,7 @@ def remove_game_from_collection(collection_id: int, game_id: int) -> bool:
             return cur.rowcount > 0
 
 
-def get_collection_games(collection_id: int, user_id: int) -> list[dict[str, object]]:
+def get_collection_games(collection_id: int, user_id: int) -> list[dict]:
     """Get games for a collection, ensuring ownership by user."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -171,7 +171,7 @@ def get_collection_games(collection_id: int, user_id: int) -> list[dict[str, obj
             if cur.description is None:
                 return []
             columns = [desc[0] for desc in cur.description]
-            results: list[dict[str, object]] = []
+            results: list[dict] = []
             for row in rows:
                 entry = dict(zip(columns, row))
                 added_at = entry.get("added_at")
@@ -187,9 +187,7 @@ def get_collection_games(collection_id: int, user_id: int) -> list[dict[str, obj
             return results
 
 
-def get_collection_by_id(
-    user_id: int, collection_id: int
-) -> Optional[dict[str, object]]:
+def get_collection_by_id(user_id: int, collection_id: int) -> Optional[dict]:
     """Fetch a collection by id for a user."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
