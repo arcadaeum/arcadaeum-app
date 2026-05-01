@@ -18,19 +18,38 @@ from app.routes import (
     users,
 )
 from app.services.cache import add_default_users, cache_popular_games
+from app.services.scheduler import start_steam_sync_scheduler
 
 load_dotenv()
+
+scheduler_task = None
 
 
 # On startup, create tables and cache popular games from IGDB to our DB
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    global scheduler_task
+
     create_tables()
     default_users_result = add_default_users()
     print(f"Startup users result: {default_users_result}")
     cache_result = cache_popular_games(limit=500)
     print(f"Startup cache result: {cache_result}")
+
+    # Start the Steam sync scheduler
+    scheduler_task = start_steam_sync_scheduler()
+    print("Started Steam sync scheduler")
+
     yield
+
+    # Clean up scheduler on shutdown
+    if scheduler_task:
+        scheduler_task.cancel()
+        try:
+            await scheduler_task
+        except:
+            pass
+    print("Stopped Steam sync scheduler")
 
 
 app = FastAPI(title="Arcadaeum API", lifespan=lifespan)
@@ -61,4 +80,5 @@ app.include_router(games.router)
 app.include_router(users.router)
 app.include_router(followers.router)
 app.include_router(library.router)
+app.include_router(steam.router)
 app.include_router(collections.router)

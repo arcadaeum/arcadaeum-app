@@ -27,6 +27,8 @@ export default function UserPage() {
 	const [editing, setEditing] = useState(false);
 	const [newDisplayName, setNewDisplayName] = useState("");
 	const [showHeader, setShowHeader] = useState(false);
+	const [token, setToken] = useState<string | null>(null);
+	const [showSteamModal, setShowSteamModal] = useState(false);
 	const profileRef = useRef<HTMLDivElement>(null);
 	const navigate = useNavigate();
 	const apiUrl = import.meta.env.VITE_API_URL as string;
@@ -40,13 +42,14 @@ export default function UserPage() {
 		currentlyPlayingEntry?.artworks?.[0] ?? currentlyPlayingEntry?.cover_url ?? null;
 
 	useEffect(() => {
-		const token = localStorage.getItem("access_token");
-		if (!token) {
+		const storedToken = localStorage.getItem("access_token");
+		setToken(storedToken);
+		if (!storedToken) {
 			navigate("/signin");
 			return;
 		}
 		fetch(`${apiUrl}/me`, {
-			headers: { Authorization: `Bearer ${token}` },
+			headers: { Authorization: `Bearer ${storedToken}` },
 		})
 			.then((res) => {
 				if (!res.ok) throw new Error("Unauthorized");
@@ -150,12 +153,12 @@ export default function UserPage() {
 	};
 
 	const handleSave = async () => {
-		const token = localStorage.getItem("access_token");
+		const storedToken = localStorage.getItem("access_token");
 		const res = await fetch(`${apiUrl}/me`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
+				Authorization: `Bearer ${storedToken}`,
 			},
 			body: JSON.stringify({ display_name: newDisplayName }),
 		});
@@ -202,6 +205,7 @@ export default function UserPage() {
 					onEdit={handleEdit}
 					onSave={handleSave}
 					onCancel={() => setEditing(false)}
+					onSteamClick={() => setShowSteamModal(true)}
 				/>
 				<UserStatsBar
 					followersCount={followersCount}
