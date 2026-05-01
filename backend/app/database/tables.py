@@ -8,7 +8,7 @@ def create_tables() -> None:
     create_user_library_table()  # Creates the user_library table if it doesn't exist
     create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
     create_user_followers_table()  # Creates the user followers table if it doesn't exist
-q    create_user_steam_accounts_table()  # Creates the user_steam_accounts table
+    create_user_steam_accounts_table()  # Creates the user_steam_accounts table
     create_user_steam_games_table()  # Creates the user_steam_games table
     create_collections_table()  # Creates the collections table if it doesn't exist
     create_collection_games_table()  # Creates the collection_games table if it doesn't exist
@@ -86,8 +86,7 @@ def create_user_library_table() -> None:
                     status text,
                     added_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, game_id))
-                """
-            )
+                """)
             cur.execute(
                 """
                 CREATE UNIQUE INDEX IF NOT EXISTS user_library_currently_playing_unique
