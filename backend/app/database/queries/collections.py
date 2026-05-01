@@ -144,7 +144,8 @@ def get_collection_games(collection_id: int, user_id: int) -> list[dict]:
             cur.execute(
                 """
                 SELECT
-                    cg.id,
+                    g.id AS id,
+                    cg.id AS collection_game_id,
                     cg.collection_id,
                     cg.game_id,
                     cg.added_at,

@@ -5,13 +5,15 @@ import heartIconUnfilled from "@/assets/images/heart-icon-unfilled.svg";
 import removeIcon from "@/assets/images/remove-icon.svg";
 import type { Game } from "@/types/game";
 import RatingStarBar from "@/components/game/RatingStarBar";
+import CollectionPickerModal from "./CollectionPickerModal";
 
 type GameDetailArtworkProps = {
 	game: Game | null;
 	favourited: boolean;
 	inLibrary: boolean;
-	onToggleFavourite: () => void;
+	onToggleFavourite: () => void | Promise<boolean>;
 	onToggleLibrary?: () => void;
+	apiUrl: string;
 };
 
 export default function GameDetailArtwork({
@@ -20,6 +22,7 @@ export default function GameDetailArtwork({
 	inLibrary,
 	onToggleFavourite,
 	onToggleLibrary,
+	apiUrl,
 }: GameDetailArtworkProps) {
 	const token = localStorage.getItem("access_token");
 	const isAuthenticated = token ? true : false;
@@ -28,9 +31,11 @@ export default function GameDetailArtwork({
 	const [actionMessage, setActionMessage] = useState<string | null>(null);
 	const actionTimerRef = useRef<number | null>(null);
 
-	const handleAddToList = () => {
+	const [isPickerOpen, setIsPickerOpen] = useState(false);
+
+	const handleOpenPicker = () => {
 		setIsMenuOpen(false);
-		setActionMessage("Added to list");
+		setIsPickerOpen(true);
 	};
 
 	const handleToggleLibrary = () => {
@@ -39,10 +44,12 @@ export default function GameDetailArtwork({
 		setActionMessage(inLibrary ? "Removed from library" : "Added to library");
 	};
 
-	const handleToggleFavourite = () => {
+	const handleToggleFavourite = async () => {
 		setIsMenuOpen(false);
-		onToggleFavourite();
-		setActionMessage(favourited ? "Removed from favorites" : "Added to favorites");
+		const success = await onToggleFavourite();
+		if (success !== false) {
+			setActionMessage(favourited ? "Removed from favorites" : "Added to favorites");
+		}
 	};
 
 	const favouritesIcon = favourited ? heartIconFilled : heartIconUnfilled;
@@ -116,7 +123,7 @@ export default function GameDetailArtwork({
 											<span>
 												{favourited ? "Remove from " : "Add to "}
 												<span className="text-arcade-violet">
-													favorites
+													Favorites
 												</span>
 											</span>
 										</button>
@@ -129,19 +136,21 @@ export default function GameDetailArtwork({
 											<img src={libraryIcon} alt="" className="h-4 w-4" />
 											<span>
 												{inLibrary ? "Remove from " : "Add to "}
-												<span className="text-arcade-violet">library</span>
+												<span className="text-arcade-violet">Library</span>
 											</span>
 										</button>
 										<div className="h-px bg-arcade-white/10" />
 										<button
 											type="button"
-											onClick={handleAddToList}
+											onClick={handleOpenPicker}
 											className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-arcade-white hover:bg-arcade-white/10"
 										>
 											<img src={addIcon} alt="" className="h-4 w-4" />
 											<span>
 												Add to{" "}
-												<span className="text-arcade-violet">list</span>
+												<span className="text-arcade-violet">
+													Collection
+												</span>
 											</span>
 										</button>
 									</div>
@@ -157,6 +166,14 @@ export default function GameDetailArtwork({
 					</div>
 				)}
 			</div>
+			{game && (
+				<CollectionPickerModal
+					apiUrl={apiUrl}
+					gameId={game.id}
+					isOpen={isPickerOpen}
+					onClose={() => setIsPickerOpen(false)}
+				/>
+			)}
 		</div>
 	);
 }

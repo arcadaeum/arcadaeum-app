@@ -4,6 +4,12 @@ import { NavigationBar, ColorBends } from "@/components/ui";
 import { GameDetailArtwork, GameDetailMainContent, GameDetailSidebar } from "@/components/game";
 import type { Game } from "@/types/game";
 import { fetchGameDetail, fetchLibraryMembership, toggleLibrary } from "@/utils/game/detail";
+import {
+	fetchCollections,
+	fetchCollectionGames,
+	addGameToCollection,
+	removeGameFromCollection,
+} from "@/utils/collections/api";
 
 export default function GameDetailPage() {
 	const { id } = useParams<{ id: string }>();
@@ -13,8 +19,8 @@ export default function GameDetailPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [inLibrary, setInLibrary] = useState(false);
 
-	// Temporary state for favouriting - will need to be replaced using the api and database.
 	const [favourited, setFavourited] = useState(false);
+	const [favouritesCollectionId, setFavouritesCollectionId] = useState<number | null>(null);
 
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 
@@ -48,6 +54,31 @@ export default function GameDetailPage() {
 			});
 	}, [apiUrl, id]);
 
+	// Check if game is in the "Favourites" collection
+	useEffect(() => {
+		if (!id) return;
+
+		const token = localStorage.getItem("access_token");
+		if (!token) return;
+
+		fetchCollections(apiUrl, token)
+			.then((collections) => {
+				const favCollection = collections.find((c) => c.name === "Favourites");
+				if (!favCollection) return;
+				setFavouritesCollectionId(favCollection.id);
+				return fetchCollectionGames(apiUrl, token, favCollection.id);
+			})
+			.then((games) => {
+				if (games) {
+					setFavourited(games.some((g) => g.id === Number(id)));
+				}
+			})
+			.catch(() => {
+				setFavourited(false);
+				setFavouritesCollectionId(null);
+			});
+	}, [apiUrl, id]);
+
 	const handleToggleLibrary = async () => {
 		await toggleLibrary({
 			id,
@@ -58,6 +89,33 @@ export default function GameDetailPage() {
 			onRequireSignIn: () => navigate("/signin"),
 			showPopup: () => {},
 		});
+	};
+
+	const handleToggleFavourite = async (): Promise<boolean> => {
+		const token = localStorage.getItem("access_token");
+		if (!token || !favouritesCollectionId || !id) return false;
+
+		const numericGameId = Number(id);
+		const previousFavourited = favourited;
+		setFavourited(!previousFavourited);
+
+		try {
+			if (previousFavourited) {
+				await removeGameFromCollection(
+					apiUrl,
+					token,
+					favouritesCollectionId,
+					numericGameId,
+				);
+			} else {
+				await addGameToCollection(apiUrl, token, favouritesCollectionId, numericGameId);
+			}
+			return true;
+		} catch (error) {
+			setFavourited(previousFavourited);
+			console.error("Failed to toggle favourite:", error);
+			return false;
+		}
 	};
 
 	if (!id) return <div>Invalid game id.</div>;
@@ -87,8 +145,9 @@ export default function GameDetailPage() {
 						game={game}
 						favourited={favourited}
 						inLibrary={inLibrary}
-						onToggleFavourite={() => setFavourited(!favourited)}
+						onToggleFavourite={handleToggleFavourite}
 						onToggleLibrary={handleToggleLibrary}
+						apiUrl={apiUrl}
 					/>
 					<GameDetailMainContent
 						game={game}

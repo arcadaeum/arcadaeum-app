@@ -10,6 +10,7 @@ import {
 import type { LibraryEntry, UserFavoriteGame, UserProfile } from "@/types/user";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
 import { getUserLibraryUrl } from "@/utils/game/detail";
+import { fetchCollections, fetchCollectionGames } from "@/utils/collections/api";
 
 export default function UserPage() {
 	const [user, setUser] = useState<UserProfile | null>(null);
@@ -67,15 +68,29 @@ export default function UserPage() {
 		return () => observer.disconnect();
 	}, [loading]);
 
-	// Get games from the URL, This needs to be changed to get favourites instead of popular.
+	// Fetch real favourites from the "Favourites" collection
 	useEffect(() => {
-		// Stores the data from the game api into the favorites state.
-		fetch(`${apiUrl}/games`)
-			.then((res) => {
-				if (!res.ok) throw new Error("Failed to fetch games");
-				return res.json();
+		const token = localStorage.getItem("access_token");
+		if (!token) return;
+
+		fetchCollections(apiUrl, token)
+			.then((collections) => {
+				const favCollection = collections.find((c) => c.name === "Favourites");
+				if (!favCollection) return [];
+				return fetchCollectionGames(apiUrl, token, favCollection.id);
 			})
-			.then((data: UserFavoriteGame[]) => setFavorites(data))
+			.then((games) => {
+				if (!games) {
+					setFavorites([]);
+					return;
+				}
+				const mapped: UserFavoriteGame[] = games.map((g) => ({
+					id: g.id,
+					title: g.title ?? "",
+					cover_url: g.cover_url ?? null,
+				}));
+				setFavorites(mapped);
+			})
 			.catch(() => setFavorites([]));
 	}, [apiUrl]);
 
