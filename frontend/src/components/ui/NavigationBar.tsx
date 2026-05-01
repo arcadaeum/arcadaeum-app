@@ -65,6 +65,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 						<MainButton text="SOCIAL" navigateTo="/social" />
 						<MainButton text="PROFILE" navigateTo="/user" />
 						<MainButton text="LOG OUT" onClick={handleLogout} />
+						<MainButton text="SETTINGS" navigateTo="/settings" />
 					</>
 				)}
 			</div>
