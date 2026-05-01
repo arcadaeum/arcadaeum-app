@@ -7,9 +7,9 @@ import {
 	UserStatsBar,
 	UserStickyHeader,
 } from "@/components/user";
-import type { UserFavoriteGame, UserProfile } from "@/types/user";
+import type { LibraryEntry, UserFavoriteGame, UserProfile } from "@/types/user";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
-import { getUserLibraryUrl } from "@/utils/game";
+import { getUserLibraryUrl } from "@/utils/game/detail";
 
 export default function UserPage() {
 	const [user, setUser] = useState<UserProfile | null>(null);
@@ -18,7 +18,7 @@ export default function UserPage() {
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 	const [followersCount, setFollowersCount] = useState(0);
 	const [followingCount, setFollowingCount] = useState(0);
-	const [libraryCount, setLibraryCount] = useState(0);
+	const [libraryEntries, setLibraryEntries] = useState<LibraryEntry[]>([]);
 	const [error, setError] = useState("");
 	const [editing, setEditing] = useState(false);
 	const [newDisplayName, setNewDisplayName] = useState("");
@@ -100,7 +100,6 @@ export default function UserPage() {
 
 		const token = localStorage.getItem("access_token");
 		if (!token) {
-			setLibraryCount(0);
 			return;
 		}
 
@@ -111,8 +110,8 @@ export default function UserPage() {
 				if (!res.ok) throw new Error("Failed to fetch library");
 				return res.json();
 			})
-			.then((data: Array<{ id: number }>) => setLibraryCount(data.length))
-			.catch(() => setLibraryCount(0));
+			.then((data: LibraryEntry[]) => setLibraryEntries(data))
+			.catch(() => setLibraryEntries([]));
 	}, [apiUrl, currentUserId]);
 
 	const handleEdit = () => {
@@ -177,7 +176,7 @@ export default function UserPage() {
 				<UserStatsBar
 					followersCount={followersCount}
 					followingCount={followingCount}
-					gamesCount={libraryCount}
+					gamesCount={libraryEntries.length}
 				/>
 				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
 					<Link to="/user" className="text-arcade-violet hover:underline">

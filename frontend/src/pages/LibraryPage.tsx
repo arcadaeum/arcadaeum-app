@@ -7,7 +7,7 @@ import type { BrowseSortOption } from "@/types/browse";
 import { filterAndSortLibraryEntries, mapLibraryEntriesToGameGridItems } from "@/utils/user";
 import type { LibraryEntry, UserProfile } from "@/types/user";
 import { BROWSE_SORT_OPTIONS } from "@/utils/browse";
-import { getUserLibraryUrl } from "@/utils/game";
+import { getUserLibraryUrl } from "@/utils/game/detail";
 
 export default function LibraryPage() {
 	const [user, setUser] = useState<UserProfile | null>(null);

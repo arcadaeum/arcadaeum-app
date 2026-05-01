@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 type UserStatsBarProps = {
 	followersCount?: number;
 	followingCount?: number;
@@ -13,16 +15,26 @@ export default function UserStatsBar({
 }: UserStatsBarProps) {
 	return (
 		<div
-			className="flex gap-6 -mt-11 font-default text-xs text-gray-400 tracking-wider items-center"
+			className="flex gap-6 -mt-11 font-default text-xs text-gray-400 tracking-wider items-center relative z-10"
 			style={{ marginLeft: "28.5rem" }}
 		>
-			<span>
-				<span className="text-arcade-white font-bold">{followersCount}</span> Followers
-			</span>
+			<Link
+				to="/social"
+				className="hover:text-arcade-white transition-colors inline-flex items-center cursor-pointer pointer-events-auto"
+			>
+				<span>
+					<span className="text-arcade-white font-bold">{followersCount}</span> Followers
+				</span>
+			</Link>
 			<span className="w-1 h-1 rounded-full bg-gray-500" />
-			<span>
-				<span className="text-arcade-white font-bold">{followingCount}</span> Following
-			</span>
+			<Link
+				to="/social"
+				className="hover:text-arcade-white transition-colors inline-flex items-center cursor-pointer pointer-events-auto"
+			>
+				<span>
+					<span className="text-arcade-white font-bold">{followingCount}</span> Following
+				</span>
+			</Link>
 			<span className="w-1 h-1 rounded-full bg-gray-500" />
 			<span>
 				<span className="text-arcade-white font-bold">{gamesCount}</span> Games
