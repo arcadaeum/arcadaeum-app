@@ -93,6 +93,15 @@ export default function UserProfileHero({
 									<Pencil />
 								</button>
 							)}
+							{canEdit && onSteamClick && (
+								<button
+									onClick={onSteamClick}
+									className="ml-2 hover:text-arcade-cyan transition"
+									title="Link Steam account"
+								>
+									<Gamepad2 size={32} />
+								</button>
+							)}
 						</>
 					)}
 					{!canEdit && (

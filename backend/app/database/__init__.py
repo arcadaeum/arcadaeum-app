@@ -34,6 +34,16 @@ from app.database.queries.users import (
     get_user_by_username,
     update_user_display_name,
 )
+from app.database.queries.steam import (
+    link_steam_account,
+    unlink_steam_account,
+    get_steam_account,
+    get_steam_account_by_steam_id,
+    add_steam_game,
+    get_user_steam_games,
+    update_sync_status,
+    get_steam_accounts_due_for_sync,
+)
 from app.database.tables import (
     create_collection_games_table,
     create_collections_table,
@@ -43,6 +53,8 @@ from app.database.tables import (
     create_user_followers_table,
     create_user_library_table,
     create_users_table,
+    create_user_steam_accounts_table,
+    create_user_steam_games_table,
 )
 
 __all__ = [
@@ -54,6 +66,8 @@ __all__ = [
     "create_user_library_table",
     "create_user_followers_table",
     "create_password_reset_table",
+    "create_user_steam_accounts_table",
+    "create_user_steam_games_table",
     "create_collections_table",
     "create_collection_games_table",
     "create_user",
@@ -73,6 +87,16 @@ __all__ = [
     "get_password_reset_token",
     "mark_reset_token_as_used",
     "update_user_password",
+    "link_steam_account",
+    "unlink_steam_account",
+    "get_steam_account",
+    "get_steam_account_by_steam_id",
+    "add_steam_game",
+    "get_user_steam_games",
+    "update_sync_status",
+    "clear_user_steam_games",
+    "get_steam_accounts_due_for_sync",
+    "link_steam_game_to_arcadaeum",
     "create_default_collections",
     "get_collections",
     "get_collection_by_id",

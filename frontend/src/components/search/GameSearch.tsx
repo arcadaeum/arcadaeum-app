@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import type { GameSearchResult } from "@/types/search";
@@ -14,6 +14,7 @@ export default function GameSearch() {
 	const searchRef = useRef<HTMLDivElement>(null);
 	const trimmedQuery = searchQuery.trim();
 	const hasQuery = trimmedQuery.length > 0;
+	const [addingGameIds, setAddingGameIds] = useState<Set<number>>(new Set());
 
 	const runGameSearch = useCallback(async () => {
 		const query = trimmedQuery.toLowerCase();
@@ -22,12 +23,32 @@ export default function GameSearch() {
 			setResults(searchResults);
 			setIsOpen(true);
 			setIsLoading(false);
+
+			// Auto-add IGDB games to database and library
+			const token = localStorage.getItem("access_token");
+			if (token) {
+				for (const game of searchResults) {
+					if (game.isFromIGDB && game.igdb_id && !addingGameIds.has(game.igdb_id)) {
+						setAddingGameIds((prev) => new Set(prev).add(game.igdb_id!));
+						try {
+							await addGameFromIGDB(game.igdb_id, token);
+						} catch (error) {
+							console.error(`Error auto-adding game ${game.igdb_id}:`, error);
+							setAddingGameIds((prev) => {
+								const next = new Set(prev);
+								next.delete(game.igdb_id!);
+								return next;
+							});
+						}
+					}
+				}
+			}
 		} catch (error) {
 			console.error("Search failed:", error);
 			setResults([]);
 			setIsLoading(false);
 		}
-	}, [trimmedQuery]);
+	}, [trimmedQuery, addingGameIds]);
 
 	const handleLoadingStart = useCallback(() => {
 		setIsLoading(true);
@@ -45,20 +66,8 @@ export default function GameSearch() {
 	// Debounced search with parallel IGDB fallback
 	useDebouncedSearch(hasQuery, runGameSearch, debouncedSearchOptions);
 
-	const handleSelectGame = async (game: GameSearchResult) => {
-		if (game.isFromIGDB && game.igdb_id) {
-			// Add game from IGDB to database
-			try {
-				const newGame = await addGameFromIGDB(game.igdb_id);
-				// Navigate using the database id returned from the backend
-				navigate(`/games/${newGame.id}`);
-				setSearchQuery("");
-				setIsOpen(false);
-			} catch (error) {
-				console.error("Error adding game:", error);
-			}
-		} else if (game.id) {
-			// Game already in database
+	const handleSelectGame = (game: GameSearchResult) => {
+		if (game.id) {
 			navigate(`/games/${game.id}`);
 			setSearchQuery("");
 			setIsOpen(false);
@@ -108,6 +117,7 @@ export default function GameSearch() {
 									key={`${game.id || game.igdb_id}-${idx}`}
 									onClick={() => handleSelectGame(game)}
 									className="w-full px-4 py-3 text-left hover:bg-arcade-blue/20 transition-colors flex items-center gap-3 border-b border-arcade-white/10 last:border-b-0"
+									disabled={game.isFromIGDB && addingGameIds.has(game.igdb_id!)}
 								>
 									{game.cover_url && (
 										<img
@@ -126,6 +136,9 @@ export default function GameSearch() {
 											</span>
 										)}
 									</div>
+									{game.isFromIGDB && addingGameIds.has(game.igdb_id!) && (
+										<span className="text-xs text-arcade-white/60">Adding...</span>
+									)}
 								</button>
 							))}
 						</div>
