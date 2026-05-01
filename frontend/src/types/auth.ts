@@ -32,6 +32,7 @@ export type PasswordFieldProps = {
 	required?: boolean;
 	inputId?: string;
 	placeholder?: string;
+	fontClass?: string;
 };
 
 export type AuthTextFieldProps = {
