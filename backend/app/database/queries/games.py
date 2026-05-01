@@ -10,6 +10,7 @@ def add_game_to_db(
     summary: Optional[str] = None,
     developer: Optional[str] = None,
     cover_url: Optional[str] = None,
+    artworks: Optional[list[str]] = None,
     platforms: Optional[list[str]] = None,
     genres: Optional[list[str]] = None,
     screenshots: Optional[list[str]] = None,
@@ -32,18 +33,20 @@ def add_game_to_db(
                     summary,
                     developer,
                     cover_url,
+                    artworks,
                     screenshots,
                     platforms,
                     genres,
                     release_date,
                     igdb_rating
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (igdb_id) DO UPDATE SET
                     title = EXCLUDED.title,
                     summary = EXCLUDED.summary,
                     developer = EXCLUDED.developer,
                     cover_url = EXCLUDED.cover_url,
+                    artworks = EXCLUDED.artworks,
                     screenshots = EXCLUDED.screenshots,
                     platforms = EXCLUDED.platforms,
                     genres = EXCLUDED.genres,
@@ -57,6 +60,7 @@ def add_game_to_db(
                     summary,
                     developer,
                     cover_url,
+                    artworks,
                     screenshots,
                     platforms,
                     genres,

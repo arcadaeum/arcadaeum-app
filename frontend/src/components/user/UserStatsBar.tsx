@@ -36,9 +36,14 @@ export default function UserStatsBar({
 				</span>
 			</Link>
 			<span className="w-1 h-1 rounded-full bg-gray-500" />
-			<span>
-				<span className="text-arcade-white font-bold">{gamesCount}</span> Games
-			</span>
+			<Link
+				to="/library"
+				className="hover:text-arcade-white transition-colors inline-flex items-center cursor-pointer pointer-events-auto"
+			>
+				<span>
+					<span className="text-arcade-white font-bold">{gamesCount}</span> Games
+				</span>
+			</Link>
 			<span className="w-1 h-1 rounded-full bg-gray-500" />
 			<span>
 				<span className="text-arcade-white font-bold">{reviewsCount}</span> Reviews

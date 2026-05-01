@@ -10,6 +10,7 @@ class Game(BaseModel):
     summary: Optional[str] = None
     developer: Optional[str] = None
     cover_url: Optional[str] = None
+    artworks: Optional[list[str]] = None
     platforms: Optional[list[str]] = None
     genres: Optional[list[str]] = None
     screenshots: Optional[list[str]] = None

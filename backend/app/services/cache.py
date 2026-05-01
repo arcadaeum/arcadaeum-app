@@ -16,7 +16,11 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
             try:
                 igdb_id = game_data.get("id")
                 title = game_data.get("name")
-                if not isinstance(igdb_id, int) or not isinstance(title, str) or not title:
+                if (
+                    not isinstance(igdb_id, int)
+                    or not isinstance(title, str)
+                    or not title
+                ):
                     continue
 
                 cover_url: str | None = None
@@ -24,9 +28,7 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
                 if isinstance(cover, dict):
                     image_id = cover.get("image_id")
                     if isinstance(image_id, str) and image_id:
-                        cover_url = (
-                            f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
-                        )
+                        cover_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
 
                 platform_names: list[str] = []
                 for platform in game_data.get("platforms", []):
@@ -41,6 +43,16 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
                         name = genre.get("name")
                         if isinstance(name, str) and name:
                             genre_names.append(name)
+
+                artworks: list[str] = []
+                for artwork in game_data.get("artworks", []):
+                    if not isinstance(artwork, dict):
+                        continue
+                    image_id = artwork.get("image_id")
+                    if isinstance(image_id, str) and image_id:
+                        artworks.append(
+                            f"https://images.igdb.com/igdb/image/upload/t_1080p/{image_id}.jpg"
+                        )
 
                 screenshots: list[str] = []
                 for screenshot in game_data.get("screenshots", []):
@@ -68,11 +80,15 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
                 developer = ", ".join(developer_names) if developer_names else None
 
                 first_release_date = game_data.get("first_release_date")
-                release_date = first_release_date if isinstance(first_release_date, int) else None
+                release_date = (
+                    first_release_date if isinstance(first_release_date, int) else None
+                )
 
                 total_rating = game_data.get("total_rating")
                 igdb_rating = (
-                    float(total_rating) if isinstance(total_rating, (int, float)) else None
+                    float(total_rating)
+                    if isinstance(total_rating, (int, float))
+                    else None
                 )
 
                 saved_id = add_game_to_db(
@@ -85,6 +101,7 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
                     ),
                     developer=developer,
                     cover_url=cover_url,
+                    artworks=artworks,
                     screenshots=screenshots,
                     platforms=platform_names,
                     genres=genre_names,
@@ -116,20 +133,30 @@ def add_default_users() -> dict[str, str]:
             "email": "scott@arcadaeum.com",
             "display_name": "Scott Kannberg",
         },
-        {"username": "Mark Ibold", "email": "mark@arcadaeum.com", "display_name": "Mark Ibold"},
+        {
+            "username": "Mark Ibold",
+            "email": "mark@arcadaeum.com",
+            "display_name": "Mark Ibold",
+        },
         {
             "username": "Bob Nastanovich",
             "email": "bob@arcadaeum.com",
             "display_name": "Bob Nastanovich",
         },
-        {"username": "Steve West", "email": "steve@arcadaeum.com", "display_name": "Steve West"},
+        {
+            "username": "Steve West",
+            "email": "steve@arcadaeum.com",
+            "display_name": "Steve West",
+        },
     ]
 
     try:
         with get_database_connection() as conn:
             with conn.cursor() as cur:
                 for user in default_users:
-                    cur.execute("SELECT id FROM users WHERE email = %s", (user["email"],))
+                    cur.execute(
+                        "SELECT id FROM users WHERE email = %s", (user["email"],)
+                    )
                     if cur.fetchone():
                         continue
 

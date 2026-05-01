@@ -44,6 +44,7 @@ def create_games_table() -> None:
                     summary text,
                     developer text,
                     cover_url text,
+                    artworks text[],
                     screenshots text[],
                     platforms text[],
                     genres text[],
