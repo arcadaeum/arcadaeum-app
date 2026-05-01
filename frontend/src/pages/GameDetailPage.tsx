@@ -9,7 +9,7 @@ import {
 	showLibraryPopup,
 	toggleLibrary,
 	type LibraryPopupType,
-} from "@/utils/game";
+} from "@/utils/game/detail";
 
 export default function GameDetailPage() {
 	const { id } = useParams<{ id: string }>();
