@@ -43,4 +43,5 @@ export type AuthTextFieldProps = {
 	inputId?: string;
 	placeholder?: string;
 	autoComplete?: string;
+	fontClass?: string;
 };

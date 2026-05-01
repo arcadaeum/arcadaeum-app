@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 
 import pngLogo from "../assets/images/LOGO_PURPLE.png";
 import { ColorBends, NavigationBar } from "@/components/ui";
-import { AuthErrorAlert, AuthTextField, GoogleSignInButton, PasswordField } from "@/components/auth";
+import {
+	AuthErrorAlert,
+	AuthTextField,
+	GoogleSignInButton,
+	PasswordField,
+} from "@/components/auth";
 import { buildGoogleSignInUrl, signInWithPassword } from "@/utils/auth";
 
 function SignInPage() {
@@ -51,7 +56,7 @@ function SignInPage() {
 
 			<NavigationBar isSignInPage={true} />
 
-			<div className="flex flex-col items-center justify-center font-title min-h-1/2 pt-20 px-4">
+			<div className="flex flex-col items-center justify-center min-h-1/2 pt-20 px-4">
 				<div className="w-full max-w-md bg-arcade-black p-8 shadow-lg">
 					<div className="flex justify-center">
 						<img
@@ -75,6 +80,7 @@ function SignInPage() {
 							onChange={setUsernameOrEmail}
 							required
 							inputId="signin-username-or-email"
+							fontClass="font-title"
 						/>
 
 						<PasswordField
@@ -93,7 +99,7 @@ function SignInPage() {
 							<button
 								type="button"
 								onClick={() => navigate("/forgot-password")}
-								className="text-arcade-blue hover:text-arcade-white text-sm font-kilimanjaro transition-colors"
+								className="text-arcade-blue hover:text-arcade-white text-sm font-title transition-colors"
 							>
 								Forgot password?
 							</button>
@@ -101,14 +107,22 @@ function SignInPage() {
 
 						<button
 							type="submit"
-							className="w-full bg-arcade-blue text-arcade-black font-default py-3 rounded-full hover:bg- transition-colors"
+							className="w-full bg-arcade-white text-arcade-black font-title py-3 rounded-full hover:scale-95 hover:cursor-pointer transition-transform"
 						>
 							Sign In
 						</button>
 					</form>
+					<div className="flex items-center my-4 gap-3">
+						<div className="flex-1 h-px bg-gray-400/40" />
+						<div className="text-sm uppercase text-arcade-white/70">or</div>
+						<div className="flex-1 h-px bg-gray-400/40" />
+					</div>
 
 					<div className="mt-6">
-						<GoogleSignInButton onClick={handleGoogleSignIn} />
+						<GoogleSignInButton
+							className="hover:cursor-pointer bg-white hover:scale-95"
+							onClick={handleGoogleSignIn}
+						/>
 					</div>
 
 					<div className="mt-8 text-center">
