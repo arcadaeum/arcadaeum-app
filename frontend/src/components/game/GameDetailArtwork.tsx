@@ -3,6 +3,7 @@ import heartIconUnfilled from "@/assets/images/heart-icon-unfilled.svg";
 import addIcon from "@/assets/images/add-icon.svg";
 import removeIcon from "@/assets/images/remove-icon.svg";
 import type { Game } from "@/types/game";
+import RatingStarBar from "@/components/game/RatingStarBar";
 
 type GameDetailArtworkProps = {
 	game: Game | null;
@@ -25,7 +26,6 @@ export default function GameDetailArtwork({
 }: GameDetailArtworkProps) {
 	const token = localStorage.getItem("access_token");
 	const isAuthenticated = token ? true : false;
-
 	return (
 		<div className="w-1/3 max-w-md">
 			<div className="relative">
@@ -74,6 +74,7 @@ export default function GameDetailArtwork({
 								)}
 							</button>
 						</div>
+						<RatingStarBar />
 						{libraryPopupMessage && (
 							<div
 								className={`mt-3 text-center text-sm ${
