@@ -42,10 +42,10 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 					<select
 						value={searchType}
 						onChange={(e) => setSearchType(e.target.value as "games" | "users")}
-						className="px-3 py-2 bg-arcade-black border-2 border-arcade-white/30 rounded-lg text-arcade-white font-secondary focus:border-arcade-blue focus:outline-none transition-colors"
+						className="px-3 py-2 bg-arcade-black border-2 border-arcade-white rounded-lg text-arcade-white font-secondary focus:border-arcade-blue focus:outline-none transition-colors"
 					>
-						<option value="games">Search Games</option>
-						<option value="users">Search Users</option>
+						<option value="games">Games</option>
+						<option value="users">Users</option>
 					</select>
 
 					{/* Render appropriate search component */}

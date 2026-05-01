@@ -79,7 +79,7 @@ export default function GameSearch() {
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
 					onFocus={() => hasQuery && setIsOpen(true)}
-					className="w-full pl-10 pr-10 py-2 bg-arcade-black border-2 border-arcade-white/30 rounded-lg text-arcade-white placeholder-arcade-white/50 focus:border-arcade-blue focus:outline-none transition-colors"
+					className="w-full pl-10 pr-10 py-2 bg-arcade-black border-2 border-arcade-white rounded-lg text-arcade-white placeholder-arcade-white/50 focus:border-arcade-blue focus:outline-none transition-colors"
 				/>
 				{searchQuery && (
 					<button
