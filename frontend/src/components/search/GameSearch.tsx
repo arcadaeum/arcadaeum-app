@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import type { GameSearchResult } from "@/types/search";
@@ -31,7 +31,7 @@ export default function GameSearch() {
 					if (game.isFromIGDB && game.igdb_id && !addingGameIds.has(game.igdb_id)) {
 						setAddingGameIds((prev) => new Set(prev).add(game.igdb_id!));
 						try {
-							await addGameFromIGDB(game.igdb_id, token);
+							await addGameFromIGDB(game.igdb_id);
 						} catch (error) {
 							console.error(`Error auto-adding game ${game.igdb_id}:`, error);
 							setAddingGameIds((prev) => {
@@ -137,7 +137,9 @@ export default function GameSearch() {
 										)}
 									</div>
 									{game.isFromIGDB && addingGameIds.has(game.igdb_id!) && (
-										<span className="text-xs text-arcade-white/60">Adding...</span>
+										<span className="text-xs text-arcade-white/60">
+											Adding...
+										</span>
 									)}
 								</button>
 							))}

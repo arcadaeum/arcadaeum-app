@@ -33,14 +33,13 @@ from app.models.library import (
     LibraryEntry,
     UpdateLibraryStatusRequest,
 )
-from app.models.users import UserFollowers, UserFollowing
 from app.models.steam import (
-    SteamLinkRequest,
     SteamGameData,
-    SteamSyncStatus,
-    SteamSyncResult,
     SteamGameMatch,
     SteamGameUnmatched,
+    SteamLinkRequest,
+    SteamSyncResult,
+    SteamSyncStatus,
 )
 
 __all__ = [

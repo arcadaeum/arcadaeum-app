@@ -1,9 +1,11 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from app.database.connection import get_database_connection
 
 
-def link_steam_account(user_id: int, steam_id: str, steam_username: str | None = None) -> bool:
+def link_steam_account(
+    user_id: int, steam_id: str, steam_username: str | None = None
+) -> bool:
     """
     Link a Steam account to a user.
 
@@ -42,9 +44,13 @@ def unlink_steam_account(user_id: int) -> bool:
         with get_database_connection() as conn:
             with conn.cursor() as cur:
                 # Delete Steam games first
-                cur.execute("DELETE FROM user_steam_games WHERE user_id = %s", (user_id,))
+                cur.execute(
+                    "DELETE FROM user_steam_games WHERE user_id = %s", (user_id,)
+                )
                 # Delete the Steam account link
-                cur.execute("DELETE FROM user_steam_accounts WHERE user_id = %s", (user_id,))
+                cur.execute(
+                    "DELETE FROM user_steam_accounts WHERE user_id = %s", (user_id,)
+                )
                 conn.commit()
                 return True
     except Exception as e:
@@ -65,7 +71,7 @@ def get_steam_account(user_id: int) -> dict | None:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, user_id, steam_id, steam_username, linked_at, 
+                SELECT id, user_id, steam_id, steam_username, linked_at,
                        last_sync, next_sync, sync_status
                 FROM user_steam_accounts
                 WHERE user_id = %s
@@ -141,7 +147,7 @@ def add_steam_game(
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    INSERT INTO user_steam_games 
+                    INSERT INTO user_steam_games
                     (user_id, steam_app_id, game_id, playtime_forever, playtime_2weeks, steam_name, synced_at)
                     VALUES (%s, %s, %s, %s, %s, %s, NOW())
                     ON CONFLICT (user_id, steam_app_id) DO UPDATE
@@ -151,7 +157,14 @@ def add_steam_game(
                         steam_name = EXCLUDED.steam_name,
                         synced_at = NOW()
                     """,
-                    (user_id, steam_app_id, game_id, playtime_forever, playtime_2weeks, steam_name),
+                    (
+                        user_id,
+                        steam_app_id,
+                        game_id,
+                        playtime_forever,
+                        playtime_2weeks,
+                        steam_name,
+                    ),
                 )
                 conn.commit()
                 return True
@@ -173,7 +186,7 @@ def get_user_steam_games(user_id: int) -> list[dict]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, user_id, steam_app_id, game_id, playtime_forever, 
+                SELECT id, user_id, steam_app_id, game_id, playtime_forever,
                        playtime_2weeks, last_played, steam_name, synced_at
                 FROM user_steam_games
                 WHERE user_id = %s
@@ -189,7 +202,9 @@ def get_user_steam_games(user_id: int) -> list[dict]:
             return [dict(zip(columns, row)) for row in rows]
 
 
-def update_sync_status(user_id: int, status: str, next_sync_time: datetime | None = None) -> bool:
+def update_sync_status(
+    user_id: int, status: str, next_sync_time: datetime | None = None
+) -> bool:
     """
     Update the sync status for a user's Steam account.
 

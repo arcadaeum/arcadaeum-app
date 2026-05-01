@@ -15,6 +15,7 @@ from app.routes import (
     games,
     health,
     library,
+    steam,
     users,
 )
 from app.services.cache import add_default_users, cache_popular_games
@@ -47,7 +48,7 @@ async def lifespan(_app: FastAPI):
         scheduler_task.cancel()
         try:
             await scheduler_task
-        except:
+        except Exception:
             pass
     print("Stopped Steam sync scheduler")
 

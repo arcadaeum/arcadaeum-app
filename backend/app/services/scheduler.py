@@ -1,14 +1,14 @@
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
 from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 
 from app.database import get_steam_accounts_due_for_sync, update_sync_status
 
 logger = logging.getLogger(__name__)
 
 # Track failed syncs: user_id -> (fail_count, last_fail_time)
-failed_syncs: dict[int, tuple[int, datetime]] = defaultdict(lambda: (0, None))
+failed_syncs: dict[int, tuple[int, datetime | None]] = defaultdict(lambda: (0, None))
 
 
 async def steam_sync_scheduler() -> None:
@@ -44,7 +44,7 @@ async def steam_sync_scheduler() -> None:
                 fail_count, last_fail_time = failed_syncs[user_id]
 
                 # Check if user is paused due to too many failures
-                if fail_count >= 5:
+                if fail_count >= 5 and last_fail_time is not None:
                     # After 5 failures, check if 6 hours have passed
                     pause_until = last_fail_time + timedelta(hours=6)
 
@@ -77,7 +77,7 @@ async def steam_sync_scheduler() -> None:
                     )
 
                     # If 5+ failures and 6+ hours have passed, mark as error and stop trying
-                    if fail_count >= 5:
+                    if fail_count >= 5 and last_fail_time is not None:
                         pause_until = last_fail_time + timedelta(hours=6)
                         if datetime.now(timezone.utc) >= pause_until:
                             # This is the second failure after 6-hour pause - give up

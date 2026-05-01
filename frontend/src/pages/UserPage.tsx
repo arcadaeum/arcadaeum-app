@@ -27,8 +27,6 @@ export default function UserPage() {
 	const [editing, setEditing] = useState(false);
 	const [newDisplayName, setNewDisplayName] = useState("");
 	const [showHeader, setShowHeader] = useState(false);
-	const [token, setToken] = useState<string | null>(null);
-	const [showSteamModal, setShowSteamModal] = useState(false);
 	const profileRef = useRef<HTMLDivElement>(null);
 	const navigate = useNavigate();
 	const apiUrl = import.meta.env.VITE_API_URL as string;
@@ -43,7 +41,6 @@ export default function UserPage() {
 
 	useEffect(() => {
 		const storedToken = localStorage.getItem("access_token");
-		setToken(storedToken);
 		if (!storedToken) {
 			navigate("/signin");
 			return;
@@ -205,7 +202,6 @@ export default function UserPage() {
 					onEdit={handleEdit}
 					onSave={handleSave}
 					onCancel={() => setEditing(false)}
-					onSteamClick={() => setShowSteamModal(true)}
 				/>
 				<UserStatsBar
 					followersCount={followersCount}
