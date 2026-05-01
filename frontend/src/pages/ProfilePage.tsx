@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import {
-	UserFavoritesRow,
+	UserCollectionsRow,
 	UserProfileHero,
 	UserStatsBar,
 	UserStickyHeader,
 } from "@/components/user";
-import type { UserFavoriteGame, UserProfileWithId } from "@/types/user";
+import type { Game } from "@/types/game";
+import type { UserCollectionGame, UserProfileWithId } from "@/types/user";
+import { fetchCollections, fetchCollectionGames, mapCollectionGames } from "@/utils/collections";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
 
 // This page is similar to the UserPage visually but uses the users ID from the URL
@@ -19,7 +21,9 @@ export default function ProfilePage() {
 	const navigate = useNavigate();
 	const [user, setUser] = useState<UserProfileWithId | null>(null);
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-	const [favorites, setFavorites] = useState<UserFavoriteGame[]>([]);
+	const [favorites, setFavorites] = useState<UserCollectionGame[]>([]);
+	const [wantToPlay, setWantToPlay] = useState<UserCollectionGame[]>([]);
+	const [completed, setCompleted] = useState<UserCollectionGame[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [followersCount, setFollowersCount] = useState(0);
 	const [followingCount, setFollowingCount] = useState(0);
@@ -120,18 +124,59 @@ export default function ProfilePage() {
 		setIsFollowing(followerIds.includes(currentUserId));
 	}, [currentUserId, followerIds]);
 
-	// Get user's favorite games
+	// Get user's collections (or favorites for other profiles)
 	useEffect(() => {
 		if (!userId) return;
+
+		if (isOwnProfile) {
+			const token = localStorage.getItem("access_token");
+			if (!token) return;
+
+			fetchCollections(apiUrl, token)
+				.then((collections) => {
+					const getGames = (name: string) => {
+						const collection = collections.find((c) => c.name === name);
+						if (!collection) {
+							return Promise.resolve<Game[]>([]);
+						}
+						return fetchCollectionGames(apiUrl, token, collection.id);
+					};
+
+					return Promise.all([
+						getGames("Favourites"),
+						getGames("Want To Play"),
+						getGames("Completed"),
+					]);
+				})
+				.then(([favoriteGames, wantToPlayGames, completedGames]) => {
+					setFavorites(mapCollectionGames(favoriteGames));
+					setWantToPlay(mapCollectionGames(wantToPlayGames));
+					setCompleted(mapCollectionGames(completedGames));
+				})
+				.catch(() => {
+					setFavorites([]);
+					setWantToPlay([]);
+					setCompleted([]);
+				});
+			return;
+		}
 
 		fetch(`${apiUrl}/users/${userId}/favorites`)
 			.then((res) => {
 				if (!res.ok) throw new Error("Failed to fetch favorites");
 				return res.json();
 			})
-			.then((data: UserFavoriteGame[]) => setFavorites(data))
-			.catch(() => setFavorites([]));
-	}, [apiUrl, userId]);
+			.then((data: UserCollectionGame[]) => {
+				setFavorites(data);
+				setWantToPlay([]);
+				setCompleted([]);
+			})
+			.catch(() => {
+				setFavorites([]);
+				setWantToPlay([]);
+				setCompleted([]);
+			});
+	}, [apiUrl, userId, isOwnProfile]);
 
 	const handleEdit = () => {
 		setNewDisplayName(user?.display_name || "");
@@ -255,37 +300,29 @@ export default function ProfilePage() {
 					ADD CURRENT PLAYED GAME CARD HERE
 				</div>
 
-				<h2
-					className="w-2/3 mt-25 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter"
-					style={{ textShadow: "0 0 2px #fefddc" }}
-				>
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
 					Favorite Games
-				</h2>
-				<UserFavoritesRow favorites={favorites} emptyMessage="No favorite games yet" />
+				</h3>
+				<UserCollectionsRow
+					collections={favorites}
+					emptyMessage="No games in this collection yet."
+				/>
 
-				<h2
-					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter"
-					style={{ textShadow: "0 0 2px #fefddc" }}
-				>
-					Reviews
-				</h2>
-				<div className="w-2/3 ml-50 h-48" />
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter">
+					Want to Play
+				</h3>
+				<UserCollectionsRow
+					collections={wantToPlay}
+					emptyMessage="No games in this collection yet."
+				/>
 
-				<h2
-					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-violet tracking-tighter"
-					style={{ textShadow: "0 0 2px #fefddc" }}
-				>
-					Collections
-				</h2>
-				<div className="w-2/3 ml-50 h-48" />
-
-				<h2
-					className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter"
-					style={{ textShadow: "0 0 2px #fefddc" }}
-				>
-					Posts
-				</h2>
-				<div className="w-2/3 ml-50 h-48" />
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
+					Completed
+				</h3>
+				<UserCollectionsRow
+					collections={completed}
+					emptyMessage="No games in this collection yet."
+				/>
 			</div>
 		</>
 	);
