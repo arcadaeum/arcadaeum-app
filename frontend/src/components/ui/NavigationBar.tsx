@@ -16,7 +16,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 	const isAuthenticated = token ? true : false;
 
 	// Routes where search bar should not be shown
-	const noSearchRoutes = ["/signin", "/forgot-password", "/reset-password", "/create-account"];
+	const noSearchRoutes = ["/signin", "/forgot-password", "/reset-password", "/createaccount"];
 	const shouldShowSearch = !noSearchRoutes.includes(location.pathname) && isAuthenticated;
 
 	const handleLogout = () => {
@@ -62,6 +62,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 					<>
 						<MainButton text="BROWSE" navigateTo="/browse" />
 						<MainButton text="LIBRARY" navigateTo="/library" />
+						<MainButton text="SOCIAL" navigateTo="/social" />
 						<MainButton text="PROFILE" navigateTo="/user" />
 						<MainButton text="LOG OUT" onClick={handleLogout} />
 					</>

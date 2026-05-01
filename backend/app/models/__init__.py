@@ -9,6 +9,12 @@ from app.models.auth import (
     User,
     UserInDB,
 )
+from app.models.followers import (
+    FollowResponse,
+    UserFollowers,
+    UserFollowing,
+    UserSummary,
+)
 from app.models.games import (
     AddGameFromIGDBRequest,
     CacheQueryParams,
@@ -20,7 +26,6 @@ from app.models.library import (
     LibraryEntry,
     UpdateLibraryStatusRequest,
 )
-from app.models.users import UserFollowers, UserFollowing
 
 __all__ = [
     # Auth
@@ -37,7 +42,9 @@ __all__ = [
     "GameSearchResult",
     "AddGameFromIGDBRequest",
     "CacheQueryParams",
-    # Users
+    # Followers
+    "UserSummary",
+    "FollowResponse",
     "UserFollowers",
     "UserFollowing",
     # Library

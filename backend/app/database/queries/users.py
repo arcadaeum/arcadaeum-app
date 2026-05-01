@@ -81,6 +81,26 @@ def get_user_by_email(email: str) -> Optional[dict]:
     return None
 
 
+def get_user_by_id(user_id: int) -> Optional[dict]:
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, username, email, password_hash, display_name, profile_picture FROM users WHERE id = %s",
+                (user_id,),
+            )
+            row = cur.fetchone()
+            if row:
+                return dict(
+                    id=row[0],
+                    username=row[1],
+                    email=row[2],
+                    password_hash=row[3],
+                    display_name=row[4],
+                    profile_picture=row[5],
+                )
+    return None
+
+
 def update_user_display_name(username: str, display_name: str) -> None:
     with get_database_connection() as conn:
         with conn.cursor() as cur:

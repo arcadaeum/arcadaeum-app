@@ -1,5 +1,4 @@
 import type { RefObject } from "react";
-import { useState } from "react";
 import { Pencil, UserRound } from "lucide-react";
 import type { UserProfile } from "@/types/user";
 import { getUserProfileImageProxyUrl } from "@/utils/user";
@@ -18,6 +17,9 @@ type UserProfileHeroProps = {
 	onEdit: () => void;
 	onSave: () => void;
 	onCancel: () => void;
+	isFollowing?: boolean;
+	followLoading?: boolean;
+	onFollowToggle?: () => void;
 };
 
 export default function UserProfileHero({
@@ -33,9 +35,10 @@ export default function UserProfileHero({
 	onEdit,
 	onSave,
 	onCancel,
+	isFollowing = false,
+	followLoading = false,
+	onFollowToggle,
 }: UserProfileHeroProps) {
-	const [following, setFollowing] = useState(false);
-
 	return (
 		<div ref={profileRef} className="relative flex w-full overflow-visible h-64">
 			<div
@@ -92,20 +95,14 @@ export default function UserProfileHero({
 							)}
 						</>
 					)}
-					{!canEdit &&
-						(following ? (
-							<MainButton
-								text="UNFOLLOW"
-								className="ml-3"
-								onClick={() => setFollowing(!following)}
-							/>
-						) : (
-							<MainButton
-								text="FOLLOW"
-								className="ml-3"
-								onClick={() => setFollowing(!following)}
-							/>
-						))}
+					{!canEdit && (
+						<MainButton
+							text={isFollowing ? "UNFOLLOW" : "FOLLOW"}
+							className="ml-3"
+							onClick={onFollowToggle}
+							disabled={followLoading || !onFollowToggle}
+						/>
+					)}
 				</h1>
 			</div>
 		</div>
