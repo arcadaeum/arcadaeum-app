@@ -36,6 +36,8 @@ export default function UserPage() {
 	const currentlyPlayingEntry = libraryEntries.find(
 		(entry) => entry.status === "currently_playing",
 	);
+	const currentlyPlayingArtwork =
+		currentlyPlayingEntry?.artworks?.[0] ?? currentlyPlayingEntry?.cover_url ?? null;
 
 	useEffect(() => {
 		const token = localStorage.getItem("access_token");
@@ -213,28 +215,22 @@ export default function UserPage() {
 					is currently playing:
 				</h2>
 				{currentlyPlayingEntry ? (
-					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 text-arcade-white text-2xl">
-						<Link
-							to={`/games/${currentlyPlayingEntry.game_id}`}
-							className="flex items-center gap-6 p-6"
-						>
-							<img
-								src={
-									currentlyPlayingEntry.cover_url ??
-									`https://via.placeholder.com/480x270?text=${encodeURIComponent(
-										currentlyPlayingEntry.title,
-									)}`
-								}
-								alt={currentlyPlayingEntry.title}
-								className="h-36 w-56 object-cover rounded-md border-2 border-arcade-white/30"
-							/>
-							<div className="flex flex-col">
-								<span className="text-3xl text-arcade-violet">
-									{currentlyPlayingEntry.title}
-								</span>
-								<span className="text-sm text-arcade-white/70 mt-2">
-									View game details
-								</span>
+					<div className="w-2/3 ml-50 mt-6 text-arcade-white">
+						<Link to={`/games/${currentlyPlayingEntry.game_id}`} className="block">
+							<div className="w-full bg-arcade-black rounded-lg overflow-hidden border-2 border-arcade-white/20">
+								<img
+									src={
+										currentlyPlayingArtwork ??
+										`https://via.placeholder.com/960x540?text=${encodeURIComponent(
+											currentlyPlayingEntry.title,
+										)}`
+									}
+									alt={currentlyPlayingEntry.title}
+									className="w-full h-auto object-contain bg-arcade-black"
+								/>
+							</div>
+							<div className="mt-4 text-3xl text-arcade-violet">
+								{currentlyPlayingEntry.title}
 							</div>
 						</Link>
 					</div>

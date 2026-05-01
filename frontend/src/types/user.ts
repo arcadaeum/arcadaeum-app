@@ -38,6 +38,7 @@ export type LibraryEntry = {
 	summary?: string | null;
 	developer?: string | null;
 	cover_url?: string | null;
+	artworks?: string[] | null;
 	platforms?: string[] | null;
 	genres?: string[] | null;
 	screenshots?: string[] | null;

@@ -45,12 +45,19 @@ def create_games_table() -> None:
                     summary text,
                     developer text,
                     cover_url text,
+                    artworks text[],
                     screenshots text[],
                     platforms text[],
                     genres text[],
                     release_date date,
                     igdb_rating real,
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP)
+                """
+            )
+            cur.execute(
+                """
+                ALTER TABLE games
+                ADD COLUMN IF NOT EXISTS artworks text[]
                 """
             )
             conn.commit()

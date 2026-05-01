@@ -12,6 +12,7 @@ const mapLibraryEntryToGame = (entry: LibraryEntry): Game => ({
 	summary: entry.summary ?? null,
 	developer: entry.developer ?? null,
 	cover_url: entry.cover_url ?? null,
+	artworks: entry.artworks ?? null,
 	screenshots: entry.screenshots ?? null,
 	platforms: entry.platforms ?? null,
 	release_date: entry.release_date ?? null,

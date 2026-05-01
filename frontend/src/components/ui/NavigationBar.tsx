@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { User } from "lucide-react";
 import pngLogo from "@/assets/images/LOGO_PURPLE.png";
 import { GameSearch, UserSearch } from "@/components/search";
 
@@ -60,6 +61,16 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 						{/* Render appropriate search component */}
 						{searchType === "games" ? <GameSearch /> : <UserSearch />}
 					</div>
+				)}
+
+				{isAuthenticated && (
+					<Link
+						to="/user"
+						className="flex items-center justify-center rounded-full bg-arcade-black/80 p-3 text-arcade-white shadow-sm transition hover:bg-arcade-black/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-blue hover:scale-110"
+						aria-label="Go to profile"
+					>
+						<User className="h-5 w-5" aria-hidden="true" />
+					</Link>
 				)}
 
 				{/* Right-side menu */}
@@ -144,6 +155,14 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 								>
 									Social
 								</Link>
+								<Link
+									to="/settings"
+									className="text-2xl transition hover:text-arcade-violet hover:scale-120"
+									role="menuitem"
+									onClick={handleMenuClose}
+								>
+									Settings
+								</Link>
 								<button
 									onClick={() => {
 										handleLogout();
@@ -160,23 +179,6 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 					</div>
 				</div>
 			)}
-
-			{/* Right-side links */}
-			<div className="flex items-center gap-4">
-				{!isAuthenticated && !isSignInPage ? (
-					<MainButton text="SIGN IN" navigateTo="/signin" />
-				) : null}
-				{isAuthenticated && (
-					<>
-						<MainButton text="BROWSE" navigateTo="/browse" />
-						<MainButton text="LIBRARY" navigateTo="/library" />
-						<MainButton text="SOCIAL" navigateTo="/social" />
-						<MainButton text="PROFILE" navigateTo="/user" />
-						<MainButton text="LOG OUT" onClick={handleLogout} />
-						<MainButton text="SETTINGS" navigateTo="/settings" />
-					</>
-				)}
-			</div>
 		</nav>
 	);
 }
