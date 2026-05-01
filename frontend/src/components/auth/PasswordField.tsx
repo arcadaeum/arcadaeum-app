@@ -15,7 +15,7 @@ function PasswordField({
 }: PasswordFieldProps) {
 	return (
 		<div>
-			<label htmlFor={inputId} className="block text-arcade-white font-kilimanjaro mb-2">
+			<label htmlFor={inputId} className="block text-arcade-white font-title mb-2">
 				{label}
 			</label>
 			<div className="relative">
@@ -25,7 +25,7 @@ function PasswordField({
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
 					placeholder={placeholder}
-					className="w-full px-4 py-2 pr-10 bg-arcade-white text-arcade-black font-kilimanjaro rounded border border-arcade-blue/50 focus:border-arcade-blue focus:outline-none"
+					className="w-full px-4 py-2 pr-10 bg-arcade-white text-arcade-black font-default rounded border border-arcade-blue/50 focus:border-arcade-blue focus:outline-none"
 					required={required}
 				/>
 

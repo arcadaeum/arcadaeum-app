@@ -114,7 +114,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 							<>
 								<Link
 									to="/browse"
-									className="text-2xl transition hover:text-arcade-blue hover:scale-120"
+									className="text-2xl transition hover:text-arcade-violet hover:scale-120"
 									role="menuitem"
 									onClick={handleMenuClose}
 								>
@@ -122,7 +122,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 								</Link>
 								<Link
 									to="/library"
-									className="text-2xl transition hover:text-arcade-blue hover:scale-120"
+									className="text-2xl transition hover:text-arcade-violet hover:scale-120"
 									role="menuitem"
 									onClick={handleMenuClose}
 								>
@@ -130,11 +130,19 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 								</Link>
 								<Link
 									to="/user"
-									className="text-2xl transition hover:text-arcade-blue hover:scale-120"
+									className="text-2xl transition hover:text-arcade-violet hover:scale-120"
 									role="menuitem"
 									onClick={handleMenuClose}
 								>
 									Profile
+								</Link>
+								<Link
+									to="/social"
+									className="text-2xl transition hover:text-arcade-violet hover:scale-120"
+									role="menuitem"
+									onClick={handleMenuClose}
+								>
+									Social
 								</Link>
 								<button
 									onClick={() => {
@@ -142,7 +150,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 										handleMenuClose();
 									}}
 									type="button"
-									className="text-2xl  text-arcade-blue transition hover:text-arcade-white hover:scale-120"
+									className="text-2xl  text-arcade-white transition hover:text-arcade-violet hover:scale-120"
 									role="menuitem"
 								>
 									Log Out
