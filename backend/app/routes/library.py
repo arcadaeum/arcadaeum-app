@@ -6,10 +6,12 @@ from app.database.queries.library import (
     get_library_entry,
     get_user_library,
     remove_from_library,
+    update_library_status,
 )
 from app.models import (
     AddToLibraryRequest,
     LibraryEntry,
+    UpdateLibraryStatusRequest,
     User,
 )
 from app.services.auth import get_current_user
@@ -44,6 +46,29 @@ def add_to_user_library(
     entry = get_library_entry(current_user.id, request.game_id)
     if entry is None:
         raise HTTPException(status_code=500, detail="Failed to retrieve added entry")
+    return LibraryEntry(**entry)
+
+
+@router.patch("/users/me/library/{game_id}/status", response_model=LibraryEntry)
+def update_user_library_status(
+    game_id: int,
+    request: UpdateLibraryStatusRequest,
+    current_user: User = Depends(get_current_user),
+) -> LibraryEntry:
+    """Update status for a game in current user's library."""
+    status_value = request.status
+    if status_value not in (None, "currently_playing"):
+        raise HTTPException(status_code=400, detail="Invalid status value")
+
+    updated = update_library_status(current_user.id, game_id, status_value)
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found in library"
+        )
+
+    entry = get_library_entry(current_user.id, game_id)
+    if entry is None:
+        raise HTTPException(status_code=500, detail="Failed to retrieve updated entry")
     return LibraryEntry(**entry)
 
 

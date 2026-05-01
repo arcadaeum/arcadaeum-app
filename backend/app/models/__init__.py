@@ -1,12 +1,4 @@
 # Re-export all models for backward compatibility
-from app.models.collections import (
-    AddGameToCollectionRequest,
-    Collection,
-    CollectionGame,
-    CreateCollectionRequest,
-    RenameCollectionRequest,
-)
-
 from app.models.auth import (
     PasswordReset,
     PasswordResetRequest,
@@ -16,6 +8,13 @@ from app.models.auth import (
     TokenData,
     User,
     UserInDB,
+)
+from app.models.collections import (
+    AddGameToCollectionRequest,
+    Collection,
+    CollectionGame,
+    CreateCollectionRequest,
+    RenameCollectionRequest,
 )
 from app.models.followers import (
     FollowResponse,
@@ -32,6 +31,7 @@ from app.models.games import (
 from app.models.library import (
     AddToLibraryRequest,
     LibraryEntry,
+    UpdateLibraryStatusRequest,
 )
 
 __all__ = [
@@ -57,6 +57,7 @@ __all__ = [
     # Library
     "LibraryEntry",
     "AddToLibraryRequest",
+    "UpdateLibraryStatusRequest",
     # Collections
     "Collection",
     "CollectionGame",

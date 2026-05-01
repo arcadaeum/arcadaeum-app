@@ -1,5 +1,6 @@
 import type { Game } from "@/types/game";
 import type { GameDetailReview } from "@/types/gameDetail";
+import type { LibraryEntry } from "@/types/user";
 
 export type LibraryPopupType = "success" | "error";
 
@@ -16,6 +17,9 @@ export const getUserLibraryUrl = (apiUrl: string) => `${apiUrl}/users/me/library
 
 export const getUserLibraryItemUrl = (apiUrl: string, gameId: string | number) =>
 	`${apiUrl}/users/me/library/${gameId}`;
+
+export const getUserLibraryStatusUrl = (apiUrl: string, gameId: string | number) =>
+	`${apiUrl}/users/me/library/${gameId}/status`;
 
 export const getLibraryPopupMessage = (
 	action: "added" | "removed" | "already-exists" | "network-error",
@@ -57,11 +61,11 @@ export const fetchGameDetail = async (apiUrl: string, gameId: string | number): 
 	return response.json();
 };
 
-export const fetchLibraryMembership = async (
+export const fetchLibraryEntry = async (
 	apiUrl: string,
 	token: string,
 	gameId: string | number,
-): Promise<boolean> => {
+): Promise<LibraryEntry | null> => {
 	const response = await fetch(getUserLibraryUrl(apiUrl), {
 		headers: { Authorization: `Bearer ${token}` },
 	});
@@ -70,10 +74,10 @@ export const fetchLibraryMembership = async (
 		throw new Error("Failed to fetch library");
 	}
 
-	const entries = (await response.json()) as Array<{ game_id: number }>;
+	const entries = (await response.json()) as LibraryEntry[];
 	const numericGameId = Number(gameId);
 
-	return entries.some((entry) => entry.game_id === numericGameId);
+	return entries.find((entry) => entry.game_id === numericGameId) ?? null;
 };
 
 export const toggleLibraryMembership = async (
@@ -98,6 +102,29 @@ export const toggleLibraryMembership = async (
 	);
 
 	return { response, isRemoving };
+};
+
+export const setCurrentlyPlaying = async (
+	apiUrl: string,
+	token: string,
+	gameId: string | number,
+	status: "currently_playing" | null,
+): Promise<LibraryEntry> => {
+	const numericGameId = Number(gameId);
+	const response = await fetch(getUserLibraryStatusUrl(apiUrl, numericGameId), {
+		method: "PATCH",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+		body: JSON.stringify({ status }),
+	});
+
+	if (!response.ok) {
+		throw new Error("Failed to update library status");
+	}
+
+	return response.json();
 };
 
 export const showLibraryPopup = ({

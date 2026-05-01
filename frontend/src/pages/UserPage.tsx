@@ -33,6 +33,9 @@ export default function UserPage() {
 
 	const displayName = getUserDisplayName(user);
 	const borderColor = getUserProfileBorderColor(user);
+	const currentlyPlayingEntry = libraryEntries.find(
+		(entry) => entry.status === "currently_playing",
+	);
 
 	useEffect(() => {
 		const token = localStorage.getItem("access_token");
@@ -209,9 +212,37 @@ export default function UserPage() {
 					</Link>{" "}
 					is currently playing:
 				</h2>
-				<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 min-h-56 text-arcade-white text-2xl text-center flex items-center justify-center">
-					ADD CURRENT PLAYED GAME CARD HERE
-				</div>
+				{currentlyPlayingEntry ? (
+					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 text-arcade-white text-2xl">
+						<Link
+							to={`/games/${currentlyPlayingEntry.game_id}`}
+							className="flex items-center gap-6 p-6"
+						>
+							<img
+								src={
+									currentlyPlayingEntry.cover_url ??
+									`https://via.placeholder.com/480x270?text=${encodeURIComponent(
+										currentlyPlayingEntry.title,
+									)}`
+								}
+								alt={currentlyPlayingEntry.title}
+								className="h-36 w-56 object-cover rounded-md border-2 border-arcade-white/30"
+							/>
+							<div className="flex flex-col">
+								<span className="text-3xl text-arcade-violet">
+									{currentlyPlayingEntry.title}
+								</span>
+								<span className="text-sm text-arcade-white/70 mt-2">
+									View game details
+								</span>
+							</div>
+						</Link>
+					</div>
+				) : (
+					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 min-h-56 text-arcade-white text-2xl text-center flex items-center justify-center">
+						No game selected as currently playing.
+					</div>
+				)}
 
 				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
 					Favorite Games
