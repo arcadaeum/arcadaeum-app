@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
 import { useState } from "react";
-import { Pencil, UserRound } from "lucide-react";
+import { Pencil, UserRound, Gamepad2 } from "lucide-react";
 import type { UserProfile } from "@/types/user";
 import { getUserProfileImageProxyUrl } from "@/utils/user";
 import { MainButton } from "@/components/ui";
@@ -18,6 +18,7 @@ type UserProfileHeroProps = {
 	onEdit: () => void;
 	onSave: () => void;
 	onCancel: () => void;
+	onSteamClick?: () => void;
 };
 
 export default function UserProfileHero({
@@ -33,6 +34,7 @@ export default function UserProfileHero({
 	onEdit,
 	onSave,
 	onCancel,
+	onSteamClick,
 }: UserProfileHeroProps) {
 	const [following, setFollowing] = useState(false);
 
@@ -88,6 +90,15 @@ export default function UserProfileHero({
 							{canEdit && (
 								<button onClick={onEdit} className="ml-2" title="Edit display name">
 									<Pencil />
+								</button>
+							)}
+							{canEdit && onSteamClick && (
+								<button
+									onClick={onSteamClick}
+									className="ml-2 hover:text-arcade-cyan transition"
+									title="Link Steam account"
+								>
+									<Gamepad2 size={32} />
 								</button>
 							)}
 						</>

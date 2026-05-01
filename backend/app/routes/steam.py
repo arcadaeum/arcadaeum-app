@@ -32,16 +32,37 @@ async def link_steam_account_endpoint(
     """
     Link a Steam account to the user's Arcadaeum account.
 
+    Supports both direct Steam IDs and vanity URLs.
+
     Args:
-        request: Contains the Steam ID
+        request: Contains the Steam ID or vanity URL
         current_user: Current authenticated user
 
     Returns - Success message with linked Steam ID
     """
     steam_service = SteamService()
+    steam_input = request.steam_id.strip()
+
+    # Try to resolve vanity URL if input is not numeric
+    if not steam_input.isdigit():
+        # Extract vanity URL slug from various formats
+        vanity_slug = steam_input
+        if "/" in steam_input:
+            # Handle URLs like /id/archbuscam or full URLs
+            vanity_slug = steam_input.split("/")[-1]
+
+        resolved_id = steam_service.resolve_vanity_url(vanity_slug)
+        if not resolved_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Could not find Steam account with vanity URL: {vanity_slug}",
+            )
+        steam_id = resolved_id
+    else:
+        steam_id = steam_input
 
     # Validate the Steam ID exists
-    if not steam_service.validate_steam_id(request.steam_id):
+    if not steam_service.validate_steam_id(steam_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid Steam ID or account not found",
@@ -50,7 +71,7 @@ async def link_steam_account_endpoint(
     # Check if Steam ID is already linked to another user
     from app.database import get_steam_account_by_steam_id
 
-    existing = get_steam_account_by_steam_id(request.steam_id)
+    existing = get_steam_account_by_steam_id(steam_id)
     if existing and existing["user_id"] != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -58,7 +79,7 @@ async def link_steam_account_endpoint(
         )
 
     # Link the Steam account
-    if not link_steam_account(current_user.id, request.steam_id):
+    if not link_steam_account(current_user.id, steam_id):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to link Steam account",
@@ -70,7 +91,7 @@ async def link_steam_account_endpoint(
     return {
         "success": True,
         "message": "Steam account linked successfully",
-        "steam_id": request.steam_id,
+        "steam_id": steam_id,
     }
 
 

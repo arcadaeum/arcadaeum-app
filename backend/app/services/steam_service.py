@@ -70,3 +70,60 @@ class SteamService:
             return response is not None
         except HTTPException:
             return False
+
+    def resolve_vanity_url(self, vanity_url: str) -> str | None:
+        """
+        Resolve a Steam vanity URL to a SteamID64.
+
+        Args:
+            vanity_url: The vanity URL slug (e.g., 'archbuscam' from /id/archbuscam)
+
+        Returns:
+            The SteamID64 as a string, or None if not found
+        """
+        url = f"{self.base_url}/ISteamUser/ResolveVanityURL/v0001/"
+        params = {
+            "key": self.steam_api_key,
+            "vanityurl": vanity_url,
+            "format": "json",
+        }
+
+        try:
+            response = requests.get(url, params=params, timeout=self.timeout)
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get("response", {}).get("success") == 1:
+                return str(data["response"]["steamid"])
+            return None
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(status_code=500, detail=f"Steam API error: {str(e)}")
+
+    def get_player_profile(self, steam_id: str) -> dict[str, Any]:
+        """
+        Fetch a Steam user's public profile information.
+
+        Args:
+            steam_id: The SteamID64 of the user
+
+        Returns:
+            Dictionary containing user profile data (username, profile URL, avatar, etc.)
+        """
+        url = f"{self.base_url}/ISteamUser/GetPlayerSummaries/v0002/"
+        params = {
+            "key": self.steam_api_key,
+            "steamids": steam_id,
+            "format": "json",
+        }
+
+        try:
+            response = requests.get(url, params=params, timeout=self.timeout)
+            response.raise_for_status()
+            data = response.json()
+
+            players = data.get("response", {}).get("players", [])
+            if players:
+                return players[0]
+            return {}
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(status_code=500, detail=f"Steam API error: {str(e)}")

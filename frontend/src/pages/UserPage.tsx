@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
-import { UserFavoritesRow, UserProfileHero, UserStatsBar, UserStickyHeader } from "@/components/user";
+import { UserFavoritesRow, UserProfileHero, UserStatsBar, UserStickyHeader, SteamLinking } from "@/components/user";
 import type { UserFavoriteGame, UserProfile } from "@/types/user";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
 
@@ -13,6 +13,8 @@ export default function UserPage() {
 	const [editing, setEditing] = useState(false);
 	const [newDisplayName, setNewDisplayName] = useState("");
 	const [showHeader, setShowHeader] = useState(false);
+	const [token, setToken] = useState<string | null>(null);
+	const [showSteamModal, setShowSteamModal] = useState(false);
 	const profileRef = useRef<HTMLDivElement>(null);
 	const navigate = useNavigate();
 	const apiUrl = import.meta.env.VITE_API_URL as string;
@@ -21,13 +23,14 @@ export default function UserPage() {
 	const borderColor = getUserProfileBorderColor(user);
 
 	useEffect(() => {
-		const token = localStorage.getItem("access_token");
-		if (!token) {
+		const storedToken = localStorage.getItem("access_token");
+		setToken(storedToken);
+		if (!storedToken) {
 			navigate("/signin");
 			return;
 		}
 		fetch(`${apiUrl}/me`, {
-			headers: { Authorization: `Bearer ${token}` },
+			headers: { Authorization: `Bearer ${storedToken}` },
 		})
 			.then((res) => {
 				if (!res.ok) throw new Error("Unauthorized");
@@ -72,12 +75,12 @@ export default function UserPage() {
 	};
 
 	const handleSave = async () => {
-		const token = localStorage.getItem("access_token");
+		const storedToken = localStorage.getItem("access_token");
 		const res = await fetch(`${apiUrl}/me`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
+				Authorization: `Bearer ${storedToken}`,
 			},
 			body: JSON.stringify({ display_name: newDisplayName }),
 		});
@@ -124,8 +127,22 @@ export default function UserPage() {
 					onEdit={handleEdit}
 					onSave={handleSave}
 					onCancel={() => setEditing(false)}
+					onSteamClick={() => setShowSteamModal(true)}
 				/>
 				<UserStatsBar />
+				
+				{token && showSteamModal && (
+					<SteamLinking 
+						token={token} 
+						apiUrl={apiUrl}
+						onClose={() => setShowSteamModal(false)}
+						onLinked={() => {
+							setShowSteamModal(false);
+							// Optional: refresh user data or show success message
+						}}
+					/>
+				)}
+
 				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
 					<Link to="/user" className="text-arcade-violet hover:underline">
 						{getUserDisplayName(user, "User")}
