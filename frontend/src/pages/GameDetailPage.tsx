@@ -1,15 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import { GameDetailArtwork, GameDetailMainContent, GameDetailSidebar } from "@/components/game";
 import type { Game } from "@/types/game";
-import {
-	fetchGameDetail,
-	fetchLibraryMembership,
-	showLibraryPopup,
-	toggleLibrary,
-	type LibraryPopupType,
-} from "@/utils/game/detail";
+import { fetchGameDetail, fetchLibraryMembership, toggleLibrary } from "@/utils/game";
 
 export default function GameDetailPage() {
 	const { id } = useParams<{ id: string }>();
@@ -21,10 +15,6 @@ export default function GameDetailPage() {
 
 	// Temporary state for favouriting - will need to be replaced using the api and database.
 	const [favourited, setFavourited] = useState(false);
-
-	const [libraryPopup, setLibraryPopup] = useState<string | null>(null);
-	const [libraryPopupType, setLibraryPopupType] = useState<LibraryPopupType>("success");
-	const popupTimerRef = useRef<number | null>(null);
 
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 
@@ -58,24 +48,6 @@ export default function GameDetailPage() {
 			});
 	}, [apiUrl, id]);
 
-	const handleShowLibraryPopup = (message: string, type: LibraryPopupType = "success") => {
-		showLibraryPopup({
-			message,
-			type,
-			setLibraryPopup,
-			setLibraryPopupType,
-			popupTimerRef,
-		});
-	};
-
-	useEffect(() => {
-		return () => {
-			if (popupTimerRef.current) {
-				window.clearTimeout(popupTimerRef.current);
-			}
-		};
-	}, []);
-
 	const handleToggleLibrary = async () => {
 		await toggleLibrary({
 			id,
@@ -84,7 +56,7 @@ export default function GameDetailPage() {
 			setInLibrary,
 			token: localStorage.getItem("access_token"),
 			onRequireSignIn: () => navigate("/signin"),
-			showPopup: handleShowLibraryPopup,
+			showPopup: () => {},
 		});
 	};
 
@@ -117,8 +89,6 @@ export default function GameDetailPage() {
 						inLibrary={inLibrary}
 						onToggleFavourite={() => setFavourited(!favourited)}
 						onToggleLibrary={handleToggleLibrary}
-						libraryPopupMessage={libraryPopup}
-						libraryPopupType={libraryPopupType}
 					/>
 					<GameDetailMainContent
 						game={game}
