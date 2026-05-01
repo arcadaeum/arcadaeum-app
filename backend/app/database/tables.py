@@ -8,14 +8,15 @@ def create_tables() -> None:
     create_user_library_table()  # Creates the user_library table if it doesn't exist
     create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
     create_user_followers_table()  # Creates the user followers table if it doesn't exist
+    create_user_steam_accounts_table()  # Creates the user_steam_accounts table
+    create_user_steam_games_table()  # Creates the user_steam_games table
 
 
 def create_users_table() -> None:
     """Creates the users table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id serial PRIMARY KEY,
                     username text UNIQUE NOT NULL,
@@ -25,8 +26,7 @@ def create_users_table() -> None:
                     oauth_id text,
                     display_name text,
                     profile_picture text)
-                """
-            )
+                """)
             conn.commit()
 
 
@@ -34,8 +34,7 @@ def create_games_table() -> None:
     """Creates the games table if it doesn't exists"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS games (
                     id serial PRIMARY KEY,
                     igdb_id integer UNIQUE NOT NULL,
@@ -49,8 +48,7 @@ def create_games_table() -> None:
                     release_date date,
                     igdb_rating real,
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP)
-                """
-            )
+                """)
             conn.commit()
 
 
@@ -58,8 +56,7 @@ def create_user_library_table() -> None:
     """Creates the user_library table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS user_library (
                     id serial PRIMARY KEY,
                     user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -67,8 +64,7 @@ def create_user_library_table() -> None:
                     added_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     status text,
                     UNIQUE(user_id, game_id))
-                """
-            )
+                """)
             conn.commit()
 
 
@@ -76,15 +72,13 @@ def create_user_followers_table() -> None:
     """Creates the user_followers table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS user_followers (
                     id serial PRIMARY KEY,
                     userid integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     follower_user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     UNIQUE(userid, follower_user_id))
-                """
-            )
+                """)
             conn.commit()
 
 
@@ -92,8 +86,7 @@ def create_password_reset_table() -> None:
     """Create the password reset tokens table if it doesn't exist."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS password_reset_tokens (
                     id serial PRIMARY KEY,
                     user_id integer REFERENCES users(id) ON DELETE CASCADE,
@@ -102,6 +95,43 @@ def create_password_reset_table() -> None:
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     used boolean DEFAULT false
                 )
-                """
-            )
+                """)
+            conn.commit()
+
+
+def create_user_steam_accounts_table() -> None:
+    """Create the user_steam_accounts table if it doesn't exist."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS user_steam_accounts (
+                    id serial PRIMARY KEY,
+                    user_id integer NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+                    steam_id text NOT NULL UNIQUE,
+                    steam_username text,
+                    linked_at timestamp DEFAULT CURRENT_TIMESTAMP,
+                    last_sync timestamp,
+                    next_sync timestamp,
+                    sync_status text DEFAULT 'idle')
+                """)
+            conn.commit()
+
+
+def create_user_steam_games_table() -> None:
+    """Create the user_steam_games table if it doesn't exist."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS user_steam_games (
+                    id serial PRIMARY KEY,
+                    user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    steam_app_id integer NOT NULL,
+                    game_id integer REFERENCES games(id) ON DELETE SET NULL,
+                    playtime_forever integer,
+                    playtime_2weeks integer,
+                    last_played timestamp,
+                    steam_name text,
+                    synced_at timestamp DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, steam_app_id))
+                """)
             conn.commit()
