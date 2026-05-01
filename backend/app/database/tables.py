@@ -53,6 +53,23 @@ def create_games_table() -> None:
             )
             conn.commit()
 
+def create_reviews_table() -> None:
+    """Creates the reviews table if it doesn't exist"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS reviews (
+                    id serial PRIMARY KEY,
+                    user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    game_id integer NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+                    rating integer CHECK (rating >= 1 AND rating <= 10) NOT NULL,
+                    review_text text,
+                    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, game_id))
+                """
+            )
+            conn.commit()
 
 def create_user_library_table() -> None:
     """Creates the user_library table if it doesn't exist"""
