@@ -43,3 +43,60 @@ export async function updateDisplayName(
 
 	return res.json();
 }
+
+// Steam account linking functions
+export async function linkSteamAccount(
+    token: string,
+    apiUrl: string,
+    steamId: string,
+): Promise<{ success: boolean; message: string; steam_id: string }> {
+    const res = await fetch(`${apiUrl}/steam/link`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ steam_id: steamId }),
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.detail || "Failed to link Steam account");
+    }
+
+    return res.json();
+}
+
+export async function unlinkSteamAccount(
+    token: string,
+    apiUrl: string,
+): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${apiUrl}/steam/unlink`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.detail || "Failed to unlink Steam account");
+    }
+
+    return res.json();
+}
+
+export async function getSteamAccount(
+    token: string,
+    apiUrl: string,
+): Promise<{ steam_id: string | null; steam_username: string | null }> {
+    const res = await fetch(`${apiUrl}/steam/account`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to fetch Steam account");
+    }
+
+    return res.json();
+}

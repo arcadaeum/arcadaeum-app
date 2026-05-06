@@ -11,6 +11,8 @@ def add_to_library(user_id: int, game_id: int) -> int:
                 """
                 INSERT INTO user_library (user_id, game_id)
                 VALUES (%s, %s)
+                ON CONFLICT (user_id, game_id) DO UPDATE
+                SET id = EXCLUDED.id
                 RETURNING id
                 """,
                 (user_id, game_id),
@@ -20,6 +22,20 @@ def add_to_library(user_id: int, game_id: int) -> int:
             if result is None:
                 raise RuntimeError("Failed to add game to library")
             return result[0]
+
+
+def game_in_library(user_id: int, game_id: int) -> bool:
+    """Check if a game is already in user's library."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id FROM user_library
+                WHERE user_id = %s AND game_id = %s
+                """,
+                (user_id, game_id),
+            )
+            return cur.fetchone() is not None
 
 
 def remove_from_library(user_id: int, game_id: int) -> bool:

@@ -21,7 +21,7 @@ router = APIRouter()
 
 @router.get("/users/me/library", response_model=list[LibraryEntry])
 def get_my_library(
-    offset: int = 0, limit: int = 50, current_user: User = Depends(get_current_user)
+    offset: int = 0, limit: int = 5000, current_user: User = Depends(get_current_user)
 ) -> list[LibraryEntry]:
     """Get current user's library."""
     entries = get_user_library(current_user.id, offset=offset, limit=limit)
@@ -39,10 +39,16 @@ def add_to_user_library(
     """Add a game to current user's library."""
     try:
         add_to_library(current_user.id, request.game_id)
-    except psycopg.errors.UniqueViolation:
+    except (psycopg.errors.UniqueViolation, RuntimeError) as e:
+        # Game already in library is not an error - just return it
+        entry = get_library_entry(current_user.id, request.game_id)
+        if entry is not None:
+            return LibraryEntry(**entry)
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Game already in library"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to add game to library",
         )
+
     entry = get_library_entry(current_user.id, request.game_id)
     if entry is None:
         raise HTTPException(status_code=500, detail="Failed to retrieve added entry")
@@ -73,9 +79,7 @@ def update_user_library_status(
 
 
 @router.delete("/users/me/library/{game_id}")
-def remove_from_user_library(
-    game_id: int, current_user: User = Depends(get_current_user)
-) -> dict:
+def remove_from_user_library(game_id: int, current_user: User = Depends(get_current_user)) -> dict:
     """Remove a game from current user's library."""
     removed = remove_from_library(current_user.id, game_id)
     if not removed:
