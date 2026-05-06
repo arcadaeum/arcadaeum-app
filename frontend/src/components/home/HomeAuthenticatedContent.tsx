@@ -3,6 +3,8 @@ import { getUserDisplayName } from "@/utils/user";
 
 export default function HomeAuthenticatedContent() {
 	const [displayName, setDisplayName] = useState<string | null>(null);
+	const [news, setNews] = useState([]);
+
 
 	useEffect(() => {
 		const token = localStorage.getItem("access_token");
@@ -23,8 +25,23 @@ export default function HomeAuthenticatedContent() {
 			});
 	}, []);
 
-	const nameToShow = displayName ?? localStorage.getItem("username") ?? "Player";
+	useEffect(() => {
+			const url = import.meta.env.VITE_API_URL;
+	
+			fetch(`${url}/news/search?query=gaming`)
+				.then((res) => {
+					if (!res.ok) throw new Error("Failed to fetch news");
+					return res.json();
+				})
+				.then((data) => {
+					setNews(data);
+					console.log("Fetched news:", data);
+				})
+				.catch(() => setNews([]));
+		}, []);
 
+	const nameToShow = displayName ?? localStorage.getItem("username") ?? "Player";
+	console.log(news);
 	return (
 		<div className="relative w-full min-h-screen px-4 pb-16">
 			<section className="w-full max-w-6xl mx-auto pt-28">

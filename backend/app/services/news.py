@@ -8,11 +8,11 @@ import requests
 
 class NewsApiService:
     def __init__(self) -> None:
-        api_key = os.getenv("RAPIDAPI_KEY")
+        api_key = os.getenv("RAPID_API_KEY")
         api_host = os.getenv("NEWS_API_HOST", "news-api14.p.rapidapi.com")
 
         if not api_key:
-            raise RuntimeError("RAPIDAPI_KEY environment variable is required")
+            raise RuntimeError("RAPID_API_KEY environment variable is required")
 
         self.headers = {
             "x-rapidapi-key": api_key,
