@@ -9,9 +9,9 @@ class SteamService:
     """Service for interacting with Steam API and managing Steam game data."""
 
     def __init__(self) -> None:
-        self.steam_api_key = os.getenv("STEAM_API_KEY")
-        if not self.steam_api_key:
-            raise RuntimeError("STEAM_API_KEY environment variable is required")
+        self.STEAM_WEB_KEY = os.getenv("STEAM_WEB_KEY")
+        if not self.STEAM_WEB_KEY:
+            raise RuntimeError("STEAM_WEB_KEY environment variable is required")
 
         self.base_url = "https://api.steampowered.com"
         self.timeout = 15
@@ -34,7 +34,7 @@ class SteamService:
         """
         url = f"{self.base_url}/IPlayerService/GetOwnedGames/v0001/"
         params = {
-            "key": self.steam_api_key,
+            "key": self.STEAM_WEB_KEY,
             "steamid": steam_id,
             "format": "json",
             "include_appinfo": "1" if include_app_info else "0",
@@ -83,7 +83,7 @@ class SteamService:
         """
         url = f"{self.base_url}/ISteamUser/ResolveVanityURL/v0001/"
         params = {
-            "key": self.steam_api_key,
+            "key": self.STEAM_WEB_KEY,
             "vanityurl": vanity_url,
             "format": "json",
         }
@@ -111,7 +111,7 @@ class SteamService:
         """
         url = f"{self.base_url}/ISteamUser/GetPlayerSummaries/v0002/"
         params = {
-            "key": self.steam_api_key,
+            "key": self.STEAM_WEB_KEY,
             "steamids": steam_id,
             "format": "json",
         }

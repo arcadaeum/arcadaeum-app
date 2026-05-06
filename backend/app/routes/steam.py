@@ -1,4 +1,5 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from random import randint
 
@@ -12,7 +13,8 @@ from app.database import (
     unlink_steam_account,
     update_sync_status,
 )
-from app.database.queries.library import add_to_library
+from app.database.queries.library import add_to_library, game_in_library
+from app.database.queries.games import add_game_from_igdb_data
 from app.models import (
     SteamLinkRequest,
     SteamSyncResult,
@@ -20,8 +22,12 @@ from app.models import (
 )
 from app.services.auth import get_current_user
 from app.services.steam_service import SteamService
+from app.services.igdb_service import IGDBService
 
 router = APIRouter(prefix="/steam", tags=["steam"])
+
+# Thread pool for running blocking sync operations
+_sync_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="steam_sync")
 
 
 @router.post("/link")
@@ -43,6 +49,16 @@ async def link_steam_account_endpoint(
     steam_service = SteamService()
     steam_input = request.steam_id.strip()
 
+    # Validate input is not empty
+    if not steam_input:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Steam ID or vanity URL cannot be empty",
+        )
+
+    # Remove trailing slashes
+    steam_input = steam_input.rstrip("/")
+
     # Try to resolve vanity URL if input is not numeric
     if not steam_input.isdigit():
         # Extract vanity URL slug from various formats
@@ -50,6 +66,13 @@ async def link_steam_account_endpoint(
         if "/" in steam_input:
             # Handle URLs like /id/archbuscam or full URLs
             vanity_slug = steam_input.split("/")[-1]
+
+        # Ensure vanity slug is not empty
+        if not vanity_slug or not vanity_slug.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Steam URL format",
+            )
 
         resolved_id = steam_service.resolve_vanity_url(vanity_slug)
         if not resolved_id:
@@ -85,8 +108,8 @@ async def link_steam_account_endpoint(
             detail="Failed to link Steam account",
         )
 
-    # Schedule first sync
-    asyncio.create_task(sync_user_steam_library(current_user.id))
+    # Schedule first sync with a delay (30 seconds) to let the user navigate away
+    asyncio.create_task(delayed_sync(current_user.id, delay=30))
 
     return {
         "success": True,
@@ -113,21 +136,66 @@ async def unlink_steam_account_endpoint(
     return {"success": True, "message": "Steam account unlinked successfully"}
 
 
-async def sync_user_steam_library(user_id: int) -> SteamSyncResult:
+@router.get("/account")
+async def get_steam_account_endpoint(
+    current_user: User = Depends(get_current_user),
+) -> dict[str, object]:
+    """Get the current user's linked Steam account."""
+    steam_account = get_steam_account(current_user.id)
+    if not steam_account:
+        return {"steam_id": None, "steam_username": None}
+    return {
+        "steam_id": steam_account["steam_id"],
+        "steam_username": steam_account.get("steam_username"),
+    }
+
+
+async def delayed_sync(user_id: int, delay: int = 1) -> None:
+    """Start sync after a delay to avoid blocking frontend."""
+    import logging
+
+    logger = logging.getLogger(__name__)
+    await asyncio.sleep(delay)
+    # Run sync in thread pool to not block event loop
+    loop = asyncio.get_event_loop()
+    logger.info(f"Starting Steam sync for user {user_id} in thread pool")
+    # First do a quick sync (only existing games)
+    await loop.run_in_executor(
+        _sync_executor, lambda: sync_user_steam_library_sync(user_id, quick_mode=True)
+    )
+    # Then schedule a full sync with IGDB searches for later
+    await asyncio.sleep(10)  # Wait before expensive IGDB search
+    await loop.run_in_executor(
+        _sync_executor, lambda: sync_user_steam_library_sync(user_id, quick_mode=False)
+    )
+
+
+def sync_user_steam_library_sync(user_id: int, quick_mode: bool = False) -> SteamSyncResult:
+    """Synchronous version of sync for thread pool execution."""
+    return _sync_user_steam_library_impl(user_id, quick_mode)
+
+
+def _sync_user_steam_library_impl(user_id: int, quick_mode: bool = False) -> SteamSyncResult:
     """
     Sync a user's Steam library to their Arcadaeum library.
 
     Args:
-        user_id: The user ID to sync
-
-    Returns:
-        SteamSyncResult with sync statistics
+        user_id: User to sync
+        quick_mode: If True, only match existing games. If False, also search IGDB.
     """
+    import logging
+
+    logger = logging.getLogger(__name__)
+    mode_str = "quick" if quick_mode else "full"
+    logger.info(f"Starting {mode_str} Steam sync for user {user_id}")
+
     steam_service = SteamService()
+    igdb_service = IGDBService()
 
     # Get the user's Steam account
     steam_account = get_steam_account(user_id)
     if not steam_account:
+        logger.error(f"Steam account not found for user {user_id}")
         return SteamSyncResult(
             matched_games=0,
             added_to_library=0,
@@ -136,6 +204,7 @@ async def sync_user_steam_library(user_id: int) -> SteamSyncResult:
         )
 
     steam_id = steam_account["steam_id"]
+    logger.info(f"Starting Steam sync for user {user_id} with Steam ID {steam_id}")
 
     try:
         # Update status to syncing
@@ -144,6 +213,7 @@ async def sync_user_steam_library(user_id: int) -> SteamSyncResult:
         # Get Steam games
         steam_games_response = steam_service.get_owned_games(steam_id)
         steam_games = steam_games_response.get("games", [])
+        logger.info(f"Found {len(steam_games)} games in Steam library")
 
         if not steam_games:
             update_sync_status(
@@ -155,6 +225,7 @@ async def sync_user_steam_library(user_id: int) -> SteamSyncResult:
                 matched_games=0,
                 added_to_library=0,
                 unmatched_games_found=0,
+                errors=[],
             )
 
         # Get all games from Arcadaeum database for matching
@@ -168,43 +239,114 @@ async def sync_user_steam_library(user_id: int) -> SteamSyncResult:
 
         matched_count = 0
         added_count = 0
+        unmatched_count = 0
         errors = []
 
-        # Process each Steam game
-        for steam_game in steam_games:
+        # Process each Steam game with rate limiting
+        for idx, steam_game in enumerate(steam_games):
             steam_app_id = steam_game.get("appid")
             steam_name = steam_game.get("name", "")
             playtime_forever = steam_game.get("playtime_forever", 0)
             playtime_2weeks = steam_game.get("playtime_2weeks", 0)
 
+            # Add small delay between IGDB searches to avoid rate limiting (only in full mode)
+            if not quick_mode and idx > 0 and idx % 3 == 0:
+                import time
+
+                time.sleep(1.0)  # Use regular sleep in sync context
+
             try:
-                # Try to find a matching IGDB game
+                # Try to find a matching IGDB game by exact title match first
                 matching_game = igdb_games_by_title.get(steam_name.lower())
 
                 if matching_game:
-                    # Store the Steam game with the matched game ID
-                    add_steam_game(
-                        user_id,
-                        steam_app_id,
-                        matching_game["id"],  # Arcadaeum game ID
-                        playtime_forever,
-                        playtime_2weeks,
-                        steam_name,
-                    )
+                    # Exact match in Arcadaeum database
+                    game_id = matching_game["id"]
                     matched_count += 1
-
-                    # Add to user's library if not already there
+                    logger.info(f"Found exact match for {steam_name} in database")
+                elif quick_mode:
+                    # In quick mode, skip IGDB searches
+                    unmatched_count += 1
+                    logger.debug(f"Skipping IGDB search in quick mode for {steam_name}")
+                    continue
+                else:
+                    # Search IGDB for the game - get multiple results for better matching
                     try:
-                        add_to_library(user_id, matching_game["id"])
-                        added_count += 1
+                        igdb_games = igdb_service.search_games(steam_name, limit=5)
+
+                        if igdb_games:
+                            # Find best match - prefer exact or near-exact matches
+                            best_match = None
+                            for igdb_game in igdb_games:
+                                igdb_name = igdb_game.get("name", "").lower()
+                                steam_name_lower = steam_name.lower()
+
+                                # Exact match
+                                if igdb_name == steam_name_lower:
+                                    best_match = igdb_game
+                                    break
+                                # Very close match (within 95% similarity)
+                                elif igdb_name.startswith(
+                                    steam_name_lower[:10]
+                                ) or steam_name_lower.startswith(igdb_name[:10]):
+                                    if best_match is None:
+                                        best_match = igdb_game
+
+                            if best_match:
+                                igdb_game_id = best_match.get("id")
+                                # Use the helper function to add the game
+                                game_id = add_game_from_igdb_data(igdb_game_id, igdb_service)
+
+                                if game_id:
+                                    matched_count += 1
+                                    logger.info(
+                                        f"Matched {steam_name} to IGDB game: {best_match.get('name')}"
+                                    )
+                                else:
+                                    unmatched_count += 1
+                                    logger.debug(f"Failed to add {steam_name} from IGDB")
+                                    continue
+                            else:
+                                unmatched_count += 1
+                                logger.debug(
+                                    f"No good match found for {steam_name} in IGDB search results"
+                                )
+                                # Log the search results for debugging
+                                search_results = [g.get("name") for g in igdb_games[:3]]
+                                logger.debug(f"  Top IGDB results: {search_results}")
+                                continue
+                        else:
+                            unmatched_count += 1
+                            logger.debug(f"Game {steam_name} not found on IGDB")
+                            continue
                     except Exception as e:
-                        # Game might already be in library
-                        if "already" not in str(e).lower():
-                            errors.append(f"Failed to add {steam_name} to library: {str(e)}")
-                # Unmatched games are silently skipped
+                        unmatched_count += 1
+                        logger.warning(f"Error searching IGDB for {steam_name}: {str(e)}")
+                        continue
+
+                # Store the Steam game record
+                add_steam_game(
+                    user_id,
+                    steam_app_id,
+                    game_id,
+                    playtime_forever,
+                    playtime_2weeks,
+                    steam_name,
+                )
+
+                # Add to user's library if not already there
+                try:
+                    result = add_to_library(user_id, game_id)
+                    if result is not None:
+                        added_count += 1
+                except Exception as e:
+                    logger.debug(f"Game {steam_name} already in library")
+                    added_count += 1
 
             except Exception as e:
-                errors.append(f"Error processing {steam_name}: {str(e)}")
+                error_msg = f"Error processing {steam_name}: {str(e)}"
+                errors.append(error_msg)
+                logger.error(error_msg)
 
         # Schedule next sync for 24 hours + random offset (0-2 hours)
         random_minutes = randint(0, 120)
@@ -213,18 +355,24 @@ async def sync_user_steam_library(user_id: int) -> SteamSyncResult:
         # Update status to idle with next sync time
         update_sync_status(user_id, "idle", next_sync)
 
+        logger.info(
+            f"Steam sync completed for user {user_id}: {matched_count} matched, {added_count} added, {unmatched_count} unmatched"
+        )
+
         return SteamSyncResult(
             matched_games=matched_count,
             added_to_library=added_count,
-            unmatched_games_found=0,
+            unmatched_games_found=unmatched_count,
             errors=errors,
         )
 
     except Exception as e:
+        error_msg = f"Sync failed for user {user_id}: {str(e)}"
+        logger.error(error_msg, exc_info=True)
         update_sync_status(user_id, "error")
         return SteamSyncResult(
             matched_games=0,
             added_to_library=0,
             unmatched_games_found=0,
-            errors=[f"Sync failed: {str(e)}"],
+            errors=[error_msg],
         )

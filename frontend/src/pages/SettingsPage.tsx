@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import { User, Type, Trash2, Bug, ChevronRight, ChevronLeft, Check, AlertTriangle, X, Gamepad2 } from "lucide-react";
+import { linkSteamAccount, unlinkSteamAccount, getSteamAccount } from "@/utils/user/api";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -226,26 +227,120 @@ function ChangeDisplayNamePanel() {
 
 function SteamAccountPanel() {
     const [isLinked, setIsLinked] = useState(false);
+    const [steamInput, setSteamInput] = useState("");
     const [steamUsername, setSteamUsername] = useState("");
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
+    const [showInput, setShowInput] = useState(false);
+    
+    const apiUrl = import.meta.env.VITE_API_URL as string;
+
+    // Fetch current steam account on mount
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
+        if (!token) return;
+
+        getSteamAccount(token, apiUrl)
+            .then((account) => {
+                if (account.steam_id) {
+                    setIsLinked(true);
+                    setSteamUsername(account.steam_username || account.steam_id);
+                }
+            })
+            .catch(() => {
+                // Account not linked or error
+                setIsLinked(false);
+            });
+    }, [apiUrl]);
 
     const handleToggleLink = async () => {
-        setLoading(true);
-        // TODO: wire up to Steam OAuth / link/unlink endpoint
-        setTimeout(() => {
-            setLoading(false);
-            if (isLinked) {
+        if (isLinked) {
+            // Unlink
+            setLoading(true);
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                setStatus({ message: "Not authenticated", variant: "error" });
+                return;
+            }
+
+            try {
+                await unlinkSteamAccount(token, apiUrl);
                 setIsLinked(false);
                 setSteamUsername("");
+                setSteamInput("");
+                setShowInput(false);
                 setStatus({ message: "Steam account unlinked successfully.", variant: "success" });
-            } else {
-                setIsLinked(true);
-                setSteamUsername("PlayerOne_Steam");
-                setStatus({ message: "Steam account linked successfully.", variant: "success" });
+            } catch (error) {
+                setStatus({
+                    message: error instanceof Error ? error.message : "Failed to unlink",
+                    variant: "error",
+                });
+            } finally {
+                setLoading(false);
             }
-        }, 800);
+        } else {
+            // Show input for Steam ID
+            setShowInput(!showInput);
+        }
     };
+
+    const handleLinkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let trimmedInput = steamInput.trim();
+    
+    if (!trimmedInput) {
+        setStatus({ message: "Please enter a Steam ID or vanity URL", variant: "error" });
+        setSteamInput("");
+        return;
+    }
+
+    // Parse full Steam Community URLs
+    if (trimmedInput.includes("steamcommunity.com")) {
+        // Remove trailing slash
+        trimmedInput = trimmedInput.replace(/\/$/, "");
+        
+        // Extract from URLs like https://steamcommunity.com/id/archbuscam or /profiles/76561198...
+        const match = trimmedInput.match(/steamcommunity\.com\/(?:id|profiles)\/([^/]+)/);
+        if (match) {
+            trimmedInput = match[1];
+        } else {
+            setStatus({ message: "Invalid Steam Community URL", variant: "error" });
+            return;
+        }
+    } else if (trimmedInput.startsWith("/id/") || trimmedInput.startsWith("/profiles/")) {
+        // Handle /id/archbuscam format
+        trimmedInput = trimmedInput.split("/").filter(Boolean).pop() || "";
+    }
+
+    if (!trimmedInput) {
+        setStatus({ message: "Could not parse Steam ID or vanity URL", variant: "error" });
+        return;
+    }
+
+    setLoading(true);
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        setStatus({ message: "Not authenticated", variant: "error" });
+        setLoading(false);
+        return;
+    }
+
+    try {
+        const result = await linkSteamAccount(token, apiUrl, trimmedInput);
+        setIsLinked(true);
+        setSteamUsername(trimmedInput);
+        setSteamInput("");
+        setShowInput(false);
+        setStatus({ message: "Steam account linked successfully.", variant: "success" });
+    } catch (error) {
+        setStatus({
+            message: error instanceof Error ? error.message : "Failed to link Steam account",
+            variant: "error",
+        });
+    } finally {
+        setLoading(false);
+    }
+};
 
     return (
         <div className="animate-fade-in">
@@ -262,30 +357,65 @@ function SteamAccountPanel() {
                 />
             )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between p-4 bg-arcade-black border border-arcade-white/20 rounded-lg">
-                <div className="flex items-center gap-4">
-                    <div className={`p-2.5 rounded-lg transition-colors ${isLinked ? 'bg-[#171a21]/80 text-[#66c0f4]' : 'bg-arcade-white/5 text-arcade-white/40'}`}>
-                        <Gamepad2 className="w-5 h-5" />
-                    </div>
+            {!isLinked && showInput ? (
+                <form onSubmit={handleLinkSubmit} className="space-y-4">
                     <div>
-                        <div className="text-sm font-title text-arcade-white">Steam Network</div>
-                        <div className="text-xs font-default text-arcade-white/50 mt-0.5">
-                            {isLinked ? `Connected as ${steamUsername}` : "Not connected"}
+                        <label className="block text-xs font-title text-arcade-white/60 mb-2">
+                            Steam ID or Vanity URL
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="e.g., 76561198012345678 or /id/yoursteamname"
+                            value={steamInput}
+                            onChange={(e) => setSteamInput(e.target.value)}
+                            disabled={loading}
+                            className="w-full px-3 py-2 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white placeholder-arcade-white/30 focus:outline-none focus:border-arcade-blue disabled:opacity-50"
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex-1 px-4 py-2 bg-arcade-blue text-arcade-black font-title rounded-lg hover:opacity-90 disabled:opacity-50"
+                        >
+                            {loading ? "Linking..." : "Link"}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowInput(false)}
+                            disabled={loading}
+                            className="flex-1 px-4 py-2 bg-arcade-white/10 text-arcade-white font-title rounded-lg hover:bg-arcade-white/20 disabled:opacity-50"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            ) : (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between p-4 bg-arcade-black border border-arcade-white/20 rounded-lg">
+                    <div className="flex items-center gap-4">
+                        <div className={`p-2.5 rounded-lg transition-colors ${isLinked ? 'bg-[#171a21]/80 text-[#66c0f4]' : 'bg-arcade-white/5 text-arcade-white/40'}`}>
+                            <Gamepad2 className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="text-sm font-title text-arcade-white">Steam Network</div>
+                            <div className="text-xs font-default text-arcade-white/50 mt-0.5">
+                                {isLinked ? `Connected as ${steamUsername}` : "Not connected"}
+                            </div>
                         </div>
                     </div>
+                    <button
+                        onClick={handleToggleLink}
+                        disabled={loading}
+                        className={`w-full sm:w-auto px-4 py-2 rounded-lg font-title tracking-tight text-sm transition-all disabled:opacity-50 border ${
+                            isLinked
+                                ? "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20"
+                                : "bg-arcade-blue text-arcade-black border-transparent hover:opacity-90"
+                        }`}
+                    >
+                        {loading ? "Processing..." : isLinked ? "Unlink" : "Link Account"}
+                    </button>
                 </div>
-                <button
-                    onClick={handleToggleLink}
-                    disabled={loading}
-                    className={`w-full sm:w-auto px-4 py-2 rounded-lg font-title tracking-tight text-sm transition-all disabled:opacity-50 border ${
-                        isLinked
-                            ? "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20"
-                            : "bg-arcade-blue text-arcade-black border-transparent hover:opacity-90"
-                    }`}
-                >
-                    {loading ? "Processing..." : isLinked ? "Unlink" : "Link Account"}
-                </button>
-            </div>
+            )}
         </div>
     );
 }
