@@ -15,6 +15,7 @@ from app.routes import (
     games,
     health,
     library,
+    reviews,
     steam,
     users,
 )
@@ -83,3 +84,4 @@ app.include_router(followers.router)
 app.include_router(library.router)
 app.include_router(steam.router)
 app.include_router(collections.router)
+app.include_router(reviews.router)

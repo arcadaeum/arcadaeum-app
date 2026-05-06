@@ -5,6 +5,7 @@ def create_tables() -> None:
     """Create the necessary tables in the database if they don't exist."""
     create_users_table()  # Creates the users table if it doesn't exist
     create_games_table()  # Creates the games table if it doesn't exist
+    create_reviews_table()  # Creates the reviews table if it doesn't exist
     create_user_library_table()  # Creates the user_library table if it doesn't exist
     create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
     create_user_followers_table()  # Creates the user followers table if it doesn't exist

@@ -33,6 +33,7 @@ from app.models.library import (
     LibraryEntry,
     UpdateLibraryStatusRequest,
 )
+from app.models.reviews import Review, ReviewCreateRequest, ReviewWithUser
 from app.models.steam import (
     SteamGameData,
     SteamGameMatch,
@@ -73,6 +74,10 @@ __all__ = [
     "SteamSyncResult",
     "SteamGameMatch",
     "SteamGameUnmatched",
+    # Reviews
+    "Review",
+    "ReviewWithUser",
+    "ReviewCreateRequest",
     # Collections
     "Collection",
     "CollectionGame",
