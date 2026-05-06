@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
-import { GameDetailArtwork, GameDetailMainContent, GameDetailSidebar } from "@/components/game";
+import {
+	AddReviewModal,
+	GameDetailArtwork,
+	GameDetailMainContent,
+	GameDetailSidebar,
+} from "@/components/game";
 import type { Game } from "@/types/game";
 import {
 	fetchGameDetail,
@@ -24,6 +29,7 @@ export default function GameDetailPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [inLibrary, setInLibrary] = useState(false);
 	const [isCurrentlyPlaying, setIsCurrentlyPlaying] = useState(false);
+	const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
 	const [favourited, setFavourited] = useState(false);
 	const [favouritesCollectionId, setFavouritesCollectionId] = useState<number | null>(null);
@@ -187,11 +193,16 @@ export default function GameDetailPage() {
 					/>
 					<GameDetailMainContent
 						game={game}
-						onAddReview={() => navigate(`/games/${game?.id}/add-review`)}
+						onAddReview={() => setIsReviewModalOpen(true)}
 					/>
 					<GameDetailSidebar game={game} />
 				</div>
 			</div>
+			<AddReviewModal
+				isOpen={isReviewModalOpen}
+				onClose={() => setIsReviewModalOpen(false)}
+				gameTitle={game?.title}
+			/>
 		</>
 	);
 }

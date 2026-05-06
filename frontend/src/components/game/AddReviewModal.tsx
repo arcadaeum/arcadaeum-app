@@ -1,0 +1,141 @@
+import { useEffect, useRef, useState } from "react";
+
+const CloseIcon = () => (
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		width="16"
+		height="16"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		strokeWidth="2"
+		strokeLinecap="round"
+		strokeLinejoin="round"
+	>
+		<path d="M18 6 6 18" />
+		<path d="m6 6 12 12" />
+	</svg>
+);
+
+type AddReviewModalProps = {
+	gameTitle?: string;
+	isOpen: boolean;
+	onClose: () => void;
+};
+
+export default function AddReviewModal({ gameTitle, isOpen, onClose }: AddReviewModalProps) {
+	const modalRef = useRef<HTMLDivElement>(null);
+	const [rating, setRating] = useState("5");
+	const [reviewText, setReviewText] = useState("");
+
+	const handleClose = () => {
+		setRating("5");
+		setReviewText("");
+		onClose();
+	};
+
+	useEffect(() => {
+		if (!isOpen) return;
+
+		const handleKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") handleClose();
+		};
+
+		document.addEventListener("keydown", handleKey);
+		return () => document.removeEventListener("keydown", handleKey);
+	}, [isOpen, onClose]);
+
+	useEffect(() => {
+		if (!isOpen) return;
+
+		const handleClick = (event: MouseEvent) => {
+			const target = event.target as Node | null;
+			if (modalRef.current && target && !modalRef.current.contains(target)) {
+				handleClose();
+			}
+		};
+
+		document.addEventListener("mousedown", handleClick);
+		return () => document.removeEventListener("mousedown", handleClick);
+	}, [isOpen, onClose]);
+
+	if (!isOpen) return null;
+
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+			<div
+				ref={modalRef}
+				className="w-full max-w-lg rounded-2xl border border-arcade-white/10 bg-arcade-black/95 p-6 shadow-2xl"
+			>
+				<div className="flex items-start justify-between">
+					<div>
+						<h2 className="text-2xl font-title text-arcade-white tracking-tighter">
+							Add a review
+						</h2>
+						{gameTitle ? (
+							<p className="mt-1 text-sm text-arcade-white/60">{gameTitle}</p>
+						) : null}
+					</div>
+					<button
+						type="button"
+						onClick={handleClose}
+						className="rounded-full p-2 text-arcade-white/60 hover:bg-arcade-white/10 hover:text-arcade-white"
+						aria-label="Close"
+					>
+						<CloseIcon />
+					</button>
+				</div>
+
+				<form
+					onSubmit={(event) => {
+						event.preventDefault();
+						handleClose();
+					}}
+					className="mt-6 space-y-4"
+				>
+					<label className="block text-sm font-title text-arcade-white/80">
+						Rating
+						<select
+							value={rating}
+							onChange={(event) => setRating(event.target.value)}
+							className="mt-2 w-full rounded-lg border border-arcade-white/10 bg-arcade-black px-3 py-2 text-arcade-white"
+						>
+							{["5", "4", "3", "2", "1"].map((value) => (
+								<option key={value} value={value}>
+									{value}
+								</option>
+							))}
+						</select>
+					</label>
+
+					<label className="block text-sm font-title text-arcade-white/80">
+						Review
+						<textarea
+							value={reviewText}
+							onChange={(event) => setReviewText(event.target.value)}
+							rows={5}
+							placeholder="Share your thoughts..."
+							className="mt-2 w-full rounded-lg border border-arcade-white/10 bg-arcade-black px-3 py-2 text-arcade-white placeholder:text-arcade-white/40"
+						/>
+					</label>
+
+					<div className="flex items-center justify-end gap-3">
+						<button
+							type="button"
+							onClick={handleClose}
+							className="rounded-full border border-arcade-white/30 px-4 py-2 text-sm text-arcade-white/80 hover:border-arcade-white hover:text-arcade-white"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							className="rounded-full bg-arcade-white px-5 py-2 text-sm font-title text-arcade-black hover:scale-95 transition-transform"
+						>
+							Submit review
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
+}
