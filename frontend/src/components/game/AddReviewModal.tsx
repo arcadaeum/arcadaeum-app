@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import RatingStarBar from "./RatingStarBar";
 
 const CloseIcon = () => (
 	<svg
@@ -21,15 +22,25 @@ type AddReviewModalProps = {
 	gameTitle?: string;
 	isOpen: boolean;
 	onClose: () => void;
+	onSubmit: (rating: number, reviewText: string) => Promise<void> | void;
+	isSubmitting?: boolean;
+	errorMessage?: string | null;
 };
 
-export default function AddReviewModal({ gameTitle, isOpen, onClose }: AddReviewModalProps) {
+export default function AddReviewModal({
+	gameTitle,
+	isOpen,
+	onClose,
+	onSubmit,
+	isSubmitting = false,
+	errorMessage = null,
+}: AddReviewModalProps) {
 	const modalRef = useRef<HTMLDivElement>(null);
-	const [rating, setRating] = useState("5");
+	const [rating, setRating] = useState(5);
 	const [reviewText, setReviewText] = useState("");
 
 	const handleClose = () => {
-		setRating("5");
+		setRating(5);
 		setReviewText("");
 		onClose();
 	};
@@ -87,26 +98,26 @@ export default function AddReviewModal({ gameTitle, isOpen, onClose }: AddReview
 				</div>
 
 				<form
-					onSubmit={(event) => {
+					onSubmit={async (event) => {
 						event.preventDefault();
-						handleClose();
+						if (isSubmitting) return;
+						await onSubmit(rating, reviewText.trim());
 					}}
 					className="mt-6 space-y-4"
 				>
 					<label className="block text-sm font-title text-arcade-white/80">
-						Rating
-						<select
+						<div className="flex items-center justify-between">
+							<span>Rating</span>
+						</div>
+						<RatingStarBar
 							value={rating}
-							onChange={(event) => setRating(event.target.value)}
-							className="mt-2 w-full rounded-lg border border-arcade-white/10 bg-arcade-black px-3 py-2 text-arcade-white"
-						>
-							{["5", "4", "3", "2", "1"].map((value) => (
-								<option key={value} value={value}>
-									{value}
-								</option>
-							))}
-						</select>
+							onChange={setRating}
+							disabled={isSubmitting}
+							className="mt-1"
+						/>
 					</label>
+
+					{errorMessage ? <p className="text-sm text-red-300">{errorMessage}</p> : null}
 
 					<label className="block text-sm font-title text-arcade-white/80">
 						Review
@@ -123,15 +134,17 @@ export default function AddReviewModal({ gameTitle, isOpen, onClose }: AddReview
 						<button
 							type="button"
 							onClick={handleClose}
-							className="rounded-full border border-arcade-white/30 px-4 py-2 text-sm text-arcade-white/80 hover:border-arcade-white hover:text-arcade-white"
+							disabled={isSubmitting}
+							className="rounded-full border border-arcade-white/30 px-4 py-2 text-sm text-arcade-white/80 hover:border-arcade-white hover:text-arcade-white disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							Cancel
 						</button>
 						<button
 							type="submit"
-							className="rounded-full bg-arcade-white px-5 py-2 text-sm font-title text-arcade-black hover:scale-95 transition-transform"
+							disabled={isSubmitting}
+							className="rounded-full bg-arcade-white px-5 py-2 text-sm font-title text-arcade-black transition-transform hover:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
 						>
-							Submit review
+							{isSubmitting ? "Submitting..." : "Submit review"}
 						</button>
 					</div>
 				</form>

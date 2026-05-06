@@ -1,5 +1,5 @@
 import type { Game } from "@/types/game";
-import type { GameDetailReview } from "@/types/gameDetail";
+import type { GameReview, ReviewCreatePayload } from "@/types/gameDetail";
 import type { LibraryEntry } from "@/types/user";
 
 export type LibraryPopupType = "success" | "error";
@@ -20,6 +20,9 @@ export const getUserLibraryItemUrl = (apiUrl: string, gameId: string | number) =
 
 export const getUserLibraryStatusUrl = (apiUrl: string, gameId: string | number) =>
 	`${apiUrl}/users/me/library/${gameId}/status`;
+
+export const getGameReviewsUrl = (apiUrl: string, gameId: string | number) =>
+	`${apiUrl}/games/${gameId}/reviews`;
 
 export const getLibraryPopupMessage = (
 	action: "added" | "removed" | "already-exists" | "network-error",
@@ -127,6 +130,66 @@ export const setCurrentlyPlaying = async (
 	return response.json();
 };
 
+export const fetchGameReviews = async (
+	apiUrl: string,
+	gameId: string | number,
+): Promise<GameReview[]> => {
+	const response = await fetch(getGameReviewsUrl(apiUrl, gameId));
+
+	if (!response.ok) {
+		throw new Error("Failed to fetch reviews");
+	}
+
+	return response.json();
+};
+
+export const createGameReview = async (
+	apiUrl: string,
+	token: string,
+	gameId: string | number,
+	payload: ReviewCreatePayload,
+): Promise<GameReview> => {
+	const response = await fetch(getGameReviewsUrl(apiUrl, gameId), {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+		body: JSON.stringify(payload),
+	});
+
+	if (!response.ok) {
+		const errorData = await response.json().catch(() => ({}));
+		const detail = errorData?.detail || errorData?.message || "Failed to submit review";
+		const error = new Error(detail);
+		(error as Error & { status?: number }).status = response.status;
+		throw error;
+	}
+
+	return response.json();
+};
+
+export const deleteGameReview = async (
+	apiUrl: string,
+	token: string,
+	gameId: string | number,
+): Promise<void> => {
+	const response = await fetch(getGameReviewsUrl(apiUrl, gameId), {
+		method: "DELETE",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	if (!response.ok) {
+		const errorData = await response.json().catch(() => ({}));
+		const detail = errorData?.detail || errorData?.message || "Failed to delete review";
+		const error = new Error(detail);
+		(error as Error & { status?: number }).status = response.status;
+		throw error;
+	}
+};
+
 export const showLibraryPopup = ({
 	message,
 	type = "success",
@@ -219,16 +282,3 @@ export const toggleLibrary = async ({
 		showPopup(getLibraryPopupMessage("network-error"), getLibraryPopupType("network-error"));
 	}
 };
-
-export const PLACEHOLDER_REVIEWS: GameDetailReview[] = [
-	{
-		author: "User123",
-		date: "2024-01-01",
-		content: "Great game — loved the soundtrack and levels.",
-	},
-	{
-		author: "PlayerTwo",
-		date: "2024-02-14",
-		content: "Challenging but rewarding. Would recommend.",
-	},
-];

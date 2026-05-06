@@ -4,7 +4,6 @@ import heartIconFilled from "@/assets/images/heart-icon-filled.svg";
 import heartIconUnfilled from "@/assets/images/heart-icon-unfilled.svg";
 import removeIcon from "@/assets/images/remove-icon.svg";
 import type { Game } from "@/types/game";
-import RatingStarBar from "@/components/game/RatingStarBar";
 import CollectionPickerModal from "./CollectionPickerModal";
 
 type GameDetailArtworkProps = {
@@ -192,7 +191,6 @@ export default function GameDetailArtwork({
 								)}
 							</div>
 						</div>
-						<RatingStarBar />
 						{actionMessage && (
 							<div className="mt-2 text-center text-xs text-arcade-white/80">
 								{actionMessage}

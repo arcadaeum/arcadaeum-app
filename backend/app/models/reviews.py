@@ -15,6 +15,7 @@ class Review(BaseModel):
 
 class ReviewWithUser(Review):
     username: str
+    display_name: Optional[str] = None
 
 
 class ReviewCreateRequest(BaseModel):

@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.database.queries.reviews import (
     add_review,
-    get_review_by_id,
+    delete_review,
+    get_review_with_user,
     get_reviews_for_game,
 )
 from app.models import Review, ReviewCreateRequest, ReviewWithUser, User
@@ -21,7 +22,7 @@ def list_game_reviews(game_id: int) -> list[ReviewWithUser]:
 
 @router.post(
     "/games/{game_id}/reviews",
-    response_model=Review,
+    response_model=ReviewWithUser,
     status_code=status.HTTP_201_CREATED,
 )
 def create_game_review(
@@ -44,8 +45,20 @@ def create_game_review(
             status_code=status.HTTP_404_NOT_FOUND, detail="Game not found"
         )
 
-    review = get_review_by_id(review_id)
+    review = get_review_with_user(review_id)
     if review is None:
         raise HTTPException(status_code=500, detail="Failed to retrieve review")
 
-    return Review(**review)
+    return ReviewWithUser(**review)
+
+
+@router.delete("/games/{game_id}/reviews", status_code=status.HTTP_204_NO_CONTENT)
+def delete_game_review(
+    game_id: int, current_user: User = Depends(get_current_user)
+) -> None:
+    """Delete the current user's review for a game."""
+    deleted = delete_review(current_user.id, game_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Review not found"
+        )
