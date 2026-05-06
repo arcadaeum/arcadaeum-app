@@ -1,4 +1,5 @@
 export { default as CollectionPickerModal } from "./CollectionPickerModal";
+export { default as AddReviewModal } from "./AddReviewModal";
 export { default as GameCard } from "./GameCard";
 export { default as GameGrid } from "./GameGrid";
 export { default as GameDetailArtwork } from "./GameDetailArtwork";
