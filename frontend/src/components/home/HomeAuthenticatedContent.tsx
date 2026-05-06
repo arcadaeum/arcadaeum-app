@@ -37,8 +37,8 @@ export default function HomeAuthenticatedContent() {
 									"url('https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1800&q=80')",
 							}}
 						/>
-						<div className="absolute inset-0 bg-gradient-to-b from-transparent via-arcade-black/40 to-arcade-black" />
-						<div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-arcade-violet/40 via-arcade-blue/20 to-transparent" />
+						<div className="absolute inset-0 bg-linear-to-b from-transparent via-arcade-black/40 to-arcade-black" />
+						<div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-arcade-violet/40 via-arcade-blue/20 to-transparent" />
 					</div>
 					<div className="relative z-10 px-6 py-16 sm:px-10 md:px-14 md:py-24">
 						<p className="font-title text-arcade-white/90 text-lg sm:text-xl">
