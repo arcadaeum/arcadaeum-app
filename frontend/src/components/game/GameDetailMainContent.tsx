@@ -4,10 +4,17 @@ import { GameDetailReviewsSection } from "@/components/game";
 
 type GameDetailMainContentProps = {
 	game: Game | null;
-	onAddReview: () => void;
+	apiUrl: string;
+	gameId: string | number;
+	onRequireSignIn: () => void;
 };
 
-export default function GameDetailMainContent({ game, onAddReview }: GameDetailMainContentProps) {
+export default function GameDetailMainContent({
+	game,
+	apiUrl,
+	gameId,
+	onRequireSignIn,
+}: GameDetailMainContentProps) {
 	return (
 		<div className="flex-col h-full w-full">
 			<h1 className="text-4xl font-title mt-4">{game?.title}</h1>
@@ -26,7 +33,7 @@ export default function GameDetailMainContent({ game, onAddReview }: GameDetailM
 
 			<div className="mt-8">
 				<h3 className="text-2xl font-title mb-4">Screenshots</h3>
-				<div className="flex gap-4 overflow-x-auto">
+				<div className="flex gap-4 overflow-x-auto overflow-y-hidden">
 					{game?.screenshots?.map((screenshot: string, index: number) => (
 						<img
 							key={index}
@@ -40,7 +47,12 @@ export default function GameDetailMainContent({ game, onAddReview }: GameDetailM
 					))}
 				</div>
 			</div>
-			<GameDetailReviewsSection onAddReview={onAddReview} />
+			<GameDetailReviewsSection
+				apiUrl={apiUrl}
+				gameId={gameId}
+				gameTitle={game?.title}
+				onRequireSignIn={onRequireSignIn}
+			/>
 		</div>
 	);
 }

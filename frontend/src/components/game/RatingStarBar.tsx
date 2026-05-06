@@ -6,6 +6,13 @@ type StarIconProps = {
 	style?: CSSProperties;
 };
 
+type RatingStarBarProps = {
+	value?: number;
+	onChange?: (value: number) => void;
+	disabled?: boolean;
+	className?: string;
+};
+
 function StarIcon({ className, style }: StarIconProps) {
 	return (
 		<svg
@@ -20,22 +27,40 @@ function StarIcon({ className, style }: StarIconProps) {
 	);
 }
 
-export default function RatingStarBar() {
-	const [rating, setRating] = useState<number | null>(null);
+export default function RatingStarBar({
+	value,
+	onChange,
+	disabled = false,
+	className,
+}: RatingStarBarProps) {
+	const [internalRating, setInternalRating] = useState<number | null>(null);
 	const [hoverRating, setHoverRating] = useState<number | null>(null);
-	const displayRating = hoverRating ?? rating ?? 0;
-	const ratingColor = getRatingColor(displayRating);
+	const effectiveRating = value ?? internalRating ?? 0;
+	const displayRating = hoverRating ?? effectiveRating;
+	const displayStars = displayRating / 2;
+	const ratingColor = getRatingColor(displayStars);
+
+	const handleSelect = (nextValue: number) => {
+		if (disabled) return;
+		if (onChange) {
+			onChange(nextValue);
+			return;
+		}
+		setInternalRating(nextValue);
+	};
 
 	return (
-		<div className="mt-3">
+		<div className={className ?? "mt-3"}>
 			<div className="mt-2 flex items-center justify-center gap-2">
 				<div className="flex items-center gap-1" onMouseLeave={() => setHoverRating(null)}>
 					{Array.from({ length: 5 }, (_, index) => {
 						const starValue = index + 1;
-						const fillAmount = Math.min(Math.max(displayRating - index, 0), 1);
+						const fillAmount = Math.min(Math.max(displayStars - index, 0), 1);
 						const fillPercent = fillAmount * 100;
 						const leftValue = starValue - 0.5;
 						const rightValue = starValue;
+						const leftRating = leftValue * 2;
+						const rightRating = rightValue * 2;
 
 						return (
 							<div key={starValue} className="relative h-7 w-7">
@@ -51,19 +76,29 @@ export default function RatingStarBar() {
 								</div>
 								<button
 									type="button"
-									className="absolute inset-y-0 left-0 w-[60%] cursor-pointer"
-									aria-label={`Rate ${leftValue} stars`}
-									onMouseEnter={() => setHoverRating(leftValue)}
-									onFocus={() => setHoverRating(leftValue)}
-									onClick={() => setRating(leftValue)}
+									disabled={disabled}
+									className="absolute inset-y-0 left-0 w-[60%] cursor-pointer disabled:cursor-not-allowed"
+									aria-label={`Rate ${leftRating} out of 10`}
+									onMouseEnter={() => {
+										if (!disabled) setHoverRating(leftRating);
+									}}
+									onFocus={() => {
+										if (!disabled) setHoverRating(leftRating);
+									}}
+									onClick={() => handleSelect(leftRating)}
 								/>
 								<button
 									type="button"
-									className="absolute inset-y-0 right-0 w-[40%] cursor-pointer"
-									aria-label={`Rate ${rightValue} stars`}
-									onMouseEnter={() => setHoverRating(rightValue)}
-									onFocus={() => setHoverRating(rightValue)}
-									onClick={() => setRating(rightValue)}
+									disabled={disabled}
+									className="absolute inset-y-0 right-0 w-[40%] cursor-pointer disabled:cursor-not-allowed"
+									aria-label={`Rate ${rightRating} out of 10`}
+									onMouseEnter={() => {
+										if (!disabled) setHoverRating(rightRating);
+									}}
+									onFocus={() => {
+										if (!disabled) setHoverRating(rightRating);
+									}}
+									onClick={() => handleSelect(rightRating)}
 								/>
 							</div>
 						);
