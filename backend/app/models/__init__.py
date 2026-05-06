@@ -41,6 +41,7 @@ from app.models.steam import (
     SteamLinkRequest,
     SteamSyncResult,
     SteamSyncStatus,
+    SteamVerificationResponse,
 )
 
 __all__ = [
@@ -74,6 +75,7 @@ __all__ = [
     "SteamSyncResult",
     "SteamGameMatch",
     "SteamGameUnmatched",
+    "SteamVerificationResponse",
     # Reviews
     "Review",
     "ReviewWithUser",

@@ -11,6 +11,7 @@ def create_tables() -> None:
     create_user_followers_table()  # Creates the user followers table if it doesn't exist
     create_user_steam_accounts_table()  # Creates the user_steam_accounts table
     create_user_steam_games_table()  # Creates the user_steam_games table
+    create_steam_verification_tokens_table()  # Creates the steam_verification_tokens table
     create_collections_table()  # Creates the collections table if it doesn't exist
     create_collection_games_table()  # Creates the collection_games table if it doesn't exist
 
@@ -199,4 +200,21 @@ def create_collection_games_table() -> None:
                     UNIQUE(collection_id, game_id))
                 """
             )
+            conn.commit()
+
+
+def create_steam_verification_tokens_table() -> None:
+    """Create the steam_verification_tokens table for OpenID verification."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS steam_verification_tokens (
+                    id serial PRIMARY KEY,
+                    user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    token text NOT NULL UNIQUE,
+                    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+                    expires_at timestamp NOT NULL,
+                    verified boolean DEFAULT false,
+                    verified_steam_id text)
+                """)
             conn.commit()

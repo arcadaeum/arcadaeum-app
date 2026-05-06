@@ -2,8 +2,11 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from random import randint
+import secrets
+import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import RedirectResponse
 
 from app.database import (
     add_steam_game,
@@ -19,6 +22,7 @@ from app.models import (
     SteamLinkRequest,
     SteamSyncResult,
     User,
+    SteamVerificationResponse,
 )
 from app.services.auth import get_current_user
 from app.services.steam_service import SteamService
@@ -37,14 +41,6 @@ async def link_steam_account_endpoint(
 ) -> dict[str, object]:
     """
     Link a Steam account to the user's Arcadaeum account.
-
-    Supports both direct Steam IDs and vanity URLs.
-
-    Args:
-        request: Contains the Steam ID or vanity URL
-        current_user: Current authenticated user
-
-    Returns - Success message with linked Steam ID
     """
     steam_service = SteamService()
     steam_input = request.steam_id.strip()
@@ -116,6 +112,143 @@ async def link_steam_account_endpoint(
         "message": "Steam account linked successfully",
         "steam_id": steam_id,
     }
+
+
+@router.post("/verify-start")
+async def start_steam_verification(
+    current_user: User = Depends(get_current_user),
+) -> SteamVerificationResponse:
+    """
+    Start Steam OpenID verification.
+
+    Returns the Steam login URL the frontend should redirect to.
+    """
+    logger = logging.getLogger(__name__)
+    steam_service = SteamService()
+    return_url = "http://localhost:8000/steam/verify-callback"  # Update with your domain
+
+    redirect_url, token = steam_service.get_openid_redirect_url(return_url)
+
+    # Store the token in database
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO steam_verification_tokens (user_id, token, expires_at)
+                VALUES (%s, %s, %s)
+                """,
+                (current_user.id, token, expires_at),
+            )
+            conn.commit()
+
+    logger.info(f"Started Steam OpenID verification for user {current_user.id}")
+
+    return SteamVerificationResponse(redirect_url=redirect_url)
+
+
+@router.get("/verify-callback")
+async def steam_verification_callback(
+    request: Request,
+    token: str = Query(...),
+) -> RedirectResponse:
+    """
+    Handle Steam OpenID callback.
+
+    Verifies the Steam response and links the account if valid.
+    Redirects back to the frontend settings page on success.
+    """
+    logger = logging.getLogger(__name__)
+
+    # Extract all OpenID parameters from query string
+    query_params = dict(request.query_params)
+    logger.debug(f"Received callback with params: {list(query_params.keys())}")
+
+    # Verify token exists and hasn't expired, and get the user_id
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, user_id, expires_at, verified FROM steam_verification_tokens
+                WHERE token = %s
+                """,
+                (token,),
+            )
+            token_record = cur.fetchone()
+
+            if not token_record:
+                # Redirect to settings with error
+                return RedirectResponse(
+                    url="http://localhost:5173/settings?steam_error=invalid_token", status_code=303
+                )
+
+            token_id, user_id, expires_at, verified = token_record
+
+            # Make expires_at timezone-aware
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+            if expires_at < datetime.now(timezone.utc):
+                # Redirect to settings with error
+                return RedirectResponse(
+                    url="http://localhost:5173/settings?steam_error=token_expired", status_code=303
+                )
+
+    # Verify with Steam (query_params already captured from request above)
+    steam_service = SteamService()
+
+    # Get the return_to URL from the query params (Steam sends it back)
+    return_to = query_params.get("openid.return_to", "")
+    verified_steam_id = steam_service.verify_openid_response(query_params, return_to)
+
+    if not verified_steam_id:
+        # Redirect to settings with error
+        logger.error("Steam verification failed")
+        return RedirectResponse(
+            url="http://localhost:5173/settings?steam_error=verification_failed", status_code=303
+        )
+
+    logger.info(f"Verified Steam ID {verified_steam_id} for user {user_id}")
+
+    # Check if this Steam ID is already linked
+    from app.database import get_steam_account_by_steam_id
+
+    existing = get_steam_account_by_steam_id(verified_steam_id)
+    if existing and existing["user_id"] != user_id:
+        # Redirect to settings with error
+        return RedirectResponse(
+            url="http://localhost:5173/settings?steam_error=already_linked", status_code=303
+        )
+
+    # Link the Steam account
+    if not link_steam_account(user_id, verified_steam_id):
+        # Redirect to settings with error
+        return RedirectResponse(
+            url="http://localhost:5173/settings?steam_error=link_failed", status_code=303
+        )
+
+    # Mark token as verified and store the Steam ID
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE steam_verification_tokens
+                SET verified = true, verified_steam_id = %s
+                WHERE id = %s
+                """,
+                (verified_steam_id, token_id),
+            )
+            conn.commit()
+
+    # Schedule sync
+    asyncio.create_task(delayed_sync(user_id, delay=30))
+
+    # Redirect back to settings page with success message
+    logger.info(f"Steam account linked successfully for user {user_id}: {verified_steam_id}")
+    return RedirectResponse(
+        url="http://localhost:5173/settings?steam_success=true", status_code=303
+    )
 
 
 @router.post("/unlink")

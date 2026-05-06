@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import { User, Type, Trash2, Bug, ChevronRight, ChevronLeft, Check, AlertTriangle, X, Gamepad2 } from "lucide-react";
-import { linkSteamAccount, unlinkSteamAccount, getSteamAccount } from "@/utils/user/api";
+import { unlinkSteamAccount, getSteamAccount } from "@/utils/user/api";
+import { startSteamVerification } from "@/utils/user/steam";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -227,11 +228,9 @@ function ChangeDisplayNamePanel() {
 
 function SteamAccountPanel() {
     const [isLinked, setIsLinked] = useState(false);
-    const [steamInput, setSteamInput] = useState("");
     const [steamUsername, setSteamUsername] = useState("");
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
-    const [showInput, setShowInput] = useState(false);
     
     const apiUrl = import.meta.env.VITE_API_URL as string;
 
@@ -253,100 +252,61 @@ function SteamAccountPanel() {
             });
     }, [apiUrl]);
 
-    const handleToggleLink = async () => {
-        if (isLinked) {
-            // Unlink
-            setLoading(true);
-            const token = localStorage.getItem("access_token");
-            if (!token) {
-                setStatus({ message: "Not authenticated", variant: "error" });
-                return;
-            }
+    const handleVerifyWithSteam = async () => {
+        setLoading(true);
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            setStatus({ message: "Not authenticated", variant: "error" });
+            setLoading(false);
+            return;
+        }
 
-            try {
-                await unlinkSteamAccount(token, apiUrl);
-                setIsLinked(false);
-                setSteamUsername("");
-                setSteamInput("");
-                setShowInput(false);
-                setStatus({ message: "Steam account unlinked successfully.", variant: "success" });
-            } catch (error) {
-                setStatus({
-                    message: error instanceof Error ? error.message : "Failed to unlink",
-                    variant: "error",
-                });
-            } finally {
-                setLoading(false);
-            }
-        } else {
-            // Show input for Steam ID
-            setShowInput(!showInput);
+        try {
+            await startSteamVerification(token);
+            // Note: startSteamVerification redirects to Steam, so this won't be reached
+            // unless there's an error
+        } catch (error) {
+            setLoading(false);
+            setStatus({
+                message: error instanceof Error ? error.message : "Failed to start Steam verification",
+                variant: "error",
+            });
         }
     };
 
-    const handleLinkSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    let trimmedInput = steamInput.trim();
-    
-    if (!trimmedInput) {
-        setStatus({ message: "Please enter a Steam ID or vanity URL", variant: "error" });
-        setSteamInput("");
-        return;
-    }
-
-    // Parse full Steam Community URLs
-    if (trimmedInput.includes("steamcommunity.com")) {
-        // Remove trailing slash
-        trimmedInput = trimmedInput.replace(/\/$/, "");
-        
-        // Extract from URLs like https://steamcommunity.com/id/archbuscam or /profiles/76561198...
-        const match = trimmedInput.match(/steamcommunity\.com\/(?:id|profiles)\/([^/]+)/);
-        if (match) {
-            trimmedInput = match[1];
-        } else {
-            setStatus({ message: "Invalid Steam Community URL", variant: "error" });
+    const handleUnlink = async () => {
+        setLoading(true);
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            setStatus({ message: "Not authenticated", variant: "error" });
+            setLoading(false);
             return;
         }
-    } else if (trimmedInput.startsWith("/id/") || trimmedInput.startsWith("/profiles/")) {
-        // Handle /id/archbuscam format
-        trimmedInput = trimmedInput.split("/").filter(Boolean).pop() || "";
-    }
 
-    if (!trimmedInput) {
-        setStatus({ message: "Could not parse Steam ID or vanity URL", variant: "error" });
-        return;
-    }
-
-    setLoading(true);
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-        setStatus({ message: "Not authenticated", variant: "error" });
-        setLoading(false);
-        return;
-    }
-
-    try {
-        const result = await linkSteamAccount(token, apiUrl, trimmedInput);
-        setIsLinked(true);
-        setSteamUsername(trimmedInput);
-        setSteamInput("");
-        setShowInput(false);
-        setStatus({ message: "Steam account linked successfully.", variant: "success" });
-    } catch (error) {
-        setStatus({
-            message: error instanceof Error ? error.message : "Failed to link Steam account",
-            variant: "error",
-        });
-    } finally {
-        setLoading(false);
-    }
-};
+        try {
+            await unlinkSteamAccount(token, apiUrl);
+            setIsLinked(false);
+            setSteamUsername("");
+            setStatus({ message: "Steam account unlinked successfully.", variant: "success" });
+        } catch (error) {
+            setStatus({
+                message: error instanceof Error ? error.message : "Failed to unlink",
+                variant: "error",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="animate-fade-in">
             <h2 className="text-xl font-title tracking-tighter text-arcade-white mb-1">Steam Connection</h2>
-            <p className="text-xs font-default text-arcade-white/40 mb-6">
-                Link your Steam account to automatically sync your game library, achievements, and playtime.
+            <p className="text-xs font-default text-arcade-white/40 mb-0">
+                Link your Steam account to automatically sync your game library.
+            </p>
+
+            <p className="text-xs font-default text-arcade-white/40 mb-2">
+                (It may take several minutes for your library to appear after linking.)
             </p>
 
             {status && (
@@ -357,65 +317,38 @@ function SteamAccountPanel() {
                 />
             )}
 
-            {!isLinked && showInput ? (
-                <form onSubmit={handleLinkSubmit} className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between p-4 bg-arcade-black border border-arcade-white/20 rounded-lg">
+                <div className="flex items-center gap-4">
+                    <div className={`p-2.5 rounded-lg transition-colors ${isLinked ? 'bg-[#171a21]/80 text-[#66c0f4]' : 'bg-arcade-white/5 text-arcade-white/40'}`}>
+                        <Gamepad2 className="w-5 h-5" />
+                    </div>
                     <div>
-                        <label className="block text-xs font-title text-arcade-white/60 mb-2">
-                            Steam ID or Vanity URL
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="e.g., 76561198012345678 or /id/yoursteamname"
-                            value={steamInput}
-                            onChange={(e) => setSteamInput(e.target.value)}
-                            disabled={loading}
-                            className="w-full px-3 py-2 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white placeholder-arcade-white/30 focus:outline-none focus:border-arcade-blue disabled:opacity-50"
-                        />
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 px-4 py-2 bg-arcade-blue text-arcade-black font-title rounded-lg hover:opacity-90 disabled:opacity-50"
-                        >
-                            {loading ? "Linking..." : "Link"}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setShowInput(false)}
-                            disabled={loading}
-                            className="flex-1 px-4 py-2 bg-arcade-white/10 text-arcade-white font-title rounded-lg hover:bg-arcade-white/20 disabled:opacity-50"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            ) : (
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between p-4 bg-arcade-black border border-arcade-white/20 rounded-lg">
-                    <div className="flex items-center gap-4">
-                        <div className={`p-2.5 rounded-lg transition-colors ${isLinked ? 'bg-[#171a21]/80 text-[#66c0f4]' : 'bg-arcade-white/5 text-arcade-white/40'}`}>
-                            <Gamepad2 className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <div className="text-sm font-title text-arcade-white">Steam Network</div>
-                            <div className="text-xs font-default text-arcade-white/50 mt-0.5">
-                                {isLinked ? `Connected as ${steamUsername}` : "Not connected"}
-                            </div>
+                        <div className="text-sm font-title text-arcade-white">Steam Network</div>
+                        <div className="text-xs font-default text-arcade-white/50 mt-0.5">
+                            {isLinked ? `Connected as ${steamUsername}` : "Not connected"}
                         </div>
                     </div>
-                    <button
-                        onClick={handleToggleLink}
-                        disabled={loading}
-                        className={`w-full sm:w-auto px-4 py-2 rounded-lg font-title tracking-tight text-sm transition-all disabled:opacity-50 border ${
-                            isLinked
-                                ? "bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20"
-                                : "bg-arcade-blue text-arcade-black border-transparent hover:opacity-90"
-                        }`}
-                    >
-                        {loading ? "Processing..." : isLinked ? "Unlink" : "Link Account"}
-                    </button>
                 </div>
-            )}
+                <div className="flex gap-2 w-full sm:w-auto">
+                    {isLinked ? (
+                        <button
+                            onClick={handleUnlink}
+                            disabled={loading}
+                            className="flex-1 sm:flex-none px-4 py-2 rounded-lg font-title tracking-tight text-sm transition-all disabled:opacity-50 border bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20"
+                        >
+                            {loading ? "Processing..." : "Unlink"}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleVerifyWithSteam}
+                            disabled={loading}
+                            className="flex-1 sm:flex-none px-4 py-2 rounded-lg font-title tracking-tight text-sm transition-all disabled:opacity-50 border bg-arcade-blue text-arcade-black border-transparent hover:opacity-90"
+                        >
+                            {loading ? "Verifying..." : "Verify with Steam"}
+                        </button>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
@@ -582,10 +515,40 @@ function ReportBugPanel() {
 
 export default function SettingsPage() {
     const [activeSection, setActiveSection] = useState<SettingSection>(null);
+    const [steamStatus, setSteamStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
 
     const toggleSection = (section: SettingSection) => {
         setActiveSection((prev) => (prev === section ? null : section));
     };
+
+    // Check for Steam verification status in URL query params
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        
+        if (searchParams.has("steam_success")) {
+            setSteamStatus({
+                message: "Steam account linked successfully!",
+                variant: "success"
+            });
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (searchParams.has("steam_error")) {
+            const errorCode = searchParams.get("steam_error");
+            const errorMessages: Record<string, string> = {
+                invalid_token: "Invalid or expired verification token",
+                token_expired: "Verification token expired. Please try again.",
+                verification_failed: "Steam verification failed. Please try again.",
+                already_linked: "This Steam account is already linked to another user",
+                link_failed: "Failed to link Steam account. Please try again."
+            };
+            setSteamStatus({
+                message: errorMessages[errorCode] || "Steam verification failed",
+                variant: "error"
+            });
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, []);
 
     const sections = [
         {
@@ -668,6 +631,15 @@ export default function SettingsPage() {
                 <p className="mt-3 mb-8 md:mb-10 text-sm font-default text-gray-400">
                     Manage your account preferences and report issues.
                 </p>
+
+                {/* Steam Status Alert */}
+                {steamStatus && (
+                    <StatusAlert
+                        message={steamStatus.message}
+                        variant={steamStatus.variant}
+                        onDismiss={() => setSteamStatus(null)}
+                    />
+                )}
 
                 {/* Responsive Layout */}
                 <div className="w-full max-w-4xl flex flex-col md:flex-row gap-6 items-start">
