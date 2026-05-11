@@ -23,32 +23,12 @@ export default function GameSearch() {
 			setResults(searchResults);
 			setIsOpen(true);
 			setIsLoading(false);
-
-			// Auto-add IGDB games to database and library
-			const token = localStorage.getItem("access_token");
-			if (token) {
-				for (const game of searchResults) {
-					if (game.isFromIGDB && game.igdb_id && !addingGameIds.has(game.igdb_id)) {
-						setAddingGameIds((prev) => new Set(prev).add(game.igdb_id!));
-						try {
-							await addGameFromIGDB(game.igdb_id);
-						} catch (error) {
-							console.error(`Error auto-adding game ${game.igdb_id}:`, error);
-							setAddingGameIds((prev) => {
-								const next = new Set(prev);
-								next.delete(game.igdb_id!);
-								return next;
-							});
-						}
-					}
-				}
-			}
 		} catch (error) {
 			console.error("Search failed:", error);
 			setResults([]);
 			setIsLoading(false);
 		}
-	}, [trimmedQuery, addingGameIds]);
+	}, [trimmedQuery]);
 
 	const handleLoadingStart = useCallback(() => {
 		setIsLoading(true);
@@ -66,11 +46,30 @@ export default function GameSearch() {
 	// Debounced search with parallel IGDB fallback
 	useDebouncedSearch(hasQuery, runGameSearch, debouncedSearchOptions);
 
-	const handleSelectGame = (game: GameSearchResult) => {
+	const handleSelectGame = async (game: GameSearchResult) => {
 		if (game.id) {
 			navigate(`/games/${game.id}`);
 			setSearchQuery("");
 			setIsOpen(false);
+			return;
+		}
+
+		if (game.isFromIGDB && game.igdb_id) {
+			setAddingGameIds((prev) => new Set(prev).add(game.igdb_id!));
+			try {
+				const addedGame = await addGameFromIGDB(game.igdb_id);
+				navigate(`/games/${addedGame.id}`);
+				setSearchQuery("");
+				setIsOpen(false);
+			} catch (error) {
+				console.error(`Error adding game ${game.igdb_id}:`, error);
+			} finally {
+				setAddingGameIds((prev) => {
+					const next = new Set(prev);
+					next.delete(game.igdb_id!);
+					return next;
+				});
+			}
 		}
 	};
 
@@ -130,11 +129,6 @@ export default function GameSearch() {
 										<span className="text-arcade-white font-secondary truncate">
 											{game.title}
 										</span>
-										{game.isFromIGDB && (
-											<span className="text-xs text-arcade-white/50 pl-1">
-												(from IGDB)
-											</span>
-										)}
 									</div>
 									{game.isFromIGDB && addingGameIds.has(game.igdb_id!) && (
 										<span className="text-xs text-arcade-white/60">
