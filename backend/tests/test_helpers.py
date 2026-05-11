@@ -3,17 +3,12 @@ from fastapi.testclient import TestClient
 
 
 class MockCursor:
-    def __init__(self, row=None, rows=None, description=None, fetchone_result=None):
+    def __init__(self, row=None, rows=None, description=None, fetchone_result=None, rowcount=0):
         self._row = row
         self._rows = rows or []
         self.description = description
-        # Support both single value and list of values for sequential calls
-        if isinstance(fetchone_result, list):
-            self._fetchone_results = list(fetchone_result)
-        elif fetchone_result is not None:
-            self._fetchone_results = [fetchone_result]
-        else:
-            self._fetchone_results = None
+        self._fetchone_result = fetchone_result
+        self.rowcount = rowcount
         self.executed: list[tuple[str, tuple | None]] = []
 
     def execute(self, query, params=None):

@@ -7,11 +7,14 @@ import {
 	UserStatsBar,
 	UserStickyHeader,
 } from "@/components/user";
+import { PostCard, PostComposer } from "@/components/posts";
 import type { Game } from "@/types/game";
+import type { SocialPost } from "@/types/posts";
 import type { LibraryEntry, UserCollectionGame, UserProfile } from "@/types/user";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
 import { getUserLibraryUrl } from "@/utils/game/detail";
 import { fetchCollections, fetchCollectionGames, mapCollectionGames } from "@/utils/collections";
+import { createPost, deletePost, fetchUserPosts, updatePost } from "@/utils/posts";
 
 export default function UserPage() {
 	const [user, setUser] = useState<UserProfile | null>(null);
@@ -23,6 +26,9 @@ export default function UserPage() {
 	const [followersCount, setFollowersCount] = useState(0);
 	const [followingCount, setFollowingCount] = useState(0);
 	const [libraryEntries, setLibraryEntries] = useState<LibraryEntry[]>([]);
+	const [posts, setPosts] = useState<SocialPost[]>([]);
+	const [postsLoading, setPostsLoading] = useState(false);
+	const [postsError, setPostsError] = useState("");
 	const [error, setError] = useState("");
 	const [editing, setEditing] = useState(false);
 	const [newDisplayName, setNewDisplayName] = useState("");
@@ -142,6 +148,19 @@ export default function UserPage() {
 			})
 			.then((data: LibraryEntry[]) => setLibraryEntries(data))
 			.catch(() => setLibraryEntries([]));
+
+		Promise.resolve()
+			.then(() => {
+				setPostsLoading(true);
+				setPostsError("");
+				return fetchUserPosts(apiUrl, currentUserId);
+			})
+			.then(setPosts)
+			.catch(() => {
+				setPosts([]);
+				setPostsError("Failed to load posts.");
+			})
+			.finally(() => setPostsLoading(false));
 	}, [apiUrl, currentUserId]);
 
 	const handleEdit = () => {
@@ -166,6 +185,38 @@ export default function UserPage() {
 		} else {
 			setError("Failed to update display name.");
 		}
+	};
+
+	const handleCreatePost = async (content: string) => {
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			throw new Error("You must be logged in to post.");
+		}
+
+		const post = await createPost(apiUrl, token, { content });
+		setPosts((currentPosts) => [post, ...currentPosts]);
+	};
+
+	const handleUpdatePost = async (postId: number, content: string) => {
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			throw new Error("You must be logged in to edit posts.");
+		}
+
+		const post = await updatePost(apiUrl, token, postId, { content });
+		setPosts((currentPosts) =>
+			currentPosts.map((currentPost) => (currentPost.id === postId ? post : currentPost)),
+		);
+	};
+
+	const handleDeletePost = async (postId: number) => {
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			throw new Error("You must be logged in to delete posts.");
+		}
+
+		await deletePost(apiUrl, token, postId);
+		setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId));
 	};
 
 	if (loading) return <div>Loading...</div>;
@@ -267,6 +318,35 @@ export default function UserPage() {
 				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
 					Posts
 				</h2>
+				<section className="w-2/3 ml-50 mt-5 mb-20 space-y-4">
+					<div className="flex w-full justify-end">
+						<PostComposer onSubmit={handleCreatePost} />
+					</div>
+					{postsLoading ? (
+						<div className="rounded-lg border border-arcade-white/10 bg-arcade-black/80 p-6 text-center font-secondary text-arcade-white/70">
+							Loading posts...
+						</div>
+					) : postsError ? (
+						<div className="rounded-lg border border-red-300/30 bg-arcade-black/80 p-6 text-center font-secondary text-red-300">
+							{postsError}
+						</div>
+					) : posts.length > 0 ? (
+						posts.map((post) => (
+							<PostCard
+								key={post.id}
+								post={post}
+								apiUrl={apiUrl}
+								canManage
+								onUpdate={handleUpdatePost}
+								onDelete={handleDeletePost}
+							/>
+						))
+					) : (
+						<div className="rounded-lg border border-arcade-white/10 bg-arcade-black/80 p-6 text-center font-secondary text-arcade-white/70">
+							No posts yet.
+						</div>
+					)}
+				</section>
 			</div>
 		</>
 	);

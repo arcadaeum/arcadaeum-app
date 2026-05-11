@@ -22,6 +22,7 @@ from app.routes import (
     steam,
     users,
     news,
+    posts,
 )
 from app.services.cache import add_default_users, cache_popular_games
 from app.services.scheduler import start_steam_sync_scheduler
@@ -36,6 +37,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 scheduler_task = None
+
 
 # On startup, create tables and cache popular games from IGDB to our DB
 @asynccontextmanager
@@ -120,3 +122,4 @@ app.include_router(steam.router)
 app.include_router(collections.router)
 app.include_router(reviews.router)
 app.include_router(news.router)
+app.include_router(posts.router)

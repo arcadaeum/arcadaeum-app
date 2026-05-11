@@ -6,6 +6,7 @@ def create_tables() -> None:
     create_users_table()  # Creates the users table if it doesn't exist
     create_games_table()  # Creates the games table if it doesn't exist
     create_reviews_table()  # Creates the reviews table if it doesn't exist
+    create_posts_table()  # Creates the posts table if it doesn't exist
     create_user_library_table()  # Creates the user_library table if it doesn't exist
     create_password_reset_table()  # Creates the password reset tokens table if it doesn't exist
     create_user_followers_table()  # Creates the user followers table if it doesn't exist
@@ -61,8 +62,7 @@ def create_reviews_table() -> None:
     """Creates the reviews table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS reviews (
                     id serial PRIMARY KEY,
                     user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -71,8 +71,26 @@ def create_reviews_table() -> None:
                     review_text text,
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, game_id))
-                """
-            )
+                """)
+            conn.commit()
+
+
+def create_posts_table() -> None:
+    """Creates the posts table if it doesn't exist"""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS posts (
+                    id serial PRIMARY KEY,
+                    user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    content text NOT NULL CHECK (char_length(content) > 0 AND char_length(content) <= 1000),
+                    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+                    updated_at timestamp DEFAULT CURRENT_TIMESTAMP)
+                """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS posts_user_id_created_at_idx
+                ON posts (user_id, created_at DESC)
+                """)
             conn.commit()
 
 
@@ -89,13 +107,11 @@ def create_user_library_table() -> None:
                     added_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, game_id))
                 """)
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE UNIQUE INDEX IF NOT EXISTS user_library_currently_playing_unique
                 ON user_library (user_id)
                 WHERE status = 'currently_playing'
-                """
-            )
+                """)
             conn.commit()
 
 
@@ -172,8 +188,7 @@ def create_collections_table() -> None:
     """Creates the collections table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS collections (
                     id serial PRIMARY KEY,
                     user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -181,8 +196,7 @@ def create_collections_table() -> None:
                     is_default boolean NOT NULL DEFAULT false,
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, name))
-                """
-            )
+                """)
             conn.commit()
 
 
@@ -190,16 +204,14 @@ def create_collection_games_table() -> None:
     """Creates the collection_games table if it doesn't exist"""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS collection_games (
                     id serial PRIMARY KEY,
                     collection_id integer NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
                     game_id integer NOT NULL REFERENCES games(id) ON DELETE CASCADE,
                     added_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(collection_id, game_id))
-                """
-            )
+                """)
             conn.commit()
 
 
