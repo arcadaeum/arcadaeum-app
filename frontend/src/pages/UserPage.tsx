@@ -248,12 +248,13 @@ export default function UserPage() {
 				autoRotate={0}
 			/>
 			{showHeader && <UserStickyHeader displayName={displayName} />}
-			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
+			<div className="user-page flex flex-col items-start font-title min-h-screen pt-40 px-16 max-sm:pt-28 max-sm:px-4 max-sm:items-stretch">
 				<UserProfileHero
 					user={user}
 					profileRef={profileRef}
 					borderColor={borderColor}
 					apiUrl={apiUrl}
+					className="user-page__hero"
 					editing={editing}
 					newDisplayName={newDisplayName}
 					displayName={displayName}
@@ -270,15 +271,16 @@ export default function UserPage() {
 					collectionsLink="/collections"
 					reviewsCount={reviewsCount}
 					reviewsLink="/reviews"
+					className="user-page__stats"
 				/>
-				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
+				<h2 className="user-page__current-title w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter max-sm:mt-10 max-sm:ml-0 max-sm:w-full max-sm:text-2xl">
 					<Link to="/user" className="text-arcade-violet hover:underline">
 						{getUserDisplayName(user, "User")}
 					</Link>{" "}
 					is currently playing:
 				</h2>
 				{currentlyPlayingEntry ? (
-					<div className="w-2/3 ml-50 mt-6 text-arcade-white">
+					<div className="user-page__current w-2/3 ml-50 mt-6 text-arcade-white max-sm:ml-0 max-sm:w-full">
 						<Link to={`/games/${currentlyPlayingEntry.game_id}`} className="block">
 							<div className="w-full bg-arcade-black rounded-lg overflow-hidden border-2 border-arcade-white/20">
 								<img
@@ -298,39 +300,42 @@ export default function UserPage() {
 						</Link>
 					</div>
 				) : (
-					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 min-h-56 text-arcade-white text-2xl text-center flex items-center justify-center">
+					<div className="user-page__current-empty w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 min-h-56 text-arcade-white text-2xl text-center flex items-center justify-center max-sm:ml-0 max-sm:w-full max-sm:text-lg max-sm:min-h-40 max-sm:px-4">
 						No game selected as currently playing.
 					</div>
 				)}
 
-				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
+				<h3 className="user-page__section-title w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
 					Favorite Games
 				</h3>
 				<UserCollectionsRow
 					collections={favorites}
 					emptyMessage="No games in this collection yet."
+					className="user-page__collections-row"
 				/>
 
-				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter">
+				<h3 className="user-page__section-title w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
 					Want to Play
 				</h3>
 				<UserCollectionsRow
 					collections={wantToPlay}
 					emptyMessage="No games in this collection yet."
+					className="user-page__collections-row"
 				/>
 
-				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
+				<h3 className="user-page__section-title w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
 					Completed
 				</h3>
 				<UserCollectionsRow
 					collections={completed}
 					emptyMessage="No games in this collection yet."
+					className="user-page__collections-row"
 				/>
 
-				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
+				<h2 className="user-page__posts-title w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
 					Posts
 				</h2>
-				<section className="w-2/3 ml-50 mt-5 mb-20 space-y-4">
+				<section className="user-page__posts w-2/3 ml-50 mt-5 mb-20 space-y-4 max-sm:ml-0 max-sm:w-full">
 					<div className="flex w-full justify-end">
 						<PostComposer onSubmit={handleCreatePost} />
 					</div>
