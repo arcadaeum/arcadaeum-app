@@ -391,9 +391,12 @@ export default function ProfilePage() {
 					followingCount={followingCount}
 					gamesCount={favorites.length}
 					collectionsCount={collectionsCount}
-					collectionsLink={isOwnProfile ? "/collections" : `/users/${user.id}/collections`}
+					collectionsLink={
+						isOwnProfile ? "/collections" : `/users/${user.id}/collections`
+					}
 					reviewsCount={reviewsCount}
 					reviewsLink={isOwnProfile ? "/reviews" : `/users/${user.id}/reviews`}
+					disableFollowerLinks={true}
 				/>
 
 				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
