@@ -7,15 +7,23 @@ class MockCursor:
         self._row = row
         self._rows = rows or []
         self.description = description
-        self._fetchone_result = fetchone_result
+        # Support both single value and list of values for sequential calls
+        if isinstance(fetchone_result, list):
+            self._fetchone_results = list(fetchone_result)
+        elif fetchone_result is not None:
+            self._fetchone_results = [fetchone_result]
+        else:
+            self._fetchone_results = None
         self.executed: list[tuple[str, tuple | None]] = []
 
     def execute(self, query, params=None):
         self.executed.append((query, params))
 
     def fetchone(self):
-        if self._fetchone_result is not None:
-            return self._fetchone_result
+        if self._fetchone_results is not None:
+            if self._fetchone_results:
+                return self._fetchone_results.pop(0)
+            return None
         return self._row
 
     def fetchall(self):

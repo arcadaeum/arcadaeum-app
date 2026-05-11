@@ -1,3 +1,4 @@
+import app.database.queries.games as games_queries
 import app.routes.games as games_routes
 from tests.test_helpers import MockConnection, MockCursor, build_test_client
 
@@ -11,19 +12,22 @@ class StubIGDBService:
 
 
 def test_add_from_igdb_returns_existing_game_when_already_in_db(monkeypatch):
-    fake_conn = MockConnection(MockCursor(row=(55,)))
+    # First query returns existing game ID, second query returns the title
+    fake_conn = MockConnection(MockCursor(fetchone_result=[(55,), ("Existing Game",)]))
     monkeypatch.setattr(games_routes, "get_database_connection", lambda: fake_conn)
+    monkeypatch.setattr(games_queries, "get_database_connection", lambda: fake_conn)
     monkeypatch.setattr(games_routes, "get_igdb_service", lambda: StubIGDBService())
 
     client = build_test_client(games_routes.router)
     response = client.post("/games/add-from-igdb", json={"igdb_id": 999})
 
     assert response.status_code == 200
-    assert response.json() == {"id": 55, "title": "Game already exists"}
+    assert response.json() == {"id": 55, "title": "Existing Game"}
 
 
 def test_add_from_igdb_fetches_and_saves_with_screenshots(monkeypatch):
-    fake_conn = MockConnection(MockCursor(row=None))
+    # First query returns no existing game (None), second query returns the new game with its title
+    fake_conn = MockConnection(MockCursor(fetchone_result=[None, ("Test Game",)]))
     captured_add_game_kwargs = {}
 
     game_data = {
@@ -42,10 +46,12 @@ def test_add_from_igdb_fetches_and_saves_with_screenshots(monkeypatch):
         return 101
 
     monkeypatch.setattr(games_routes, "get_database_connection", lambda: fake_conn)
+    monkeypatch.setattr(games_queries, "get_database_connection", lambda: fake_conn)
     monkeypatch.setattr(
         games_routes, "get_igdb_service", lambda: StubIGDBService(game_data)
     )
     monkeypatch.setattr(games_routes, "add_game_to_db", fake_add_game_to_db)
+    monkeypatch.setattr(games_queries, "add_game_to_db", fake_add_game_to_db)
 
     client = build_test_client(games_routes.router)
     response = client.post("/games/add-from-igdb", json={"igdb_id": 1234})
@@ -64,10 +70,11 @@ def test_add_from_igdb_fetches_and_saves_with_screenshots(monkeypatch):
 def test_add_from_igdb_returns_404_when_igdb_game_missing(monkeypatch):
     fake_conn = MockConnection(MockCursor(row=None))
     monkeypatch.setattr(games_routes, "get_database_connection", lambda: fake_conn)
+    monkeypatch.setattr(games_queries, "get_database_connection", lambda: fake_conn)
     monkeypatch.setattr(games_routes, "get_igdb_service", lambda: StubIGDBService())
 
     client = build_test_client(games_routes.router)
     response = client.post("/games/add-from-igdb", json={"igdb_id": 9999})
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Game not found on IGDB"
+    assert response.json()["detail"] == "Game not found on IGDB or failed to add"
