@@ -11,6 +11,6 @@ def get_database_url() -> str:
 
 
 def get_database_connection() -> psycopg.Connection:
-    """Establish a connection to the PostgreSQL database."""
+    """Establish a connection to the PostgreSQL database"""
     database_url = get_database_url()
     return psycopg.connect(database_url)
