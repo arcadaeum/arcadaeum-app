@@ -2,10 +2,17 @@ import type { Collection, CreateCollectionRequest } from "@/types/collections";
 import type { Game } from "@/types/game";
 
 const getCollectionsUrl = (apiUrl: string) => `${apiUrl}/users/me/collections`;
+const getUserCollectionsUrl = (apiUrl: string, userId: string | number) =>
+	`${apiUrl}/users/${userId}/collections`;
 const getCollectionUrl = (apiUrl: string, collectionId: number) =>
 	`${apiUrl}/users/me/collections/${collectionId}`;
 const getCollectionGamesUrl = (apiUrl: string, collectionId: number) =>
 	`${apiUrl}/users/me/collections/${collectionId}/games`;
+const getUserCollectionGamesUrl = (
+	apiUrl: string,
+	userId: string | number,
+	collectionId: number,
+) => `${apiUrl}/users/${userId}/collections/${collectionId}/games`;
 const getCollectionGameUrl = (apiUrl: string, collectionId: number, gameId: number) =>
 	`${apiUrl}/users/me/collections/${collectionId}/games/${gameId}`;
 
@@ -13,6 +20,19 @@ export async function fetchCollections(apiUrl: string, token: string): Promise<C
 	const res = await fetch(getCollectionsUrl(apiUrl), {
 		headers: { Authorization: `Bearer ${token}` },
 	});
+
+	if (!res.ok) {
+		throw new Error("Failed to fetch collections");
+	}
+
+	return res.json();
+}
+
+export async function fetchUserCollections(
+	apiUrl: string,
+	userId: string | number,
+): Promise<Collection[]> {
+	const res = await fetch(getUserCollectionsUrl(apiUrl, userId));
 
 	if (!res.ok) {
 		throw new Error("Failed to fetch collections");
@@ -90,6 +110,20 @@ export async function fetchCollectionGames(
 	const res = await fetch(getCollectionGamesUrl(apiUrl, collectionId), {
 		headers: { Authorization: `Bearer ${token}` },
 	});
+
+	if (!res.ok) {
+		throw new Error("Failed to fetch collection games");
+	}
+
+	return res.json();
+}
+
+export async function fetchUserCollectionGames(
+	apiUrl: string,
+	userId: string | number,
+	collectionId: number,
+): Promise<Game[]> {
+	const res = await fetch(getUserCollectionGamesUrl(apiUrl, userId, collectionId));
 
 	if (!res.ok) {
 		throw new Error("Failed to fetch collection games");

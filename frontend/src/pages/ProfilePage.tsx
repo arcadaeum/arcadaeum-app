@@ -11,7 +11,13 @@ import { PostCard, PostComposer } from "@/components/posts";
 import type { Game } from "@/types/game";
 import type { SocialPost } from "@/types/posts";
 import type { LibraryEntry, UserCollectionGame, UserProfileWithId } from "@/types/user";
-import { fetchCollections, fetchCollectionGames, mapCollectionGames } from "@/utils/collections";
+import {
+	fetchCollections,
+	fetchCollectionGames,
+	fetchUserCollectionGames,
+	fetchUserCollections,
+	mapCollectionGames,
+} from "@/utils/collections";
 import { getUserLibraryUrl } from "@/utils/game/detail";
 import { createPost, deletePost, fetchUserPosts, updatePost } from "@/utils/posts";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
@@ -32,6 +38,7 @@ export default function ProfilePage() {
 	const [loading, setLoading] = useState(true);
 	const [followersCount, setFollowersCount] = useState(0);
 	const [followingCount, setFollowingCount] = useState(0);
+	const [collectionsCount, setCollectionsCount] = useState(0);
 	const [followerIds, setFollowerIds] = useState<number[]>([]);
 	const [isFollowing, setIsFollowing] = useState(false);
 	const [followLoading, setFollowLoading] = useState(false);
@@ -144,6 +151,7 @@ export default function ProfilePage() {
 
 			fetchCollections(apiUrl, token)
 				.then((collections) => {
+					setCollectionsCount(collections.length);
 					const getGames = (name: string) => {
 						const collection = collections.find((c) => c.name === name);
 						if (!collection) {
@@ -164,6 +172,7 @@ export default function ProfilePage() {
 					setCompleted(mapCollectionGames(completedGames));
 				})
 				.catch(() => {
+					setCollectionsCount(0);
 					setFavorites([]);
 					setWantToPlay([]);
 					setCompleted([]);
@@ -171,10 +180,16 @@ export default function ProfilePage() {
 			return;
 		}
 
-		fetch(`${apiUrl}/users/${userId}/favorites`)
-			.then((res) => {
-				if (!res.ok) throw new Error("Failed to fetch favorites");
-				return res.json();
+		fetchUserCollections(apiUrl, userId)
+			.then((collections) => {
+				setCollectionsCount(collections.length);
+				const favouritesCollection = collections.find((c) => c.name === "Favourites");
+				if (!favouritesCollection) {
+					return [];
+				}
+				return fetchUserCollectionGames(apiUrl, userId, favouritesCollection.id).then(
+					mapCollectionGames,
+				);
 			})
 			.then((data: UserCollectionGame[]) => {
 				setFavorites(data);
@@ -182,6 +197,7 @@ export default function ProfilePage() {
 				setCompleted([]);
 			})
 			.catch(() => {
+				setCollectionsCount(0);
 				setFavorites([]);
 				setWantToPlay([]);
 				setCompleted([]);
@@ -369,6 +385,8 @@ export default function ProfilePage() {
 					followersCount={followersCount}
 					followingCount={followingCount}
 					gamesCount={favorites.length}
+					collectionsCount={collectionsCount}
+					collectionsLink={isOwnProfile ? "/collections" : `/users/${user.id}/collections`}
 				/>
 
 				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
