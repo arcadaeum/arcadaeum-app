@@ -1,0 +1,102 @@
+name: CI
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    backend-tests:
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: app_user
+                    POSTGRES_PASSWORD: app_password
+                    POSTGRES_DB: app_db
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.13"
+
+            - name: Cache Python dependencies
+              uses: actions/cache@v3
+              with:
+                  path: backend/.venv
+                  key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements-dev.txt') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pip-
+
+            - name: Install dependencies
+              run: |
+                  cd backend
+                  python -m venv .venv
+                  source .venv/bin/activate
+                  pip install --upgrade pip
+                  pip install -r requirements.txt -r requirements-dev.txt
+
+            - name: Run pytest
+              env:
+                  DATABASE_URL: postgresql://app_user:app_password@localhost:5432/app_db
+              run: |
+                  cd backend
+                  source .venv/bin/activate
+                  pytest tests/ -v --tb=short
+
+    frontend-lint:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: cd frontend && npm install
+
+            - name: Run ESLint
+              run: cd frontend && npm run lint
+
+    frontend-build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        needs: frontend-lint
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: cd frontend && npm install
+
+            - name: Build frontend
+              run: cd frontend && npm run build

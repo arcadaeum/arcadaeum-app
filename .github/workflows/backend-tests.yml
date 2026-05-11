@@ -1,0 +1,70 @@
+name: Backend Tests
+
+on:
+    push:
+        branches: [main, develop]
+        paths:
+            - "backend/**"
+            - ".github/workflows/backend-tests.yml"
+    pull_request:
+        branches: [main, develop]
+        paths:
+            - "backend/**"
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: app_user
+                    POSTGRES_PASSWORD: app_password
+                    POSTGRES_DB: app_db
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.13"
+
+            - name: Cache Python dependencies
+              uses: actions/cache@v3
+              with:
+                  path: backend/.venv
+                  key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements-dev.txt') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pip-
+
+            - name: Install dependencies
+              run: |
+                  cd backend
+                  python -m venv .venv
+                  source .venv/bin/activate
+                  pip install --upgrade pip
+                  pip install -r requirements.txt -r requirements-dev.txt
+
+            - name: Run pytest
+              env:
+                  DATABASE_URL: postgresql://app_user:app_password@localhost:5432/app_db
+              run: |
+                  cd backend
+                  source .venv/bin/activate
+                  pytest tests/ -v --tb=short
+
+            - name: Generate coverage report (optional)
+              if: always()
+              run: |
+                  cd backend
+                  source .venv/bin/activate
+                  pytest tests/ --cov=app --cov-report=term-summary || true

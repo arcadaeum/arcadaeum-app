@@ -1,10 +1,13 @@
+import logging
 import os
+import traceback
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import JSONResponse
 
 from app.database import create_tables
 from app.routes import (
@@ -25,6 +28,13 @@ from app.services.cache import add_default_users, cache_popular_games
 from app.services.scheduler import start_steam_sync_scheduler
 
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 scheduler_task = None
 
@@ -76,6 +86,30 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Global exception handler for catching crashes
+@app.middleware("http")
+async def crash_logging_middleware(request: Request, call_next):
+    try:
+        response = await call_next(request)
+        return response
+    except Exception as e:
+        # Log the crash with full traceback
+        logger.critical(
+            f"CRASH: Unhandled exception in {request.method} {request.url.path}",
+            exc_info=True
+        )
+        logger.critical(f"Error type: {type(e).__name__}")
+        logger.critical(f"Error message: {str(e)}")
+        logger.critical(f"Traceback:\n{traceback.format_exc()}")
+        
+        # Return error response
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal server error"}
+        )
+
 
 app.include_router(health.router)
 app.include_router(auth.router)
