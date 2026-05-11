@@ -14,6 +14,7 @@ import {
 	SocialPage,
 	SettingsPage,
 	CollectionsPage,
+	ReviewsPage,
 } from "@/pages";
 
 export default function App() {
@@ -30,8 +31,10 @@ export default function App() {
 			<Route path="/reset-password" element={<PasswordResetPage />} />
 			<Route path="/users/:userId" element={<ProfilePage />} />
 			<Route path="/users/:userId/collections" element={<CollectionsPage />} />
+			<Route path="/users/:userId/reviews" element={<ReviewsPage />} />
 			<Route path="/library" element={<LibraryPage />} />
 			<Route path="/collections" element={<CollectionsPage />} />
+			<Route path="/reviews" element={<ReviewsPage />} />
 			<Route path="/social" element={<SocialPage />} />
 			<Route path="/settings" element={<SettingsPage />} />
 		</Routes>

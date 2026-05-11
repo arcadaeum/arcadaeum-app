@@ -4,13 +4,74 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.database.queries.reviews import (
     add_review,
     delete_review,
+    delete_review_by_id,
+    get_reviews_for_user,
     get_review_with_user,
+    get_user_review_by_id,
     get_reviews_for_game,
+    update_review,
 )
-from app.models import Review, ReviewCreateRequest, ReviewWithUser, User
+from app.database.queries.users import get_user_by_id
+from app.models import (
+    Review,
+    ReviewCreateRequest,
+    ReviewUpdateRequest,
+    ReviewWithGame,
+    ReviewWithUser,
+    User,
+)
 from app.services.auth import get_current_user
 
 router = APIRouter()
+
+
+@router.get("/users/me/reviews", response_model=list[ReviewWithGame])
+def list_current_user_reviews(
+    current_user: User = Depends(get_current_user),
+) -> list[ReviewWithGame]:
+    """Get all reviews by the current user."""
+    reviews = get_reviews_for_user(current_user.id)
+    return [ReviewWithGame(**review) for review in reviews]
+
+
+@router.get("/users/{user_id}/reviews", response_model=list[ReviewWithGame])
+def list_user_reviews(user_id: int) -> list[ReviewWithGame]:
+    """Get all reviews by a user."""
+    if get_user_by_id(user_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    reviews = get_reviews_for_user(user_id)
+    return [ReviewWithGame(**review) for review in reviews]
+
+
+@router.patch("/users/me/reviews/{review_id}", response_model=ReviewWithGame)
+def update_current_user_review(
+    review_id: int,
+    request: ReviewUpdateRequest,
+    current_user: User = Depends(get_current_user),
+) -> ReviewWithGame:
+    """Update one of the current user's reviews."""
+    updated = update_review(
+        current_user.id, review_id, request.rating, request.review_text
+    )
+    if not updated:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")
+
+    review = get_user_review_by_id(current_user.id, review_id)
+    if review is None:
+        raise HTTPException(status_code=500, detail="Failed to retrieve review")
+    return ReviewWithGame(**review)
+
+
+@router.delete("/users/me/reviews/{review_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_current_user_review(
+    review_id: int,
+    current_user: User = Depends(get_current_user),
+) -> None:
+    """Delete one of the current user's reviews."""
+    deleted = delete_review_by_id(current_user.id, review_id)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")
 
 
 @router.get("/games/{game_id}/reviews", response_model=list[ReviewWithUser])

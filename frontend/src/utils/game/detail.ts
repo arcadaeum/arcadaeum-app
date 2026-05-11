@@ -1,5 +1,10 @@
 import type { Game } from "@/types/game";
-import type { GameReview, ReviewCreatePayload } from "@/types/gameDetail";
+import type {
+	GameReview,
+	ReviewCreatePayload,
+	ReviewUpdatePayload,
+	UserGameReview,
+} from "@/types/gameDetail";
 import type { LibraryEntry } from "@/types/user";
 
 export type LibraryPopupType = "success" | "error";
@@ -23,6 +28,14 @@ export const getUserLibraryStatusUrl = (apiUrl: string, gameId: string | number)
 
 export const getGameReviewsUrl = (apiUrl: string, gameId: string | number) =>
 	`${apiUrl}/games/${gameId}/reviews`;
+
+export const getCurrentUserReviewsUrl = (apiUrl: string) => `${apiUrl}/users/me/reviews`;
+
+export const getUserReviewsUrl = (apiUrl: string, userId: string | number) =>
+	`${apiUrl}/users/${userId}/reviews`;
+
+export const getCurrentUserReviewUrl = (apiUrl: string, reviewId: string | number) =>
+	`${apiUrl}/users/me/reviews/${reviewId}`;
 
 export const getLibraryPopupMessage = (
 	action: "added" | "removed" | "already-exists" | "network-error",
@@ -187,6 +200,75 @@ export const deleteGameReview = async (
 		const error = new Error(detail);
 		(error as Error & { status?: number }).status = response.status;
 		throw error;
+	}
+};
+
+export const fetchCurrentUserReviews = async (
+	apiUrl: string,
+	token: string,
+): Promise<UserGameReview[]> => {
+	const response = await fetch(getCurrentUserReviewsUrl(apiUrl), {
+		headers: { Authorization: `Bearer ${token}` },
+	});
+
+	if (!response.ok) {
+		throw new Error("Failed to fetch reviews");
+	}
+
+	return response.json();
+};
+
+export const fetchUserReviews = async (
+	apiUrl: string,
+	userId: string | number,
+): Promise<UserGameReview[]> => {
+	const response = await fetch(getUserReviewsUrl(apiUrl, userId));
+
+	if (!response.ok) {
+		throw new Error("Failed to fetch reviews");
+	}
+
+	return response.json();
+};
+
+export const updateUserReview = async (
+	apiUrl: string,
+	token: string,
+	reviewId: string | number,
+	payload: ReviewUpdatePayload,
+): Promise<UserGameReview> => {
+	const response = await fetch(getCurrentUserReviewUrl(apiUrl, reviewId), {
+		method: "PATCH",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+		body: JSON.stringify(payload),
+	});
+
+	if (!response.ok) {
+		const errorData = await response.json().catch(() => ({}));
+		const detail = errorData?.detail || errorData?.message || "Failed to update review";
+		throw new Error(detail);
+	}
+
+	return response.json();
+};
+
+export const deleteUserReview = async (
+	apiUrl: string,
+	token: string,
+	reviewId: string | number,
+): Promise<void> => {
+	const response = await fetch(getCurrentUserReviewUrl(apiUrl, reviewId), {
+		method: "DELETE",
+		headers: { Authorization: `Bearer ${token}` },
+	});
+
+	if (!response.ok) {
+		const errorData = await response.json().catch(() => ({}));
+		const detail = errorData?.detail || errorData?.message || "Failed to delete review";
+		throw new Error(detail);
 	}
 };
 

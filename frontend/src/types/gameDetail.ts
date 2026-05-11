@@ -13,3 +13,19 @@ export type ReviewCreatePayload = {
 	rating: number;
 	review_text: string | null;
 };
+
+export type UserGameReview = {
+	id: number;
+	user_id: number;
+	game_id: number;
+	rating: number;
+	review_text: string | null;
+	created_at: string | null;
+	game_title: string;
+	game_cover_url: string | null;
+};
+
+export type ReviewUpdatePayload = {
+	rating: number;
+	review_text: string | null;
+};
