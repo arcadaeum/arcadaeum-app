@@ -29,3 +29,9 @@ export type ReviewUpdatePayload = {
 	rating: number;
 	review_text: string | null;
 };
+
+export type ArcadaeumReview = {
+	game_id: number;
+	average_rating: number;
+	total_reviews: number;
+};

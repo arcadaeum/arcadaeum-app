@@ -221,3 +221,26 @@ def get_reviews_for_game(game_id: int) -> list[dict]:
                 }
                 for row in rows
             ]
+
+
+def get_arcadaeum_review(game_id: int) -> Optional[dict]:
+    """Get the aggregated Arcadaeum review for a game (average rating and count)."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT game_id, AVG(rating) as average_rating, COUNT(*) as total_reviews
+                FROM reviews
+                WHERE game_id = %s
+                GROUP BY game_id
+                """,
+                (game_id,),
+            )
+            row = cur.fetchone()
+            if row is None:
+                return None
+            return {
+                "game_id": row[0],
+                "average_rating": float(row[1]),
+                "total_reviews": row[2],
+            }

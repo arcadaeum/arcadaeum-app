@@ -9,6 +9,7 @@ from app.database.queries.reviews import (
     get_review_with_user,
     get_user_review_by_id,
     get_reviews_for_game,
+    get_arcadaeum_review,
     update_review,
 )
 from app.database.queries.users import get_user_by_id
@@ -19,6 +20,7 @@ from app.models import (
     ReviewWithGame,
     ReviewWithUser,
     User,
+    ArcadaeumReview,
 )
 from app.services.auth import get_current_user
 
@@ -79,6 +81,18 @@ def list_game_reviews(game_id: int) -> list[ReviewWithUser]:
     """Get all reviews for a game."""
     reviews = get_reviews_for_game(game_id)
     return [ReviewWithUser(**review) for review in reviews]
+
+
+@router.get("/games/{game_id}/arcadaeum-review", response_model=ArcadaeumReview)
+def get_game_arcadaeum_review(game_id: int) -> ArcadaeumReview:
+    """Get the aggregated Arcadaeum review for a game (average rating and review count)."""
+    arcadaeum_review = get_arcadaeum_review(game_id)
+    if arcadaeum_review is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No reviews found for this game",
+        )
+    return ArcadaeumReview(**arcadaeum_review)
 
 
 @router.post(

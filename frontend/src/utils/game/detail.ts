@@ -1,5 +1,6 @@
 import type { Game } from "@/types/game";
 import type {
+	ArcadaeumReview,
 	GameReview,
 	ReviewCreatePayload,
 	ReviewUpdatePayload,
@@ -28,6 +29,9 @@ export const getUserLibraryStatusUrl = (apiUrl: string, gameId: string | number)
 
 export const getGameReviewsUrl = (apiUrl: string, gameId: string | number) =>
 	`${apiUrl}/games/${gameId}/reviews`;
+
+export const getArcadaeumReviewUrl = (apiUrl: string, gameId: string | number) =>
+	`${apiUrl}/games/${gameId}/arcadaeum-review`;
 
 export const getCurrentUserReviewsUrl = (apiUrl: string) => `${apiUrl}/users/me/reviews`;
 
@@ -154,6 +158,28 @@ export const fetchGameReviews = async (
 	}
 
 	return response.json();
+};
+
+export const fetchArcadaeumReview = async (
+	apiUrl: string,
+	gameId: string | number,
+): Promise<ArcadaeumReview | null> => {
+	try {
+		const response = await fetch(getArcadaeumReviewUrl(apiUrl, gameId));
+
+		if (!response.ok) {
+			// No reviews exist for this game yet
+			if (response.status === 404) {
+				return null;
+			}
+			throw new Error("Failed to fetch arcadaeum review");
+		}
+
+		return response.json();
+	} catch (error) {
+		console.error("Error fetching arcadaeum review:", error);
+		return null;
+	}
 };
 
 export const createGameReview = async (

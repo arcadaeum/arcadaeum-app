@@ -35,6 +35,7 @@ from app.models.library import (
 )
 from app.models.posts import CreatePostRequest, Post, PostWithUser, UpdatePostRequest
 from app.models.reviews import (
+    ArcadaeumReview,
     Review,
     ReviewCreateRequest,
     ReviewUpdateRequest,
@@ -94,6 +95,7 @@ __all__ = [
     "ReviewWithGame",
     "ReviewCreateRequest",
     "ReviewUpdateRequest",
+    "ArcadaeumReview",
     # Collections
     "Collection",
     "CollectionGame",

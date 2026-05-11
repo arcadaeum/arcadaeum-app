@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 
-import type { GameReview } from "@/types/gameDetail";
+import type { ArcadaeumReview, GameReview } from "@/types/gameDetail";
 import { createGameReview, deleteGameReview, fetchGameReviews } from "@/utils/game";
 import AddReviewModal from "./AddReviewModal";
 import RatingStarBar from "./RatingStarBar";
+import ArcadaeumRating from "./ArcadaeumRating";
 
 type GameDetailReviewsSectionProps = {
 	apiUrl: string;
 	gameId: string | number;
 	gameTitle?: string;
+	arcadaeumReview?: ArcadaeumReview | null;
 	onRequireSignIn: () => void;
 };
 
@@ -23,6 +25,7 @@ export default function GameDetailReviewsSection({
 	apiUrl,
 	gameId,
 	gameTitle,
+	arcadaeumReview,
 	onRequireSignIn,
 }: GameDetailReviewsSectionProps) {
 	const [reviews, setReviews] = useState<GameReview[]>([]);
@@ -149,6 +152,7 @@ export default function GameDetailReviewsSection({
 
 	return (
 		<div className="flex flex-col gap-4 mt-8 bg-arcade-black rounded-lg p-4">
+			<ArcadaeumRating arcadaeumReview={arcadaeumReview ?? null} />
 			<div className="flex items-center justify-between">
 				<h2 className="text-2xl font-title">Reviews</h2>
 				<div className="flex items-center gap-3">

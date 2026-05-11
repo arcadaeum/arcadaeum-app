@@ -106,3 +106,40 @@ def test_delete_review_not_found(monkeypatch):
     result = reviews_queries.delete_review(user_id=1, game_id=999)
 
     assert result is False
+
+
+def test_get_arcadaeum_review(monkeypatch):
+    row = (5, 4.5, 3)  # game_id, average_rating, total_reviews
+    test_cursor = MockCursor(row=row)
+    test_connection = MockConnection(test_cursor)
+    monkeypatch.setattr(reviews_queries, "get_database_connection", lambda: test_connection)
+
+    result = reviews_queries.get_arcadaeum_review(game_id=5)
+
+    assert result is not None
+    assert result["game_id"] == 5
+    assert result["average_rating"] == 4.5
+    assert result["total_reviews"] == 3
+
+
+def test_get_arcadaeum_review_no_reviews(monkeypatch):
+    test_cursor = MockCursor(row=None)
+    test_connection = MockConnection(test_cursor)
+    monkeypatch.setattr(reviews_queries, "get_database_connection", lambda: test_connection)
+
+    result = reviews_queries.get_arcadaeum_review(game_id=999)
+
+    assert result is None
+
+
+def test_get_arcadaeum_review_single_review(monkeypatch):
+    row = (10, 8.0, 1)  # game_id, average_rating (single rating), total_reviews
+    test_cursor = MockCursor(row=row)
+    test_connection = MockConnection(test_cursor)
+    monkeypatch.setattr(reviews_queries, "get_database_connection", lambda: test_connection)
+
+    result = reviews_queries.get_arcadaeum_review(game_id=10)
+
+    assert result is not None
+    assert result["average_rating"] == 8.0
+    assert result["total_reviews"] == 1
