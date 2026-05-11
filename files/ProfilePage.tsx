@@ -1,0 +1,475 @@
+import { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { NavigationBar, ColorBends } from "@/components/ui";
+import {
+	UserCollectionsRow,
+	UserProfileHero,
+	UserStatsBar,
+	UserStickyHeader,
+} from "@/components/user";
+import { PostCard, PostComposer } from "@/components/posts";
+import type { Game } from "@/types/game";
+import type { SocialPost } from "@/types/posts";
+import type { LibraryEntry, UserCollectionGame, UserProfileWithId, UserSummary } from "@/types/user";
+import { fetchCollections, fetchCollectionGames, mapCollectionGames } from "@/utils/collections";
+import { getUserLibraryUrl } from "@/utils/game/detail";
+import { createPost, deletePost, fetchUserPosts, updatePost } from "@/utils/posts";
+import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
+
+// This page is similar to the UserPage visually but uses the users ID from the URL
+// to fetch and display any user's profile, rather than just the current user's profile.
+// It also doesn't have edit functionality since you cannot edit other users' profiles.
+
+export default function ProfilePage() {
+	const { userId } = useParams<{ userId: string }>();
+	const navigate = useNavigate();
+	const [user, setUser] = useState<UserProfileWithId | null>(null);
+	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+	const [favorites, setFavorites] = useState<UserCollectionGame[]>([]);
+	const [wantToPlay, setWantToPlay] = useState<UserCollectionGame[]>([]);
+	const [completed, setCompleted] = useState<UserCollectionGame[]>([]);
+	const [libraryEntries, setLibraryEntries] = useState<LibraryEntry[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [followersCount, setFollowersCount] = useState(0);
+	const [followingCount, setFollowingCount] = useState(0);
+	const [followerIds, setFollowerIds] = useState<number[]>([]);
+	const [isFollowing, setIsFollowing] = useState(false);
+	const [followLoading, setFollowLoading] = useState(false);
+	const [posts, setPosts] = useState<SocialPost[]>([]);
+	const [postsLoading, setPostsLoading] = useState(false);
+	const [postsError, setPostsError] = useState("");
+	const [error, setError] = useState("");
+	const [editing, setEditing] = useState(false);
+	const [newDisplayName, setNewDisplayName] = useState("");
+	const [showHeader, setShowHeader] = useState(false);
+	const profileRef = useRef<HTMLDivElement>(null);
+	const apiUrl = import.meta.env.VITE_API_URL as string;
+
+	const borderColor = getUserProfileBorderColor(user);
+	const displayName = getUserDisplayName(user);
+	const isOwnProfile = currentUserId === user?.id;
+	const currentlyPlayingEntry = isOwnProfile
+		? libraryEntries.find((entry) => entry.status === "currently_playing")
+		: null;
+
+	// Get current user ID
+	useEffect(() => {
+		const token = localStorage.getItem("access_token");
+		if (token) {
+			fetch(`${apiUrl}/me`, {
+				headers: { Authorization: `Bearer ${token}` },
+			})
+				.then((res) => res.json())
+				.then((data) => setCurrentUserId(data.id))
+				.catch(() => setCurrentUserId(null));
+		}
+	}, [apiUrl]);
+
+	// Fetch user profile
+	useEffect(() => {
+		if (!userId) return;
+
+		fetch(`${apiUrl}/users/${userId}`)
+			.then((res) => {
+				if (!res.ok) throw new Error("User not found");
+				return res.json();
+			})
+			.then((data) => setUser(data))
+			.catch(() => {
+				setError("User not found");
+				navigate("/");
+			})
+			.finally(() => setLoading(false));
+	}, [apiUrl, userId, navigate]);
+
+	// Show header when profile section is out of view
+	useEffect(() => {
+		const el = profileRef.current;
+		if (!el) return;
+		const observer = new IntersectionObserver(
+			([entry]) => setShowHeader(!entry.isIntersecting),
+			{ rootMargin: "-200px 0px 0px 0px", threshold: 0 },
+		);
+		observer.observe(el);
+		return () => observer.disconnect();
+	}, [loading]);
+
+	// Get user's followers
+	useEffect(() => {
+		if (!userId) return;
+
+		fetch(`${apiUrl}/users/${userId}/followers`)
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to fetch followers");
+				return res.json();
+			})
+			.then((data: UserSummary[]) => {
+				setFollowersCount(data.length);
+				setFollowerIds(data.map((follower) => follower.id));
+			})
+			.catch(() => {
+				setFollowersCount(0);
+				setFollowerIds([]);
+			});
+	}, [apiUrl, userId]);
+
+	// Get user's following
+	useEffect(() => {
+		if (!userId) return;
+
+		fetch(`${apiUrl}/users/${userId}/following`)
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to fetch following");
+				return res.json();
+			})
+			.then((data: UserSummary[]) => setFollowingCount(data.length))
+			.catch(() => setFollowingCount(0));
+	}, [apiUrl, userId]);
+
+	useEffect(() => {
+		if (!currentUserId) {
+			setIsFollowing(false);
+			return;
+		}
+		setIsFollowing(followerIds.includes(currentUserId));
+	}, [currentUserId, followerIds]);
+
+	// Get user's collections (or favorites for other profiles)
+	useEffect(() => {
+		if (!userId) return;
+
+		if (isOwnProfile) {
+			const token = localStorage.getItem("access_token");
+			if (!token) return;
+
+			fetchCollections(apiUrl, token)
+				.then((collections) => {
+					const getGames = (name: string) => {
+						const collection = collections.find((c) => c.name === name);
+						if (!collection) {
+							return Promise.resolve<Game[]>([]);
+						}
+						return fetchCollectionGames(apiUrl, token, collection.id);
+					};
+
+					return Promise.all([
+						getGames("Favourites"),
+						getGames("Want To Play"),
+						getGames("Completed"),
+					]);
+				})
+				.then(([favoriteGames, wantToPlayGames, completedGames]) => {
+					setFavorites(mapCollectionGames(favoriteGames));
+					setWantToPlay(mapCollectionGames(wantToPlayGames));
+					setCompleted(mapCollectionGames(completedGames));
+				})
+				.catch(() => {
+					setFavorites([]);
+					setWantToPlay([]);
+					setCompleted([]);
+				});
+			return;
+		}
+
+		fetch(`${apiUrl}/users/${userId}/favorites`)
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to fetch favorites");
+				return res.json();
+			})
+			.then((data: UserCollectionGame[]) => {
+				setFavorites(data);
+				setWantToPlay([]);
+				setCompleted([]);
+			})
+			.catch(() => {
+				setFavorites([]);
+				setWantToPlay([]);
+				setCompleted([]);
+			});
+	}, [apiUrl, userId, isOwnProfile]);
+
+	useEffect(() => {
+		if (!isOwnProfile) {
+			setLibraryEntries([]);
+			return;
+		}
+
+		const token = localStorage.getItem("access_token");
+		if (!token) return;
+
+		fetch(getUserLibraryUrl(apiUrl), {
+			headers: { Authorization: `Bearer ${token}` },
+		})
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to fetch library");
+				return res.json();
+			})
+			.then((data: LibraryEntry[]) => setLibraryEntries(data))
+			.catch(() => setLibraryEntries([]));
+	}, [apiUrl, isOwnProfile]);
+
+	useEffect(() => {
+		if (!userId) return;
+		const numericUserId = Number(userId);
+		if (!Number.isFinite(numericUserId)) return;
+
+		Promise.resolve()
+			.then(() => {
+				setPostsLoading(true);
+				setPostsError("");
+				return fetchUserPosts(apiUrl, numericUserId);
+			})
+			.then(setPosts)
+			.catch(() => {
+				setPosts([]);
+				setPostsError("Failed to load posts.");
+			})
+			.finally(() => setPostsLoading(false));
+	}, [apiUrl, userId]);
+
+	const handleEdit = () => {
+		setNewDisplayName(user?.display_name || "");
+		setEditing(true);
+	};
+
+	const handleFollowToggle = async () => {
+		if (!userId) return;
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			navigate("/signin");
+			return;
+		}
+
+		setFollowLoading(true);
+		try {
+			const method = isFollowing ? "DELETE" : "POST";
+			const res = await fetch(`${apiUrl}/users/${userId}/follow`, {
+				method,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			if (!res.ok) {
+				if (res.status === 409) {
+					setIsFollowing(true);
+				}
+				return;
+			}
+
+			setIsFollowing((prev) => !prev);
+			setFollowersCount((prev) => {
+				const delta = isFollowing ? -1 : 1;
+				return Math.max(0, prev + delta);
+			});
+			if (currentUserId) {
+				setFollowerIds((prev) =>
+					isFollowing
+						? prev.filter((id) => id !== currentUserId)
+						: [...prev, currentUserId],
+				);
+			}
+		} finally {
+			setFollowLoading(false);
+		}
+	};
+
+	const handleSave = async () => {
+		const token = localStorage.getItem("access_token");
+		const res = await fetch(`${apiUrl}/me`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({ display_name: newDisplayName }),
+		});
+		if (res.ok) {
+			const updated = await res.json();
+			setUser(updated);
+			setEditing(false);
+		} else {
+			setError("Failed to update display name.");
+		}
+	};
+
+	const handleCreatePost = async (content: string) => {
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			throw new Error("You must be logged in to post.");
+		}
+
+		const post = await createPost(apiUrl, token, { content });
+		setPosts((currentPosts) => [post, ...currentPosts]);
+	};
+
+	const handleUpdatePost = async (postId: number, content: string) => {
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			throw new Error("You must be logged in to edit posts.");
+		}
+
+		const post = await updatePost(apiUrl, token, postId, { content });
+		setPosts((currentPosts) =>
+			currentPosts.map((currentPost) => (currentPost.id === postId ? post : currentPost)),
+		);
+	};
+
+	const handleDeletePost = async (postId: number) => {
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			throw new Error("You must be logged in to delete posts.");
+		}
+
+		await deletePost(apiUrl, token, postId);
+		setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId));
+	};
+
+	if (loading) return <div>Loading...</div>;
+	if (error) return <div>{error}</div>;
+	if (!user) return <div>User not found</div>;
+
+	return (
+		<>
+			<NavigationBar />
+			<ColorBends
+				className="fixed inset-0 -z-10 pointer-events-none opacity-90 blur-3xl"
+				rotation={32}
+				colors={["#8122c0", "#5647f1", "#37b0ea"]}
+				speed={0.2}
+				scale={2}
+				frequency={1}
+				warpStrength={1}
+				mouseInfluence={1}
+				parallax={0.5}
+				noise={0.1}
+				transparent
+				autoRotate={0}
+			/>
+			{showHeader && <UserStickyHeader displayName={displayName} />}
+			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
+				<UserProfileHero
+					user={user}
+					profileRef={profileRef}
+					borderColor={borderColor}
+					apiUrl={apiUrl}
+					canEdit={isOwnProfile}
+					editing={editing}
+					newDisplayName={newDisplayName}
+					displayName={displayName}
+					onDisplayNameChange={setNewDisplayName}
+					onEdit={handleEdit}
+					onSave={handleSave}
+					onCancel={() => setEditing(false)}
+					isFollowing={isFollowing}
+					followLoading={followLoading}
+					onFollowToggle={isOwnProfile ? undefined : handleFollowToggle}
+				/>
+				<UserStatsBar
+					followersCount={followersCount}
+					followingCount={followingCount}
+					gamesCount={favorites.length}
+				/>
+
+				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
+					<Link to="/user" className="text-arcade-violet hover:underline">
+						{getUserDisplayName(user, "User")}
+					</Link>{" "}
+					is currently playing:
+				</h2>
+				{currentlyPlayingEntry ? (
+					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 text-arcade-white text-2xl">
+						<Link
+							to={`/games/${currentlyPlayingEntry.game_id}`}
+							className="flex items-center gap-6 p-6"
+						>
+							<img
+								src={
+									currentlyPlayingEntry.cover_url ??
+									`https://via.placeholder.com/480x270?text=${encodeURIComponent(
+										currentlyPlayingEntry.title,
+									)}`
+								}
+								alt={currentlyPlayingEntry.title}
+								className="h-36 w-56 object-cover rounded-md border-2 border-arcade-white/30"
+							/>
+							<div className="flex flex-col">
+								<span className="text-3xl text-arcade-violet">
+									{currentlyPlayingEntry.title}
+								</span>
+								<span className="text-sm text-arcade-white/70 mt-2">
+									View game details
+								</span>
+							</div>
+						</Link>
+					</div>
+				) : (
+					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 min-h-56 text-arcade-white text-2xl text-center flex items-center justify-center">
+						{isOwnProfile
+							? "No game selected as currently playing."
+							: "Currently playing is not available for this profile."}
+					</div>
+				)}
+
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
+					Favorite Games
+				</h3>
+				<UserCollectionsRow
+					collections={favorites}
+					emptyMessage="No games in this collection yet."
+				/>
+
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter">
+					Want to Play
+				</h3>
+				<UserCollectionsRow
+					collections={wantToPlay}
+					emptyMessage="No games in this collection yet."
+				/>
+
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
+					Completed
+				</h3>
+				<UserCollectionsRow
+					collections={completed}
+					emptyMessage="No games in this collection yet."
+				/>
+
+				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
+					Posts
+				</h2>
+				<section className="w-2/3 ml-50 mt-5 mb-20 space-y-4">
+					{isOwnProfile && (
+						<div className="flex w-full justify-end">
+							<PostComposer onSubmit={handleCreatePost} />
+						</div>
+					)}
+					{postsLoading ? (
+						<div className="rounded-lg border border-arcade-white/10 bg-arcade-black/80 p-6 text-center font-secondary text-arcade-white/70">
+							Loading posts...
+						</div>
+					) : postsError ? (
+						<div className="rounded-lg border border-red-300/30 bg-arcade-black/80 p-6 text-center font-secondary text-red-300">
+							{postsError}
+						</div>
+					) : posts.length > 0 ? (
+						posts.map((post) => (
+							<PostCard
+								key={post.id}
+								post={post}
+								apiUrl={apiUrl}
+								canManage={isOwnProfile}
+								onUpdate={isOwnProfile ? handleUpdatePost : undefined}
+								onDelete={isOwnProfile ? handleDeletePost : undefined}
+							/>
+						))
+					) : (
+						<div className="rounded-lg border border-arcade-white/10 bg-arcade-black/80 p-6 text-center font-secondary text-arcade-white/70">
+							No posts yet.
+						</div>
+					)}
+				</section>
+			</div>
+		</>
+	);
+}

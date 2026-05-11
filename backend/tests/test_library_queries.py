@@ -87,3 +87,19 @@ def test_update_library_status_currently_playing(monkeypatch):
 
     assert result is True
     assert len(test_cursor.executed) == 2
+
+
+# Modify the existing test for add_to_library to verify the new ON CONFLICT clause
+def test_add_to_library_upsert_does_not_reset_added_at(monkeypatch):
+    from app.database.queries.library import add_to_library
+    from tests.test_helpers import MockConnection, MockCursor
+
+    cursor = MockCursor(fetchone_result=(42,))
+    conn = MockConnection(cursor)
+    monkeypatch.setattr("app.database.queries.library.get_database_connection", lambda: conn)
+
+    add_to_library(user_id=1, game_id=5)
+
+    sql, params = cursor.executed[0]
+    # The new SQL sets added_at = user_library.added_at (no change) on conflict
+    assert "ON CONFLICT (user_id, game_id) DO UPDATE SET added_at = user_library.added_at" in sql
