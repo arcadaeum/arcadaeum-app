@@ -33,6 +33,10 @@ def create_users_table() -> None:
                     display_name text,
                     profile_picture text)
                 """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS users_email_idx
+                ON users (email)
+                """)
             conn.commit()
 
 
@@ -72,6 +76,14 @@ def create_reviews_table() -> None:
                     review_text text,
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, game_id))
+                """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS reviews_user_id_idx
+                ON reviews (user_id)
+                """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS reviews_game_id_idx
+                ON reviews (game_id)
                 """)
             conn.commit()
 
@@ -113,6 +125,14 @@ def create_user_library_table() -> None:
                 ON user_library (user_id)
                 WHERE status = 'currently_playing'
                 """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS user_library_user_id_idx
+                ON user_library (user_id)
+                """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS user_library_status_idx
+                ON user_library (status)
+                """)
             conn.commit()
 
 
@@ -126,6 +146,14 @@ def create_user_followers_table() -> None:
                     userid integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     follower_user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     UNIQUE(userid, follower_user_id))
+                """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS user_followers_userid_idx
+                ON user_followers (userid)
+                """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS user_followers_follower_user_id_idx
+                ON user_followers (follower_user_id)
                 """)
             conn.commit()
 
@@ -182,6 +210,14 @@ def create_user_steam_games_table() -> None:
                     synced_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, steam_app_id))
                 """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS user_steam_games_user_id_idx
+                ON user_steam_games (user_id)
+                """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS user_steam_games_game_id_idx
+                ON user_steam_games (game_id)
+                """)
             conn.commit()
 
 
@@ -198,6 +234,10 @@ def create_collections_table() -> None:
                     created_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, name))
                 """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS collections_user_id_idx
+                ON collections (user_id)
+                """)
             conn.commit()
 
 
@@ -212,6 +252,10 @@ def create_collection_games_table() -> None:
                     game_id integer NOT NULL REFERENCES games(id) ON DELETE CASCADE,
                     added_at timestamp DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(collection_id, game_id))
+                """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS collection_games_collection_id_idx
+                ON collection_games (collection_id)
                 """)
             conn.commit()
 
