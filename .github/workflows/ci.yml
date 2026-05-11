@@ -81,10 +81,30 @@ jobs:
             - name: Run ESLint
               run: cd frontend && npm run lint
 
-    frontend-build:
+    frontend-test:
         runs-on: ubuntu-latest
         timeout-minutes: 10
         needs: frontend-lint
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: cd frontend && npm install
+
+            - name: Run vitest
+              run: cd frontend && npm run test -- --run
+
+    frontend-build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        needs: frontend-test
 
         steps:
             - uses: actions/checkout@v4
