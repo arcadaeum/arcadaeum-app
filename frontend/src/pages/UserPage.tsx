@@ -25,6 +25,7 @@ export default function UserPage() {
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 	const [followersCount, setFollowersCount] = useState(0);
 	const [followingCount, setFollowingCount] = useState(0);
+	const [collectionsCount, setCollectionsCount] = useState(0);
 	const [libraryEntries, setLibraryEntries] = useState<LibraryEntry[]>([]);
 	const [posts, setPosts] = useState<SocialPost[]>([]);
 	const [postsLoading, setPostsLoading] = useState(false);
@@ -89,6 +90,7 @@ export default function UserPage() {
 
 		fetchCollections(apiUrl, token)
 			.then((collections) => {
+				setCollectionsCount(collections.length);
 				const getGames = (name: string) => {
 					const collection = collections.find((c) => c.name === name);
 					if (!collection) {
@@ -109,6 +111,7 @@ export default function UserPage() {
 				setCompleted(mapCollectionGames(completedGames));
 			})
 			.catch(() => {
+				setCollectionsCount(0);
 				setFavorites([]);
 				setWantToPlay([]);
 				setCompleted([]);
@@ -258,6 +261,8 @@ export default function UserPage() {
 					followersCount={followersCount}
 					followingCount={followingCount}
 					gamesCount={libraryEntries.length}
+					collectionsCount={collectionsCount}
+					collectionsLink="/collections"
 				/>
 				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
 					<Link to="/user" className="text-arcade-violet hover:underline">

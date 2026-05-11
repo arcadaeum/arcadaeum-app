@@ -6,10 +6,11 @@ type MainButtonProps = {
 	className?: string;
 	navigateTo?: string;
 	disabled?: boolean;
+	type?: "button" | "submit" | "reset";
 };
 
 const buttonClassName =
-	"font-secondary inline-flex items-center justify-center rounded-2xl border-4 border-arcade-white px-8 py-2 bg-transparent font-bold tracking-tighter text-sm leading-none relative cursor-pointer hover:scale-110 transition-transform";
+	"bg-arcade-black hover:bg-arcade-blue text-arcade-white font-title py-2 px-6 border-2 border-arcade-white rounded-lg transition-colors inline-flex items-center justify-center cursor-pointer";
 
 export default function MainButton({
 	text,
@@ -17,14 +18,15 @@ export default function MainButton({
 	className = "",
 	navigateTo = "",
 	disabled = false,
+	type = "button",
 }: MainButtonProps) {
-	const disabledClassName = disabled ? "opacity-50 cursor-not-allowed hover:scale-100" : "";
+	const disabledClassName = disabled ? "opacity-50 cursor-not-allowed hover:bg-arcade-black" : "";
 	const combinedClassName = `${buttonClassName} ${disabledClassName} ${className}`.trim();
 
 	if (!navigateTo) {
 		return (
 			<button
-				type="button"
+				type={type}
 				className={combinedClassName}
 				onClick={onClick}
 				disabled={disabled}

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import type { Collection } from "@/types/collections";
 import {
 	addGameToCollection,
+	createCollection,
+	fetchCollectionGames,
 	fetchCollections,
 	removeGameFromCollection,
 } from "@/utils/collections/api";
@@ -57,6 +59,8 @@ export default function CollectionPickerModal({
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
 	const [actionMessage, setActionMessage] = useState<string | null>(null);
+	const [newCollectionName, setNewCollectionName] = useState("");
+	const [creatingCollection, setCreatingCollection] = useState(false);
 	const modalRef = useRef<HTMLDivElement>(null);
 	const actionTimerRef = useRef<number | null>(null);
 
@@ -75,15 +79,8 @@ export default function CollectionPickerModal({
 				const withMembership = await Promise.all(
 					cols.map(async (col) => {
 						try {
-							const games = await fetch(
-								`${apiUrl}/users/me/collections/${col.id}/games`,
-								{
-									headers: { Authorization: `Bearer ${token}` },
-								},
-							);
-							if (!games.ok) throw new Error();
-							const gameList = (await games.json()) as Array<{ game_id: number }>;
-							return { ...col, hasGame: gameList.some((g) => g.game_id === gameId) };
+							const gameList = await fetchCollectionGames(apiUrl, token, col.id);
+							return { ...col, hasGame: gameList.some((g) => g.id === gameId) };
 						} catch {
 							return { ...col, hasGame: false };
 						}
@@ -168,6 +165,33 @@ export default function CollectionPickerModal({
 		}
 	};
 
+	const handleCreateCollection = async (event: React.FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		if (!token) return;
+
+		const name = newCollectionName.trim();
+		if (!name) {
+			setActionMessage("Collection name cannot be empty.");
+			return;
+		}
+
+		setCreatingCollection(true);
+
+		try {
+			const collection = await createCollection(apiUrl, token, { name });
+			setCollections((currentCollections) => [
+				...currentCollections,
+				{ ...collection, hasGame: false },
+			]);
+			setNewCollectionName("");
+			setActionMessage(`Created ${collection.name}`);
+		} catch (err) {
+			setActionMessage(err instanceof Error ? err.message : "Failed to create collection.");
+		} finally {
+			setCreatingCollection(false);
+		}
+	};
+
 	if (!isOpen) return null;
 
 	return (
@@ -188,6 +212,23 @@ export default function CollectionPickerModal({
 				<h2 className="mb-4 text-xl font-title text-arcade-white tracking-tighter">
 					Add to collection
 				</h2>
+
+				<form onSubmit={handleCreateCollection} className="mb-4 flex gap-2">
+					<input
+						type="text"
+						value={newCollectionName}
+						onChange={(event) => setNewCollectionName(event.target.value)}
+						placeholder="New collection"
+						className="min-w-0 flex-1 rounded-lg border border-arcade-white/20 bg-arcade-black px-3 py-2 font-default text-sm text-arcade-white placeholder:text-arcade-white/40 focus:border-arcade-blue focus:outline-none"
+					/>
+					<button
+						type="submit"
+						disabled={creatingCollection}
+						className="rounded-lg bg-arcade-white px-3 py-2 font-title text-sm text-arcade-black transition hover:scale-95 disabled:opacity-50"
+					>
+						{creatingCollection ? "..." : "Create"}
+					</button>
+				</form>
 
 				{loading && <p className="text-sm text-arcade-white/60">Loading collections...</p>}
 

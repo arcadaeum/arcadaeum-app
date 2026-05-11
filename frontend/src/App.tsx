@@ -13,6 +13,7 @@ import {
 	LibraryPage,
 	SocialPage,
 	SettingsPage,
+	CollectionsPage,
 } from "@/pages";
 
 export default function App() {
@@ -28,7 +29,9 @@ export default function App() {
 			<Route path="/forgot-password" element={<ForgotPasswordPage />} />
 			<Route path="/reset-password" element={<PasswordResetPage />} />
 			<Route path="/users/:userId" element={<ProfilePage />} />
+			<Route path="/users/:userId/collections" element={<CollectionsPage />} />
 			<Route path="/library" element={<LibraryPage />} />
+			<Route path="/collections" element={<CollectionsPage />} />
 			<Route path="/social" element={<SocialPage />} />
 			<Route path="/settings" element={<SettingsPage />} />
 		</Routes>
