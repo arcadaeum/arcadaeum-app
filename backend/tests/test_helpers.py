@@ -15,10 +15,12 @@ class MockCursor:
         self.executed.append((query, params))
 
     def fetchone(self):
-        if self._fetchone_results is not None:
-            if self._fetchone_results:
-                return self._fetchone_results.pop(0)
-            return None
+        if self._fetchone_result is not None:
+            if isinstance(self._fetchone_result, list):
+                if self._fetchone_result:
+                    return self._fetchone_result.pop(0)
+                return None
+            return self._fetchone_result
         return self._row
 
     def fetchall(self):
