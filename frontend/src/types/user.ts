@@ -16,6 +16,11 @@ export type UserSummary = {
 	profile_picture?: string | null;
 };
 
+export type SocialLibraryUser = UserSummary & {
+	follows_you: boolean;
+	followed_by_you: boolean;
+};
+
 export type UserCollectionGame = {
 	id: number;
 	title: string;
