@@ -88,6 +88,27 @@ def get_games() -> list[dict[str, object]]:
     return [dict(zip(columns, row)) for row in rows]
 
 
+@router.get("/games/game-of-the-day")
+def get_game_of_the_day() -> dict[str, object]:
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, igdb_id, title, summary, developer, cover_url, artworks, screenshots, platforms, genres, release_date, igdb_rating, created_at
+                FROM games
+                ORDER BY md5(CURRENT_DATE::text || '-' || id::text)
+                LIMIT 1
+                """)
+            row = cur.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail="No games found")
+
+            if cur.description is None:
+                raise HTTPException(status_code=500, detail="Failed to retrieve game data")
+
+            columns = [desc[0] for desc in cur.description]
+            return dict(zip(columns, row))
+
+
 @router.get("/games/{game_id}")
 def get_game(game_id: int) -> dict[str, object]:
     with get_database_connection() as conn:

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { GameCard } from "@/components/game";
 import { PostCard } from "@/components/posts";
+import type { Game } from "@/types/game";
 import type { SocialPost } from "@/types/posts";
 import type { UserProfileWithId } from "@/types/user";
 import { deletePost, fetchFollowingPosts } from "@/utils/posts";
@@ -16,6 +18,8 @@ export default function HomeAuthenticatedContent() {
 	const [displayName, setDisplayName] = useState<string | null>(null);
 	const [currentUser, setCurrentUser] = useState<UserProfileWithId | null>(null);
 	const [news, setNews] = useState<NewsItem[]>([]);
+	const [gameOfTheDay, setGameOfTheDay] = useState<Game | null>(null);
+	const [gameOfTheDayLoading, setGameOfTheDayLoading] = useState(false);
 	const [feedPosts, setFeedPosts] = useState<SocialPost[]>([]);
 	const [feedLoading, setFeedLoading] = useState(false);
 	const [feedError, setFeedError] = useState("");
@@ -58,6 +62,21 @@ export default function HomeAuthenticatedContent() {
 				setNews(data);
 			})
 			.catch(() => setNews([]));
+	}, [apiUrl]);
+
+	useEffect(() => {
+		Promise.resolve()
+			.then(() => {
+				setGameOfTheDayLoading(true);
+				return fetch(`${apiUrl}/games/game-of-the-day`);
+			})
+			.then((res) => {
+				if (!res.ok) throw new Error("Failed to fetch game of the day");
+				return res.json();
+			})
+			.then((data: Game) => setGameOfTheDay(data))
+			.catch(() => setGameOfTheDay(null))
+			.finally(() => setGameOfTheDayLoading(false));
 	}, [apiUrl]);
 
 	useEffect(() => {
@@ -177,7 +196,23 @@ export default function HomeAuthenticatedContent() {
 				</div>
 				<div className="min-h-48 rounded-2xl border border-arcade-white/10 bg-arcade-black/80 p-6">
 					<h2 className="font-title text-arcade-white text-2xl">Game of the Day</h2>
-					<p className="mt-2 text-arcade-white/60">A rotating pick with quick details.</p>
+					<div className="mt-4">
+						{gameOfTheDayLoading ? (
+							<p className="font-secondary text-sm text-arcade-white/60">
+								Choosing today's game...
+							</p>
+						) : gameOfTheDay ? (
+							<GameCard
+								id={gameOfTheDay.id}
+								title={gameOfTheDay.title}
+								image={gameOfTheDay.cover_url}
+							/>
+						) : (
+							<p className="font-secondary text-sm text-arcade-white/60">
+								Add games to Arcadaeum to spotlight one here.
+							</p>
+						)}
+					</div>
 				</div>
 			</section>
 		</div>
