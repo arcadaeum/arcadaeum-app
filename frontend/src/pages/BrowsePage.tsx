@@ -4,19 +4,24 @@ import { BrowseFilters } from "@/components/browse";
 import { GameGrid } from "@/components/game";
 import type { BrowseSortOption } from "@/types/browse";
 import type { Game } from "@/types/game";
-import { BROWSE_SORT_OPTIONS, filterAndSortGames } from "@/utils/browse";
+import { BROWSE_SORT_OPTIONS, filterAndSortGames, getFilterOptions } from "@/utils/browse";
 
 export default function BrowsePage() {
 	const PAGE_SIZE = 50;
 
 	const [games, setGames] = useState<Game[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [selectedGenre, setSelectedGenre] = useState("");
+	const [selectedPlatform, setSelectedPlatform] = useState("");
 	const [sortBy, setSortBy] = useState<BrowseSortOption>("title-asc");
 	const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
 	const filteredAndSortedGames = useMemo(() => {
-		return filterAndSortGames(games, searchQuery, sortBy);
-	}, [games, searchQuery, sortBy]);
+		return filterAndSortGames(games, searchQuery, sortBy, selectedGenre, selectedPlatform);
+	}, [games, searchQuery, selectedGenre, selectedPlatform, sortBy]);
+
+	const genreOptions = useMemo(() => getFilterOptions(games, "genres"), [games]);
+	const platformOptions = useMemo(() => getFilterOptions(games, "platforms"), [games]);
 
 	// A slice of all visible games
 	const visibleGames = filteredAndSortedGames.slice(0, visibleCount);
@@ -44,6 +49,16 @@ export default function BrowsePage() {
 
 	const handleSearchChange = (value: string) => {
 		setSearchQuery(value);
+		setVisibleCount(PAGE_SIZE);
+	};
+
+	const handleGenreChange = (value: string) => {
+		setSelectedGenre(value);
+		setVisibleCount(PAGE_SIZE);
+	};
+
+	const handlePlatformChange = (value: string) => {
+		setSelectedPlatform(value);
 		setVisibleCount(PAGE_SIZE);
 	};
 
@@ -77,9 +92,15 @@ export default function BrowsePage() {
 				/>
 				<BrowseFilters
 					searchQuery={searchQuery}
+					selectedGenre={selectedGenre}
+					selectedPlatform={selectedPlatform}
 					sortBy={sortBy}
+					genreOptions={genreOptions}
+					platformOptions={platformOptions}
 					sortOptions={BROWSE_SORT_OPTIONS}
 					onSearchChange={handleSearchChange}
+					onGenreChange={handleGenreChange}
+					onPlatformChange={handlePlatformChange}
 					onSortChange={handleSortChange}
 				/>
 				<div className="w-full max-w-7xl mx-auto px-4 py-6">

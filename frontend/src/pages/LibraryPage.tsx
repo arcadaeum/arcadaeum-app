@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends, PageHeader } from "@/components/ui";
 import { BrowseFilters } from "@/components/browse";
 import { GameGrid } from "@/components/game";
 import type { BrowseSortOption } from "@/types/browse";
-import { filterAndSortLibraryEntries, mapLibraryEntriesToGameGridItems } from "@/utils/user";
+import {
+	filterAndSortLibraryEntries,
+	getLibraryFilterOptions,
+	mapLibraryEntriesToGameGridItems,
+} from "@/utils/user";
 import type { LibraryEntry, UserProfile } from "@/types/user";
 import { BROWSE_SORT_OPTIONS } from "@/utils/browse";
 import { getUserLibraryUrl } from "@/utils/game/detail";
@@ -15,11 +19,21 @@ export default function LibraryPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [searchQuery, setSearchQuery] = useState("");
+	const [selectedGenre, setSelectedGenre] = useState("");
+	const [selectedPlatform, setSelectedPlatform] = useState("");
 	const [sortBy, setSortBy] = useState<BrowseSortOption>("title-asc");
 	const navigate = useNavigate();
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 
-	const filteredAndSortedLibrary = filterAndSortLibraryEntries(library, searchQuery, sortBy);
+	const filteredAndSortedLibrary = filterAndSortLibraryEntries(
+		library,
+		searchQuery,
+		sortBy,
+		selectedGenre,
+		selectedPlatform,
+	);
+	const genreOptions = useMemo(() => getLibraryFilterOptions(library, "genres"), [library]);
+	const platformOptions = useMemo(() => getLibraryFilterOptions(library, "platforms"), [library]);
 
 	useEffect(() => {
 		const token = localStorage.getItem("access_token");
@@ -89,9 +103,15 @@ export default function LibraryPage() {
 					<>
 						<BrowseFilters
 							searchQuery={searchQuery}
+							selectedGenre={selectedGenre}
+							selectedPlatform={selectedPlatform}
 							sortBy={sortBy}
+							genreOptions={genreOptions}
+							platformOptions={platformOptions}
 							sortOptions={BROWSE_SORT_OPTIONS}
 							onSearchChange={setSearchQuery}
+							onGenreChange={setSelectedGenre}
+							onPlatformChange={setSelectedPlatform}
 							onSortChange={setSortBy}
 						/>
 

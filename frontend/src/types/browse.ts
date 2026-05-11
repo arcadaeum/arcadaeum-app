@@ -11,10 +11,21 @@ export type BrowseSortOptionItem = {
 	label: string;
 };
 
+export type BrowseFilterOptionItem = {
+	value: string;
+	label: string;
+};
+
 export type BrowseFiltersProps = {
 	searchQuery: string;
+	selectedGenre: string;
+	selectedPlatform: string;
 	sortBy: BrowseSortOption;
+	genreOptions: BrowseFilterOptionItem[];
+	platformOptions: BrowseFilterOptionItem[];
 	sortOptions: BrowseSortOptionItem[];
 	onSearchChange: (query: string) => void;
+	onGenreChange: (genre: string) => void;
+	onPlatformChange: (platform: string) => void;
 	onSortChange: (sortBy: BrowseSortOption) => void;
 };

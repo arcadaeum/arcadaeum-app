@@ -1,7 +1,7 @@
 import type { BrowseSortOption } from "@/types/browse";
 import type { Game } from "@/types/game";
 import type { LibraryEntry } from "@/types/user";
-import { filterAndSortGames } from "@/utils/browse";
+import { filterAndSortGames, getFilterOptions } from "@/utils/browse";
 
 type GameGridItem = Pick<Game, "id" | "title" | "cover_url">;
 
@@ -15,6 +15,7 @@ const mapLibraryEntryToGame = (entry: LibraryEntry): Game => ({
 	artworks: entry.artworks ?? null,
 	screenshots: entry.screenshots ?? null,
 	platforms: entry.platforms ?? null,
+	genres: entry.genres ?? null,
 	release_date: entry.release_date ?? null,
 	igdb_rating: entry.igdb_rating ?? null,
 	created_at: entry.created_at ?? null,
@@ -24,9 +25,11 @@ export const filterAndSortLibraryEntries = (
 	library: LibraryEntry[],
 	searchQuery: string,
 	sortBy: BrowseSortOption,
+	genre = "",
+	platform = "",
 ): LibraryEntry[] => {
 	const libraryAsGames = library.map(mapLibraryEntryToGame);
-	const filteredGames = filterAndSortGames(libraryAsGames, searchQuery, sortBy);
+	const filteredGames = filterAndSortGames(libraryAsGames, searchQuery, sortBy, genre, platform);
 
 	const filteredGameIds = new Set(filteredGames.map((game) => game.id));
 	const orderByGameId = new Map(filteredGames.map((game, index) => [game.id, index]));
@@ -42,3 +45,6 @@ export const mapLibraryEntriesToGameGridItems = (entries: LibraryEntry[]): GameG
 		title: entry.title,
 		cover_url: entry.cover_url ?? null,
 	}));
+
+export const getLibraryFilterOptions = (library: LibraryEntry[], field: "genres" | "platforms") =>
+	getFilterOptions(library.map(mapLibraryEntryToGame), field);

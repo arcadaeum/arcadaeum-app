@@ -25,15 +25,28 @@ const getReleaseTimestamp = (releaseDate: string | null) => {
 	return Number.isNaN(timestamp) ? null : timestamp;
 };
 
+const matchesSelectedValue = (values: string[] | null, selectedValue: string) => {
+	if (!selectedValue) return true;
+	return values?.some((value) => value === selectedValue) ?? false;
+};
+
 export const filterAndSortGames = (
 	games: Game[],
 	searchQuery: string,
 	sortBy: BrowseSortOption,
+	genre = "",
+	platform = "",
 ): Game[] => {
 	const normalizedQuery = searchQuery.trim().toLowerCase();
-	const filteredGames = normalizedQuery
-		? games.filter((game) => game.title.toLowerCase().includes(normalizedQuery))
-		: games;
+	const filteredGames = games.filter((game) => {
+		const matchesSearch = normalizedQuery
+			? game.title.toLowerCase().includes(normalizedQuery)
+			: true;
+		const matchesGenre = matchesSelectedValue(game.genres, genre);
+		const matchesPlatform = matchesSelectedValue(game.platforms, platform);
+
+		return matchesSearch && matchesGenre && matchesPlatform;
+	});
 
 	return [...filteredGames].sort((a, b) => {
 		switch (sortBy) {
@@ -61,3 +74,10 @@ export const filterAndSortGames = (
 		}
 	});
 };
+
+export const getFilterOptions = (games: Game[], field: "genres" | "platforms") =>
+	Array.from(
+		new Set(games.flatMap((game) => game[field]?.filter((value) => value.trim()) ?? [])),
+	)
+		.sort((a, b) => a.localeCompare(b))
+		.map((value) => ({ value, label: value }));

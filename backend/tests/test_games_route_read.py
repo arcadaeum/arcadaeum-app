@@ -14,6 +14,7 @@ def test_get_games_returns_list_with_screenshots_field(monkeypatch):
         ("cover_url",),
         ("screenshots",),
         ("platforms",),
+        ("genres",),
         ("release_date",),
         ("igdb_rating",),
         ("created_at",),
@@ -32,6 +33,7 @@ def test_get_games_returns_list_with_screenshots_field(monkeypatch):
                 "https://images.igdb.com/igdb/image/upload/t_screenshot_big/a2.jpg",
             ],
             ["PC", "PS5"],
+            ["RPG"],
             date(2024, 1, 1),
             87.5,
             "2024-01-02T10:00:00",
@@ -57,6 +59,7 @@ def test_get_games_returns_list_with_screenshots_field(monkeypatch):
         "https://images.igdb.com/igdb/image/upload/t_screenshot_big/a1.jpg",
         "https://images.igdb.com/igdb/image/upload/t_screenshot_big/a2.jpg",
     ]
+    assert body[0]["genres"] == ["RPG"]
 
 
 def test_get_game_returns_404_when_missing(monkeypatch):
@@ -84,6 +87,7 @@ def test_get_game_returns_game_with_screenshots(monkeypatch):
         ("cover_url",),
         ("screenshots",),
         ("platforms",),
+        ("genres",),
         ("release_date",),
         ("igdb_rating",),
         ("created_at",),
@@ -98,6 +102,7 @@ def test_get_game_returns_game_with_screenshots(monkeypatch):
         "https://images.igdb.com/cover2.jpg",
         ["https://images.igdb.com/igdb/image/upload/t_screenshot_big/b1.jpg"],
         ["Switch"],
+        ["Adventure"],
         date(2023, 6, 15),
         91.0,
         "2024-02-02T10:00:00",
@@ -120,3 +125,4 @@ def test_get_game_returns_game_with_screenshots(monkeypatch):
     assert body["screenshots"] == [
         "https://images.igdb.com/igdb/image/upload/t_screenshot_big/b1.jpg"
     ]
+    assert body["genres"] == ["Adventure"]

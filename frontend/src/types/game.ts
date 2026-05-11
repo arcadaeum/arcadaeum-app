@@ -8,6 +8,7 @@ export type Game = {
 	artworks: string[] | null;
 	screenshots: string[] | null;
 	platforms: string[] | null;
+	genres: string[] | null;
 	release_date: string | null;
 	igdb_rating: number | null;
 	created_at: string | null;
