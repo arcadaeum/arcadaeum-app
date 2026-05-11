@@ -1,8 +1,11 @@
+import logging
 import os
 from typing import Any
 from urllib.parse import urlencode
 import requests
 from fastapi import HTTPException
+
+logger = logging.getLogger(__name__)
 
 
 class SteamService:
@@ -46,11 +49,25 @@ class SteamService:
             response.raise_for_status()
             data = response.json()
 
-            if not data.get("response"):
+            logger.debug(f"Steam API response for steam_id {steam_id}: {data}")
+
+            # Check if 'response' key exists (API error returns no 'response' key)
+            if "response" not in data:
+                logger.error(
+                    f"Missing 'response' key in Steam API response for steam_id {steam_id}"
+                )
                 raise HTTPException(status_code=400, detail="Invalid Steam API response")
 
-            return data["response"]
+            # Empty response is valid (means private profile or no games)
+            response_data = data["response"]
+            if not response_data:
+                logger.info(
+                    f"Empty game library for steam_id {steam_id} (private profile or no games)"
+                )
+
+            return response_data
         except requests.exceptions.RequestException as e:
+            logger.error(f"Steam API request error for steam_id {steam_id}: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Steam API error: {str(e)}")
 
     def validate_steam_id(self, steam_id: str) -> bool:
