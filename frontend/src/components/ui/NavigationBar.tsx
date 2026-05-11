@@ -148,6 +148,14 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 									Collections
 								</Link>
 								<Link
+									to="/reviews"
+									className="text-2xl transition hover:text-arcade-violet hover:scale-120"
+									role="menuitem"
+									onClick={handleMenuClose}
+								>
+									Reviews
+								</Link>
+								<Link
 									to="/user"
 									className="text-2xl transition hover:text-arcade-violet hover:scale-120"
 									role="menuitem"
