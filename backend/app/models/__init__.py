@@ -34,7 +34,13 @@ from app.models.library import (
     UpdateLibraryStatusRequest,
 )
 from app.models.posts import CreatePostRequest, Post, PostWithUser, UpdatePostRequest
-from app.models.reviews import Review, ReviewCreateRequest, ReviewWithUser
+from app.models.reviews import (
+    Review,
+    ReviewCreateRequest,
+    ReviewUpdateRequest,
+    ReviewWithGame,
+    ReviewWithUser,
+)
 from app.models.steam import (
     SteamGameData,
     SteamGameMatch,
@@ -85,7 +91,9 @@ __all__ = [
     # Reviews
     "Review",
     "ReviewWithUser",
+    "ReviewWithGame",
     "ReviewCreateRequest",
+    "ReviewUpdateRequest",
     # Collections
     "Collection",
     "CollectionGame",

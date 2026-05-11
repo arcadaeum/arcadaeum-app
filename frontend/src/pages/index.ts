@@ -12,6 +12,7 @@ export { default as UserPage } from "./UserPage";
 export { default as LibraryPage } from "./LibraryPage";
 export { default as SettingsPage } from "./SettingsPage";
 export { default as CollectionsPage } from "./CollectionsPage";
+export { default as ReviewsPage } from "./ReviewsPage";
 
 
 

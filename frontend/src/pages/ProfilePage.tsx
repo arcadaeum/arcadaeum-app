@@ -18,7 +18,7 @@ import {
 	fetchUserCollections,
 	mapCollectionGames,
 } from "@/utils/collections";
-import { getUserLibraryUrl } from "@/utils/game/detail";
+import { fetchUserReviews, getUserLibraryUrl } from "@/utils/game";
 import { createPost, deletePost, fetchUserPosts, updatePost } from "@/utils/posts";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
 
@@ -39,6 +39,7 @@ export default function ProfilePage() {
 	const [followersCount, setFollowersCount] = useState(0);
 	const [followingCount, setFollowingCount] = useState(0);
 	const [collectionsCount, setCollectionsCount] = useState(0);
+	const [reviewsCount, setReviewsCount] = useState(0);
 	const [followerIds, setFollowerIds] = useState<number[]>([]);
 	const [isFollowing, setIsFollowing] = useState(false);
 	const [followLoading, setFollowLoading] = useState(false);
@@ -229,6 +230,10 @@ export default function ProfilePage() {
 		const numericUserId = Number(userId);
 		if (!Number.isFinite(numericUserId)) return;
 
+		fetchUserReviews(apiUrl, numericUserId)
+			.then((reviews) => setReviewsCount(reviews.length))
+			.catch(() => setReviewsCount(0));
+
 		Promise.resolve()
 			.then(() => {
 				setPostsLoading(true);
@@ -387,6 +392,8 @@ export default function ProfilePage() {
 					gamesCount={favorites.length}
 					collectionsCount={collectionsCount}
 					collectionsLink={isOwnProfile ? "/collections" : `/users/${user.id}/collections`}
+					reviewsCount={reviewsCount}
+					reviewsLink={isOwnProfile ? "/reviews" : `/users/${user.id}/reviews`}
 				/>
 
 				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">

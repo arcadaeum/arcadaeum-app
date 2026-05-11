@@ -95,6 +95,103 @@ def delete_review(user_id: int, game_id: int) -> bool:
             return result is not None
 
 
+def delete_review_by_id(user_id: int, review_id: int) -> bool:
+    """Delete a review by ID for a user."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                DELETE FROM reviews
+                WHERE user_id = %s AND id = %s
+                RETURNING id
+                """,
+                (user_id, review_id),
+            )
+            result = cur.fetchone()
+            conn.commit()
+            return result is not None
+
+
+def update_review(
+    user_id: int, review_id: int, rating: int, review_text: Optional[str]
+) -> bool:
+    """Update a review by ID for a user."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE reviews
+                SET rating = %s, review_text = %s
+                WHERE user_id = %s AND id = %s
+                RETURNING id
+                """,
+                (rating, review_text, user_id, review_id),
+            )
+            result = cur.fetchone()
+            conn.commit()
+            return result is not None
+
+
+def get_reviews_for_user(user_id: int) -> list[dict]:
+    """Get all reviews by a user, joining game details for display."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT r.id, r.user_id, r.game_id, r.rating, r.review_text, r.created_at,
+                       g.title AS game_title, g.cover_url AS game_cover_url
+                FROM reviews r
+                JOIN games g ON g.id = r.game_id
+                WHERE r.user_id = %s
+                ORDER BY r.created_at DESC
+                """,
+                (user_id,),
+            )
+            rows = cur.fetchall()
+            return [
+                {
+                    "id": row[0],
+                    "user_id": row[1],
+                    "game_id": row[2],
+                    "rating": row[3],
+                    "review_text": row[4],
+                    "created_at": row[5],
+                    "game_title": row[6],
+                    "game_cover_url": row[7],
+                }
+                for row in rows
+            ]
+
+
+def get_user_review_by_id(user_id: int, review_id: int) -> Optional[dict]:
+    """Get a user's review by ID with game details."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT r.id, r.user_id, r.game_id, r.rating, r.review_text, r.created_at,
+                       g.title AS game_title, g.cover_url AS game_cover_url
+                FROM reviews r
+                JOIN games g ON g.id = r.game_id
+                WHERE r.user_id = %s AND r.id = %s
+                """,
+                (user_id, review_id),
+            )
+            row = cur.fetchone()
+            if row is None:
+                return None
+            return {
+                "id": row[0],
+                "user_id": row[1],
+                "game_id": row[2],
+                "rating": row[3],
+                "review_text": row[4],
+                "created_at": row[5],
+                "game_title": row[6],
+                "game_cover_url": row[7],
+            }
+
+
 def get_reviews_for_game(game_id: int) -> list[dict]:
     """Get all reviews for a game, joining with users table to get username."""
     with get_database_connection() as conn:

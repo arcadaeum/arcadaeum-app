@@ -12,7 +12,7 @@ import type { Game } from "@/types/game";
 import type { SocialPost } from "@/types/posts";
 import type { LibraryEntry, UserCollectionGame, UserProfile } from "@/types/user";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
-import { getUserLibraryUrl } from "@/utils/game/detail";
+import { fetchCurrentUserReviews, getUserLibraryUrl } from "@/utils/game";
 import { fetchCollections, fetchCollectionGames, mapCollectionGames } from "@/utils/collections";
 import { createPost, deletePost, fetchUserPosts, updatePost } from "@/utils/posts";
 
@@ -26,6 +26,7 @@ export default function UserPage() {
 	const [followersCount, setFollowersCount] = useState(0);
 	const [followingCount, setFollowingCount] = useState(0);
 	const [collectionsCount, setCollectionsCount] = useState(0);
+	const [reviewsCount, setReviewsCount] = useState(0);
 	const [libraryEntries, setLibraryEntries] = useState<LibraryEntry[]>([]);
 	const [posts, setPosts] = useState<SocialPost[]>([]);
 	const [postsLoading, setPostsLoading] = useState(false);
@@ -152,6 +153,10 @@ export default function UserPage() {
 			.then((data: LibraryEntry[]) => setLibraryEntries(data))
 			.catch(() => setLibraryEntries([]));
 
+		fetchCurrentUserReviews(apiUrl, token)
+			.then((reviews) => setReviewsCount(reviews.length))
+			.catch(() => setReviewsCount(0));
+
 		Promise.resolve()
 			.then(() => {
 				setPostsLoading(true);
@@ -263,6 +268,8 @@ export default function UserPage() {
 					gamesCount={libraryEntries.length}
 					collectionsCount={collectionsCount}
 					collectionsLink="/collections"
+					reviewsCount={reviewsCount}
+					reviewsLink="/reviews"
 				/>
 				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
 					<Link to="/user" className="text-arcade-violet hover:underline">

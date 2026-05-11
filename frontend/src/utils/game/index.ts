@@ -1,13 +1,19 @@
 export {
 	createGameReview,
+	deleteUserReview,
 	deleteGameReview,
 	fetchGameDetail,
 	fetchGameReviews,
+	fetchCurrentUserReviews,
 	fetchLibraryEntry,
+	fetchUserReviews,
 	formatIgdbRating,
 	formatPlatforms,
 	getGameDetailUrl,
 	getGameReviewsUrl,
+	getCurrentUserReviewUrl,
+	getCurrentUserReviewsUrl,
+	getUserReviewsUrl,
 	getLibraryPopupMessage,
 	getLibraryPopupType,
 	getReleaseYear,
@@ -18,6 +24,7 @@ export {
 	showLibraryPopup,
 	toggleLibrary,
 	toggleLibraryMembership,
+	updateUserReview,
 } from "./detail";
 
 export type { LibraryPopupType } from "./detail";

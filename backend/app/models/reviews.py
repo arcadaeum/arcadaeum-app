@@ -18,6 +18,16 @@ class ReviewWithUser(Review):
     display_name: Optional[str] = None
 
 
+class ReviewWithGame(Review):
+    game_title: str
+    game_cover_url: Optional[str] = None
+
+
 class ReviewCreateRequest(BaseModel):
+    rating: int = Field(ge=1, le=10)
+    review_text: Optional[str] = None
+
+
+class ReviewUpdateRequest(BaseModel):
     rating: int = Field(ge=1, le=10)
     review_text: Optional[str] = None
