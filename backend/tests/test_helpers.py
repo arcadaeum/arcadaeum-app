@@ -3,11 +3,12 @@ from fastapi.testclient import TestClient
 
 
 class MockCursor:
-    def __init__(self, row=None, rows=None, description=None, fetchone_result=None):
+    def __init__(self, row=None, rows=None, description=None, fetchone_result=None, rowcount=0):
         self._row = row
         self._rows = rows or []
         self.description = description
         self._fetchone_result = fetchone_result
+        self.rowcount = rowcount
         self.executed: list[tuple[str, tuple | None]] = []
 
     def execute(self, query, params=None):

@@ -4,5 +4,6 @@ export * as collections from "./collections";
 export * as game from "./game";
 export * as home from "./home";
 export * as password from "./password";
+export * as posts from "./posts";
 export * as search from "./search";
 export * as user from "./user";

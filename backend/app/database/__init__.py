@@ -27,6 +27,14 @@ from app.database.queries.password_reset import (
     mark_reset_token_as_used,
     update_user_password,
 )
+from app.database.queries.posts import (
+    create_post,
+    delete_post,
+    get_following_posts,
+    get_post_with_user,
+    get_user_posts,
+    update_post,
+)
 from app.database.queries.steam import (
     add_steam_game,
     get_steam_account,
@@ -49,6 +57,7 @@ from app.database.tables import (
     create_collections_table,
     create_games_table,
     create_password_reset_table,
+    create_posts_table,
     create_reviews_table,
     create_tables,
     create_user_followers_table,
@@ -65,6 +74,7 @@ __all__ = [
     "create_users_table",
     "create_games_table",
     "create_reviews_table",
+    "create_posts_table",
     "create_user_library_table",
     "create_user_followers_table",
     "create_password_reset_table",
@@ -89,6 +99,12 @@ __all__ = [
     "get_password_reset_token",
     "mark_reset_token_as_used",
     "update_user_password",
+    "create_post",
+    "get_post_with_user",
+    "update_post",
+    "delete_post",
+    "get_user_posts",
+    "get_following_posts",
     "link_steam_account",
     "unlink_steam_account",
     "get_steam_account",
