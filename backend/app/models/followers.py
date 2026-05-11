@@ -10,6 +10,11 @@ class UserSummary(BaseModel):
     profile_picture: Optional[str] = None
 
 
+class SocialLibraryUser(UserSummary):
+    follows_you: bool = False
+    followed_by_you: bool = False
+
+
 class FollowResponse(BaseModel):
     user_id: int
     follower_user_id: int

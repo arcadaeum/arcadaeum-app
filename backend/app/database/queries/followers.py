@@ -107,3 +107,50 @@ def get_user_following_summaries(user_id: int) -> list[dict[str, int | str | Non
                 return []
             columns = [desc[0] for desc in cur.description]
             return [dict(zip(columns, row)) for row in rows]
+
+
+def get_social_users_with_game(
+    user_id: int, game_id: int
+) -> list[dict[str, int | str | bool | None]]:
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                WITH social_users AS (
+                    SELECT
+                        uf.follower_user_id AS user_id,
+                        TRUE AS follows_you,
+                        FALSE AS followed_by_you
+                    FROM user_followers uf
+                    WHERE uf.userid = %s
+
+                    UNION ALL
+
+                    SELECT
+                        uf.userid AS user_id,
+                        FALSE AS follows_you,
+                        TRUE AS followed_by_you
+                    FROM user_followers uf
+                    WHERE uf.follower_user_id = %s
+                )
+                SELECT
+                    u.id,
+                    u.username,
+                    u.display_name,
+                    u.profile_picture,
+                    BOOL_OR(su.follows_you) AS follows_you,
+                    BOOL_OR(su.followed_by_you) AS followed_by_you
+                FROM social_users su
+                JOIN user_library ul ON ul.user_id = su.user_id
+                JOIN users u ON u.id = su.user_id
+                WHERE ul.game_id = %s
+                GROUP BY u.id, u.username, u.display_name, u.profile_picture
+                ORDER BY COALESCE(u.display_name, u.username), u.username
+                """,
+                (user_id, user_id, game_id),
+            )
+            rows = cur.fetchall()
+            if cur.description is None:
+                return []
+            columns = [desc[0] for desc in cur.description]
+            return [dict(zip(columns, row)) for row in rows]

@@ -129,3 +129,44 @@ def test_get_user_following_summaries(monkeypatch):
 
     assert len(result) == 1
     assert result[0]["username"] == "user10"
+
+
+def test_get_social_users_with_game(monkeypatch):
+    description = [
+        ("id",),
+        ("username",),
+        ("display_name",),
+        ("profile_picture",),
+        ("follows_you",),
+        ("followed_by_you",),
+    ]
+    rows = [
+        (2, "mutual", "Mutual User", None, True, True),
+        (3, "followed", "Followed User", "https://example.com/pic.jpg", False, True),
+    ]
+
+    test_cursor = MockCursor(rows=rows, description=description)
+    test_connection = MockConnection(test_cursor)
+    monkeypatch.setattr(followers_queries, "get_database_connection", lambda: test_connection)
+
+    result = followers_queries.get_social_users_with_game(user_id=1, game_id=42)
+
+    assert result == [
+        {
+            "id": 2,
+            "username": "mutual",
+            "display_name": "Mutual User",
+            "profile_picture": None,
+            "follows_you": True,
+            "followed_by_you": True,
+        },
+        {
+            "id": 3,
+            "username": "followed",
+            "display_name": "Followed User",
+            "profile_picture": "https://example.com/pic.jpg",
+            "follows_you": False,
+            "followed_by_you": True,
+        },
+    ]
+    assert test_cursor.executed[0][1] == (1, 1, 42)

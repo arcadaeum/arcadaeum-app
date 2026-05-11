@@ -30,9 +30,6 @@ export default function GameDetailMainContent({
 			<p className="mt-8 text-md font-default text-gray-200rounded-lg  flex-1 overflow-auto">
 				{game?.summary}
 			</p>
-			<div className="flex-col mt-16 h-full w-full ">
-				<p>Additional content can go here, such as screenshots, videos, reviews, etc.</p>
-			</div>
 
 			<div className="mt-8">
 				<h3 className="text-2xl font-title mb-4">Screenshots</h3>

@@ -18,6 +18,7 @@ from app.models.collections import (
 )
 from app.models.followers import (
     FollowResponse,
+    SocialLibraryUser,
     UserFollowers,
     UserFollowing,
     UserSummary,
@@ -69,6 +70,7 @@ __all__ = [
     "CacheQueryParams",
     # Followers
     "UserSummary",
+    "SocialLibraryUser",
     "FollowResponse",
     "UserFollowers",
     "UserFollowing",

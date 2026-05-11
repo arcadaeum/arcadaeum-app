@@ -6,7 +6,7 @@ import type {
 	ReviewUpdatePayload,
 	UserGameReview,
 } from "@/types/gameDetail";
-import type { LibraryEntry } from "@/types/user";
+import type { LibraryEntry, SocialLibraryUser } from "@/types/user";
 
 export type LibraryPopupType = "success" | "error";
 
@@ -14,7 +14,12 @@ export const getReleaseYear = (releaseDate: string | null) => releaseDate?.slice
 
 export const formatIgdbRating = (rating: number | null) => (rating ? rating.toFixed(1) : "—");
 
-export const formatPlatforms = (platforms: string[] | null) => platforms?.join(", ") ?? "—";
+const formatStringList = (values: string[] | null) =>
+	values && values.length > 0 ? values.join(", ") : "—";
+
+export const formatGenres = formatStringList;
+
+export const formatPlatforms = formatStringList;
 
 export const getGameDetailUrl = (apiUrl: string, gameId: string | number) =>
 	`${apiUrl}/games/${gameId}`;
@@ -26,6 +31,9 @@ export const getUserLibraryItemUrl = (apiUrl: string, gameId: string | number) =
 
 export const getUserLibraryStatusUrl = (apiUrl: string, gameId: string | number) =>
 	`${apiUrl}/users/me/library/${gameId}/status`;
+
+export const getSocialLibraryUsersUrl = (apiUrl: string, gameId: string | number) =>
+	`${apiUrl}/users/me/social-library/${gameId}`;
 
 export const getGameReviewsUrl = (apiUrl: string, gameId: string | number) =>
 	`${apiUrl}/games/${gameId}/reviews`;
@@ -98,6 +106,22 @@ export const fetchLibraryEntry = async (
 	const numericGameId = Number(gameId);
 
 	return entries.find((entry) => entry.game_id === numericGameId) ?? null;
+};
+
+export const fetchSocialLibraryUsers = async (
+	apiUrl: string,
+	token: string,
+	gameId: string | number,
+): Promise<SocialLibraryUser[]> => {
+	const response = await fetch(getSocialLibraryUsersUrl(apiUrl, gameId), {
+		headers: { Authorization: `Bearer ${token}` },
+	});
+
+	if (!response.ok) {
+		throw new Error("Failed to fetch social library users");
+	}
+
+	return response.json();
 };
 
 export const toggleLibraryMembership = async (

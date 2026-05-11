@@ -209,7 +209,7 @@ export default function GameDetailPage() {
 						arcadaeumReview={arcadaeumReview}
 						onRequireSignIn={() => navigate("/signin")}
 					/>
-					<GameDetailSidebar game={game} />
+					<GameDetailSidebar game={game} apiUrl={apiUrl} gameId={id} />
 				</div>
 			</div>
 		</>
