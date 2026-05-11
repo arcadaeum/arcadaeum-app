@@ -14,7 +14,9 @@ from app.database import (
     create_user,
     get_user_by_email,
     update_user_display_name,
+    get_user_by_username,                     # added
 )
+from app.database.connection import get_database_connection   # added
 from app.models.auth import (
     PasswordReset,
     PasswordResetRequest,
@@ -31,7 +33,9 @@ from app.services.auth import (
     get_current_user,
     get_password_hash,
     reset_password_with_token,
+    verify_password,                          # added
 )
+from pydantic import BaseModel, Field, field_validator      # added
 
 router = APIRouter()
 
@@ -234,3 +238,129 @@ async def reset_password(req: PasswordReset) -> PasswordResetResponse:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
 
     return PasswordResetResponse(message=message)
+
+
+# ==================== Settings endpoints ====================
+
+class ChangeUsernameRequest(BaseModel):
+    new_username: str = Field(min_length=3, max_length=50)
+    password: str
+
+    @field_validator("new_username")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        if not v.isalnum() and "_" not in v:
+            raise ValueError("Username must contain only letters, numbers and underscores")
+        return v
+
+
+@router.patch("/me/username", response_model=User)
+def change_username(
+    req: ChangeUsernameRequest,
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Change the current user's username after password verification."""
+    # Verify password
+    user_dict = get_user_by_username(current_user.username)
+    if not user_dict or not verify_password(req.password, user_dict["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password",
+        )
+
+    # Check if new username already taken
+    if get_user_by_username(req.new_username):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username already exists",
+        )
+
+    # Update username
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET username = %s WHERE id = %s",
+                (req.new_username, current_user.id),
+            )
+            conn.commit()
+
+    # Return updated user
+    updated = get_user_by_username(req.new_username)
+    if updated is None:
+        raise HTTPException(status_code=500, detail="Failed to update user")
+    return User(**updated)
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str = Field(min_length=8)
+
+
+@router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    req: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+) -> None:
+    """Change the current user's password after verifying old password."""
+    user_dict = get_user_by_username(current_user.username)
+    if not user_dict or not verify_password(req.old_password, user_dict["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password",
+        )
+
+    new_hash = get_password_hash(req.new_password)
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET password_hash = %s WHERE id = %s",
+                (new_hash, current_user.id),
+            )
+            conn.commit()
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_account(
+    req: DeleteAccountRequest,
+    current_user: User = Depends(get_current_user),
+) -> None:
+    """Permanently delete the current user's account."""
+    user_dict = get_user_by_username(current_user.username)
+    if not user_dict or not verify_password(req.password, user_dict["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password",
+        )
+
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM users WHERE id = %s", (current_user.id,))
+            conn.commit()
+
+
+class BugReportRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    description: str = Field(min_length=1)
+
+
+@router.post("/me/bug-reports", status_code=status.HTTP_201_CREATED)
+def report_bug(
+    req: BugReportRequest,
+    current_user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    """Submit a bug report."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO bug_reports (user_id, title, description)
+                VALUES (%s, %s, %s)
+                """,
+                (current_user.id, req.title, req.description),
+            )
+            conn.commit()
+    return {"message": "Bug report submitted successfully"}
