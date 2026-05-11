@@ -74,7 +74,7 @@ def get_games() -> list[dict[str, object]]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT id, igdb_id, title, summary, developer, cover_url, artworks, screenshots, platforms, release_date, igdb_rating, created_at
+                SELECT id, igdb_id, title, summary, developer, cover_url, artworks, screenshots, platforms, genres, release_date, igdb_rating, created_at
                 FROM games
                 ORDER BY id DESC
                 """)
@@ -94,7 +94,7 @@ def get_game(game_id: int) -> dict[str, object]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, igdb_id, title, summary, developer, cover_url, artworks, screenshots, platforms, release_date, igdb_rating, created_at
+                SELECT id, igdb_id, title, summary, developer, cover_url, artworks, screenshots, platforms, genres, release_date, igdb_rating, created_at
                 FROM games
                 WHERE id = %s
                 """,
