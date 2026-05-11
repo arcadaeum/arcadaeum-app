@@ -37,7 +37,14 @@ export default function HomeAuthenticatedContent() {
 	}, [apiUrl]);
 
 	useEffect(() => {
-		fetch(`${apiUrl}/news/search?query=gaming`)
+		const params = new URLSearchParams({
+			query: '"video game"',
+			language: "en",
+			country: "us",
+			limit: "5",
+		});
+
+		fetch(`${apiUrl}/news/search?${params.toString()}`)
 			.then((res) => {
 				if (!res.ok) throw new Error("Failed to fetch news");
 				return res.json();
@@ -108,7 +115,12 @@ export default function HomeAuthenticatedContent() {
 								rel="noreferrer"
 								className="block rounded-lg border border-arcade-white/10 bg-arcade-white/5 p-3 font-secondary text-sm text-arcade-white/75 transition hover:border-arcade-blue/60 hover:text-arcade-white"
 							>
-								{item.title ?? "Gaming news update"}
+								<span className="block">{item.title ?? "Gaming news update"}</span>
+								{item.source && (
+									<span className="mt-1 block text-xs text-arcade-white/45">
+										{item.source}
+									</span>
+								)}
 							</a>
 						))}
 						{news.length === 0 && (

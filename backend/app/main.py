@@ -2,6 +2,7 @@ import logging
 import os
 import traceback
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -24,15 +25,16 @@ from app.routes import (
     news,
     posts,
 )
-from app.services.cache import add_default_users, cache_popular_games
+from app.services.cache import add_default_users, cache_popular_games, get_game_news
 from app.services.scheduler import start_steam_sync_scheduler
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv()
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -49,6 +51,11 @@ async def lifespan(_app: FastAPI):
     print(f"Startup users result: {default_users_result}")
     cache_result = cache_popular_games(limit=500)
     print(f"Startup cache result: {cache_result}")
+    try:
+        news_cache_result = get_game_news(limit=5)
+        print(f"Startup news cache result: cached {len(news_cache_result)} articles")
+    except Exception as error:
+        print(f"Startup news cache skipped: {error}")
 
     # Start the Steam sync scheduler
     scheduler_task = start_steam_sync_scheduler()
@@ -97,17 +104,23 @@ async def crash_logging_middleware(request: Request, call_next):
     except Exception as e:
         # Log the crash with full traceback
         logger.critical(
-            f"CRASH: Unhandled exception in {request.method} {request.url.path}",
-            exc_info=True
+            f"CRASH: Unhandled exception in {request.method} {request.url.path}", exc_info=True
         )
         logger.critical(f"Error type: {type(e).__name__}")
         logger.critical(f"Error message: {str(e)}")
         logger.critical(f"Traceback:\n{traceback.format_exc()}")
-        
+
+        headers = {}
+        origin = request.headers.get("origin")
+        if origin in origins:
+            headers["Access-Control-Allow-Origin"] = origin
+            headers["Access-Control-Allow-Credentials"] = "true"
+
         # Return error response
         return JSONResponse(
             status_code=500,
-            content={"detail": "Internal server error"}
+            content={"detail": "Internal server error"},
+            headers=headers,
         )
 
 
