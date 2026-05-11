@@ -9,6 +9,7 @@ type UserStatsBarProps = {
 	reviewsCount?: number;
 	reviewsLink?: string;
 	disableFollowerLinks?: boolean;
+	className?: string;
 };
 
 export default function UserStatsBar({
@@ -20,11 +21,11 @@ export default function UserStatsBar({
 	reviewsCount = 0,
 	reviewsLink = "/reviews",
 	disableFollowerLinks = false,
+	className,
 }: UserStatsBarProps) {
 	return (
 		<div
-			className="flex gap-6 -mt-11 font-default text-xs text-gray-400 tracking-wider items-center relative z-10"
-			style={{ marginLeft: "28.5rem" }}
+			className={`relative z-10 flex items-center gap-6 -mt-11 ml-[28.5rem] font-default text-xs tracking-wider text-gray-400 max-sm:mt-4 max-sm:ml-0 max-sm:w-full max-sm:flex-wrap max-sm:justify-center max-sm:gap-x-4 max-sm:gap-y-2 ${className ?? ""}`}
 		>
 			{disableFollowerLinks ? (
 				<span className="inline-flex items-center">
