@@ -11,6 +11,7 @@ import {
 	fetchUserReviews,
 	updateUserReview,
 } from "@/utils/game";
+import { isAdminUser } from "@/utils/admin";
 
 type DeleteTarget = {
 	id: number;
@@ -32,6 +33,7 @@ export default function ReviewsPage() {
 	const [error, setError] = useState("");
 	const [statusMessage, setStatusMessage] = useState("");
 	const [profile, setProfile] = useState<UserProfileWithId | null>(null);
+	const [currentUser, setCurrentUser] = useState<UserProfileWithId | null>(null);
 	const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
 	const [editingRating, setEditingRating] = useState(0);
 	const [editingText, setEditingText] = useState("");
@@ -42,6 +44,7 @@ export default function ReviewsPage() {
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 	const isPublicView = !!userId;
 	const token = useMemo(() => localStorage.getItem("access_token"), []);
+	const isAdmin = isAdminUser(currentUser);
 
 	const loadReviews = async () => {
 		setLoading(true);
@@ -68,6 +71,20 @@ export default function ReviewsPage() {
 
 		void loadReviews();
 	}, [navigate, token, isPublicView, userId]);
+
+	useEffect(() => {
+		if (!token) {
+			setCurrentUser(null);
+			return;
+		}
+
+		fetch(`${apiUrl}/me`, {
+			headers: { Authorization: `Bearer ${token}` },
+		})
+			.then((res) => (res.ok ? res.json() : null))
+			.then((data: UserProfileWithId | null) => setCurrentUser(data))
+			.catch(() => setCurrentUser(null));
+	}, [apiUrl, token]);
 
 	useEffect(() => {
 		if (!userId) {
@@ -128,7 +145,7 @@ export default function ReviewsPage() {
 	};
 
 	const handleDeleteReview = async () => {
-		if (!token || !deleteTarget || isPublicView) return;
+		if (!token || !deleteTarget || (isPublicView && !isAdmin)) return;
 
 		try {
 			await deleteUserReview(apiUrl, token, deleteTarget.id);
@@ -244,7 +261,7 @@ export default function ReviewsPage() {
 													</div>
 												</div>
 
-												{!isPublicView && (
+												{(!isPublicView || isAdmin) && (
 													<div className="flex shrink-0 items-center gap-2">
 														{isEditing ? (
 															<>
@@ -272,16 +289,18 @@ export default function ReviewsPage() {
 															</>
 														) : (
 															<>
-																<button
-																	type="button"
-																	onClick={() =>
-																		startEditing(review)
-																	}
-																	className="rounded-full p-2 text-arcade-white/70 transition hover:bg-arcade-white/10 hover:text-arcade-blue"
-																	aria-label={`Edit review for ${review.game_title}`}
-																>
-																	<Pencil className="h-4 w-4" />
-																</button>
+																{!isPublicView && (
+																	<button
+																		type="button"
+																		onClick={() =>
+																			startEditing(review)
+																		}
+																		className="rounded-full p-2 text-arcade-white/70 transition hover:bg-arcade-white/10 hover:text-arcade-blue"
+																		aria-label={`Edit review for ${review.game_title}`}
+																	>
+																		<Pencil className="h-4 w-4" />
+																	</button>
+																)}
 																<button
 																	type="button"
 																	onClick={() =>
@@ -366,7 +385,7 @@ export default function ReviewsPage() {
 							Delete review?
 						</h2>
 						<p className="mt-3 font-secondary text-sm text-arcade-white/70">
-							This will delete your review for "{deleteTarget.gameTitle}".
+							This will delete the review for "{deleteTarget.gameTitle}".
 						</p>
 						<div className="mt-6 flex justify-end gap-3">
 							<button

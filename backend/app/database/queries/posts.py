@@ -82,6 +82,20 @@ def delete_post(user_id: int, post_id: int) -> bool:
             return cur.rowcount > 0
 
 
+def delete_post_by_id(post_id: int) -> bool:
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                DELETE FROM posts
+                WHERE id = %s
+                """,
+                (post_id,),
+            )
+            conn.commit()
+            return cur.rowcount > 0
+
+
 def get_user_posts(user_id: int, offset: int = 0, limit: int = 50) -> list[dict]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:

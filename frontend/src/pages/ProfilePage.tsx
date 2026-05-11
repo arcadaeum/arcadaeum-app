@@ -20,6 +20,7 @@ import {
 } from "@/utils/collections";
 import { fetchUserReviews, getUserLibraryUrl } from "@/utils/game";
 import { createPost, deletePost, fetchUserPosts, updatePost } from "@/utils/posts";
+import { isAdminUser } from "@/utils/admin";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
 
 // This page is similar to the UserPage visually but uses the users ID from the URL
@@ -30,6 +31,7 @@ export default function ProfilePage() {
 	const { userId } = useParams<{ userId: string }>();
 	const navigate = useNavigate();
 	const [user, setUser] = useState<UserProfileWithId | null>(null);
+	const [currentUser, setCurrentUser] = useState<UserProfileWithId | null>(null);
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 	const [favorites, setFavorites] = useState<UserCollectionGame[]>([]);
 	const [wantToPlay, setWantToPlay] = useState<UserCollectionGame[]>([]);
@@ -56,6 +58,7 @@ export default function ProfilePage() {
 	const borderColor = getUserProfileBorderColor(user);
 	const displayName = getUserDisplayName(user);
 	const isOwnProfile = currentUserId === user?.id;
+	const canDeletePosts = isOwnProfile || isAdminUser(currentUser);
 	const currentlyPlayingEntry = isOwnProfile
 		? libraryEntries.find((entry) => entry.status === "currently_playing")
 		: null;
@@ -68,8 +71,14 @@ export default function ProfilePage() {
 				headers: { Authorization: `Bearer ${token}` },
 			})
 				.then((res) => res.json())
-				.then((data) => setCurrentUserId(data.id))
-				.catch(() => setCurrentUserId(null));
+				.then((data) => {
+					setCurrentUser(data);
+					setCurrentUserId(data.id);
+				})
+				.catch(() => {
+					setCurrentUser(null);
+					setCurrentUserId(null);
+				});
 		}
 	}, [apiUrl]);
 
@@ -486,9 +495,10 @@ export default function ProfilePage() {
 								key={post.id}
 								post={post}
 								apiUrl={apiUrl}
-								canManage={isOwnProfile}
+								canEdit={isOwnProfile}
+								canDelete={canDeletePosts}
 								onUpdate={isOwnProfile ? handleUpdatePost : undefined}
-								onDelete={isOwnProfile ? handleDeletePost : undefined}
+								onDelete={canDeletePosts ? handleDeletePost : undefined}
 							/>
 						))
 					) : (

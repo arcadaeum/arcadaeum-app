@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.database.queries.posts import (
     create_post,
     delete_post,
+    delete_post_by_id,
     get_following_posts,
     get_post_with_user,
     get_user_posts,
@@ -10,6 +11,7 @@ from app.database.queries.posts import (
 )
 from app.database.queries.users import get_user_by_id
 from app.models import CreatePostRequest, PostWithUser, UpdatePostRequest, User
+from app.services.admin import is_admin_user
 from app.services.auth import get_current_user
 
 router = APIRouter(tags=["posts"])
@@ -60,7 +62,11 @@ def update_user_post(
 
 @router.delete("/users/me/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user_post(post_id: int, current_user: User = Depends(get_current_user)) -> None:
-    deleted = delete_post(current_user.id, post_id)
+    deleted = (
+        delete_post_by_id(post_id)
+        if is_admin_user(current_user)
+        else delete_post(current_user.id, post_id)
+    )
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 

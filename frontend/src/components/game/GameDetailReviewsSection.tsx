@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 
 import type { ArcadaeumReview, GameReview } from "@/types/gameDetail";
-import { createGameReview, deleteGameReview, fetchGameReviews } from "@/utils/game";
+import { createGameReview, deleteUserReview, fetchGameReviews } from "@/utils/game";
+import { isAdminUser } from "@/utils/admin";
+import type { UserProfileWithId } from "@/types/user";
 import AddReviewModal from "./AddReviewModal";
 import RatingStarBar from "./RatingStarBar";
 import ArcadaeumRating from "./ArcadaeumRating";
@@ -35,6 +37,7 @@ export default function GameDetailReviewsSection({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+	const [isAdmin, setIsAdmin] = useState(false);
 	const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -54,6 +57,7 @@ export default function GameDetailReviewsSection({
 		const token = localStorage.getItem("access_token");
 		if (!token) {
 			setCurrentUserId(null);
+			setIsAdmin(false);
 			return;
 		}
 
@@ -63,13 +67,15 @@ export default function GameDetailReviewsSection({
 			},
 		})
 			.then((response) => (response.ok ? response.json() : null))
-			.then((data) => {
+			.then((data: UserProfileWithId | null) => {
 				if (data && typeof data.id === "number") {
 					setCurrentUserId(data.id);
+					setIsAdmin(isAdminUser(data));
 				}
 			})
 			.catch(() => {
 				setCurrentUserId(null);
+				setIsAdmin(false);
 			});
 	}, [apiUrl]);
 
@@ -132,7 +138,7 @@ export default function GameDetailReviewsSection({
 		setDeleteError(null);
 
 		try {
-			await deleteGameReview(apiUrl, token, gameId);
+			await deleteUserReview(apiUrl, token, reviewId);
 			setReviews((prev) => prev.filter((review) => review.id !== reviewId));
 		} catch (deleteErr) {
 			const error = deleteErr as Error & { status?: number };
@@ -156,18 +162,6 @@ export default function GameDetailReviewsSection({
 			<div className="flex items-center justify-between">
 				<h2 className="text-2xl font-title">Reviews</h2>
 				<div className="flex items-center gap-3">
-					{currentUserReview ? (
-						<button
-							type="button"
-							disabled={deletingReviewId === currentUserReview.id}
-							onClick={() => handleDeleteReview(currentUserReview.id)}
-							className="text-xs text-red-300 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-60"
-						>
-							{deletingReviewId === currentUserReview.id
-								? "Deleting..."
-								: "Delete review"}
-						</button>
-					) : null}
 					<button
 						onClick={handleOpenModal}
 						className="text-arcade-white border border-arcade-white rounded px-4 py-2 hover:bg-arcade-white hover:text-arcade-black transition-colors duration-200"
@@ -186,34 +180,50 @@ export default function GameDetailReviewsSection({
 			) : (
 				<div className="grid gap-4 mt-2">
 					{deleteError ? <p className="text-sm text-red-300">{deleteError}</p> : null}
-					{orderedReviews.map((review) => (
-						<div key={review.id} className="bg-arcade-black/60 rounded-lg p-3">
-							<div className="flex items-center justify-between text-sm font-default text-gray-300">
-								<span>
-									{review.display_name ?? review.username} ·{" "}
-									{formatReviewDate(review.created_at)}
-								</span>
-								<div className="flex items-center gap-3">
-									<div className="flex items-center gap-2">
-										<RatingStarBar
-											value={review.rating}
-											disabled
-											className="mt-0"
-										/>
+					{orderedReviews.map((review) => {
+						const canDeleteReview = isAdmin || review.user_id === currentUserId;
+
+						return (
+							<div key={review.id} className="bg-arcade-black/60 rounded-lg p-3">
+								<div className="flex items-center justify-between text-sm font-default text-gray-300">
+									<span>
+										{review.display_name ?? review.username} ·{" "}
+										{formatReviewDate(review.created_at)}
+									</span>
+									<div className="flex items-center gap-3">
+										{canDeleteReview ? (
+											<button
+												type="button"
+												disabled={deletingReviewId === review.id}
+												onClick={() => handleDeleteReview(review.id)}
+												className="text-xs text-red-300 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-60"
+											>
+												{deletingReviewId === review.id
+													? "Deleting..."
+													: "Delete"}
+											</button>
+										) : null}
+										<div className="flex items-center gap-2">
+											<RatingStarBar
+												value={review.rating}
+												disabled
+												className="mt-0"
+											/>
+										</div>
 									</div>
 								</div>
+								{review.review_text ? (
+									<div className="mt-2 text-md font-default text-gray-200">
+										{review.review_text}
+									</div>
+								) : (
+									<div className="mt-2 text-sm text-arcade-white/50">
+										No written review.
+									</div>
+								)}
 							</div>
-							{review.review_text ? (
-								<div className="mt-2 text-md font-default text-gray-200">
-									{review.review_text}
-								</div>
-							) : (
-								<div className="mt-2 text-sm text-arcade-white/50">
-									No written review.
-								</div>
-							)}
-						</div>
-					))}
+						);
+					})}
 				</div>
 			)}
 
