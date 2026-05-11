@@ -31,3 +31,9 @@ class ReviewCreateRequest(BaseModel):
 class ReviewUpdateRequest(BaseModel):
     rating: int = Field(ge=1, le=10)
     review_text: Optional[str] = None
+
+
+class ArcadaeumReview(BaseModel):
+    game_id: int
+    average_rating: float
+    total_reviews: int

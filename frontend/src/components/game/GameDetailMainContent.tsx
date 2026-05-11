@@ -1,4 +1,5 @@
 import type { Game } from "@/types/game";
+import type { ArcadaeumReview } from "@/types/gameDetail";
 import { getReleaseYear } from "@/utils/game/detail";
 import { GameDetailReviewsSection } from "@/components/game";
 
@@ -6,6 +7,7 @@ type GameDetailMainContentProps = {
 	game: Game | null;
 	apiUrl: string;
 	gameId: string | number;
+	arcadaeumReview?: ArcadaeumReview | null;
 	onRequireSignIn: () => void;
 };
 
@@ -13,6 +15,7 @@ export default function GameDetailMainContent({
 	game,
 	apiUrl,
 	gameId,
+	arcadaeumReview,
 	onRequireSignIn,
 }: GameDetailMainContentProps) {
 	return (
@@ -51,6 +54,7 @@ export default function GameDetailMainContent({
 				apiUrl={apiUrl}
 				gameId={gameId}
 				gameTitle={game?.title}
+				arcadaeumReview={arcadaeumReview}
 				onRequireSignIn={onRequireSignIn}
 			/>
 		</div>

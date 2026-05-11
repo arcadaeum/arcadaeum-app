@@ -3,11 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import { GameDetailArtwork, GameDetailMainContent, GameDetailSidebar } from "@/components/game";
 import type { Game } from "@/types/game";
+import type { ArcadaeumReview } from "@/types/gameDetail";
 import {
 	fetchGameDetail,
 	fetchLibraryEntry,
 	setCurrentlyPlaying,
 	toggleLibrary,
+	fetchArcadaeumReview,
 } from "@/utils/game/detail";
 import {
 	fetchCollections,
@@ -27,6 +29,8 @@ export default function GameDetailPage() {
 
 	const [favourited, setFavourited] = useState(false);
 	const [favouritesCollectionId, setFavouritesCollectionId] = useState<number | null>(null);
+
+	const [arcadaeumReview, setArcadaeumReview] = useState<ArcadaeumReview | null>(null);
 
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 
@@ -84,6 +88,19 @@ export default function GameDetailPage() {
 			.catch(() => {
 				setFavourited(false);
 				setFavouritesCollectionId(null);
+			});
+	}, [apiUrl, id]);
+
+	// Fetch aggregated Arcadaeum review
+	useEffect(() => {
+		if (!id) return;
+
+		fetchArcadaeumReview(apiUrl, id)
+			.then((review) => {
+				setArcadaeumReview(review);
+			})
+			.catch(() => {
+				setArcadaeumReview(null);
 			});
 	}, [apiUrl, id]);
 
@@ -189,6 +206,7 @@ export default function GameDetailPage() {
 						game={game}
 						apiUrl={apiUrl}
 						gameId={id}
+						arcadaeumReview={arcadaeumReview}
 						onRequireSignIn={() => navigate("/signin")}
 					/>
 					<GameDetailSidebar game={game} />
