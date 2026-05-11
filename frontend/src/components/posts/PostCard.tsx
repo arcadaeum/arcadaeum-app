@@ -8,6 +8,8 @@ type PostCardProps = {
 	post: SocialPost;
 	apiUrl: string;
 	canManage?: boolean;
+	canDelete?: boolean;
+	canEdit?: boolean;
 	compact?: boolean;
 	profilePath?: string;
 	onUpdate?: (postId: number, content: string) => Promise<void>;
@@ -29,6 +31,8 @@ export default function PostCard({
 	post,
 	apiUrl,
 	canManage = false,
+	canDelete,
+	canEdit,
 	compact = false,
 	profilePath,
 	onUpdate,
@@ -43,6 +47,8 @@ export default function PostCard({
 	const profileImage = post.profile_picture
 		? getUserProfileImageProxyUrl(apiUrl, post.profile_picture)
 		: null;
+	const showEditControl = canEdit ?? canManage;
+	const showDeleteControl = canDelete ?? canManage;
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -98,29 +104,33 @@ export default function PostCard({
 								{formatPostDate(post.created_at) ? ` - ${formatPostDate(post.created_at)}` : ""}
 							</div>
 						</div>
-						{canManage && !isEditing && (
+						{(showEditControl || showDeleteControl) && !isEditing && (
 							<div className="flex items-center gap-2">
-								<button
-									type="button"
-									onClick={() => {
-										setDraft(post.content);
-										setIsEditing(true);
-										setError("");
-									}}
-									className="rounded-full border border-arcade-white/20 p-2 text-arcade-white/70 transition hover:text-arcade-blue"
-									aria-label="Edit post"
-								>
-									<Pencil className="size-4" />
-								</button>
-								<button
-									type="button"
-									onClick={handleDelete}
-									disabled={busy}
-									className="rounded-full border border-arcade-white/20 p-2 text-arcade-white/70 transition hover:text-red-300 disabled:opacity-50"
-									aria-label="Delete post"
-								>
-									<Trash2 className="size-4" />
-								</button>
+								{showEditControl && (
+									<button
+										type="button"
+										onClick={() => {
+											setDraft(post.content);
+											setIsEditing(true);
+											setError("");
+										}}
+										className="rounded-full border border-arcade-white/20 p-2 text-arcade-white/70 transition hover:text-arcade-blue"
+										aria-label="Edit post"
+									>
+										<Pencil className="size-4" />
+									</button>
+								)}
+								{showDeleteControl && (
+									<button
+										type="button"
+										onClick={handleDelete}
+										disabled={busy}
+										className="rounded-full border border-arcade-white/20 p-2 text-arcade-white/70 transition hover:text-red-300 disabled:opacity-50"
+										aria-label="Delete post"
+									>
+										<Trash2 className="size-4" />
+									</button>
+								)}
 							</div>
 						)}
 					</div>
@@ -168,7 +178,7 @@ export default function PostCard({
 		</article>
 	);
 
-	if (profilePath && !canManage && !isEditing) {
+	if (profilePath && !showEditControl && !showDeleteControl && !isEditing) {
 		return (
 			<Link to={profilePath} className="block transition hover:scale-[1.01]">
 				{card}

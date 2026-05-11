@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.database.queries.reviews import (
     add_review,
+    delete_any_review_by_id,
     delete_review,
     delete_review_by_id,
     get_reviews_for_user,
@@ -22,6 +23,7 @@ from app.models import (
     User,
     ArcadaeumReview,
 )
+from app.services.admin import is_admin_user
 from app.services.auth import get_current_user
 
 router = APIRouter()
@@ -53,9 +55,7 @@ def update_current_user_review(
     current_user: User = Depends(get_current_user),
 ) -> ReviewWithGame:
     """Update one of the current user's reviews."""
-    updated = update_review(
-        current_user.id, review_id, request.rating, request.review_text
-    )
+    updated = update_review(current_user.id, review_id, request.rating, request.review_text)
     if not updated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")
 
@@ -71,7 +71,11 @@ def delete_current_user_review(
     current_user: User = Depends(get_current_user),
 ) -> None:
     """Delete one of the current user's reviews."""
-    deleted = delete_review_by_id(current_user.id, review_id)
+    deleted = (
+        delete_any_review_by_id(review_id)
+        if is_admin_user(current_user)
+        else delete_review_by_id(current_user.id, review_id)
+    )
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")
 
@@ -107,18 +111,14 @@ def create_game_review(
 ) -> Review:
     """Create a review for a game by the current user."""
     try:
-        review_id = add_review(
-            current_user.id, game_id, request.rating, request.review_text
-        )
+        review_id = add_review(current_user.id, game_id, request.rating, request.review_text)
     except psycopg.errors.UniqueViolation:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Review already exists for this game",
         )
     except psycopg.errors.ForeignKeyViolation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Game not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
 
     review = get_review_with_user(review_id)
     if review is None:
@@ -128,12 +128,8 @@ def create_game_review(
 
 
 @router.delete("/games/{game_id}/reviews", status_code=status.HTTP_204_NO_CONTENT)
-def delete_game_review(
-    game_id: int, current_user: User = Depends(get_current_user)
-) -> None:
+def delete_game_review(game_id: int, current_user: User = Depends(get_current_user)) -> None:
     """Delete the current user's review for a game."""
     deleted = delete_review(current_user.id, game_id)
     if not deleted:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Review not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")

@@ -1,6 +1,8 @@
 import app.routes.reviews as reviews_routes
-from app.models import ArcadaeumReview
-from tests.test_helpers import MockConnection, MockCursor, build_test_client
+from app.models import ArcadaeumReview, User
+from app.services.auth import get_current_user
+from fastapi.testclient import TestClient
+from tests.test_helpers import MockConnection, MockCursor, build_test_app, build_test_client
 
 
 def test_get_game_arcadaeum_review(monkeypatch):
@@ -77,3 +79,32 @@ def test_get_game_arcadaeum_review_many_reviews(monkeypatch):
     data = response.json()
     assert data["total_reviews"] == 5
     assert abs(data["average_rating"] - 5.8) < 0.01  # Account for floating point precision
+
+
+def test_admin_can_delete_any_review(monkeypatch):
+    deleted = {}
+
+    def fake_delete_any_review_by_id(review_id: int) -> bool:
+        deleted["review_id"] = review_id
+        return True
+
+    monkeypatch.setattr(reviews_routes, "delete_any_review_by_id", fake_delete_any_review_by_id)
+    monkeypatch.setattr(
+        reviews_routes,
+        "delete_review_by_id",
+        lambda user_id, review_id: (_ for _ in ()).throw(AssertionError("owner delete used")),
+    )
+
+    app = build_test_app(reviews_routes.router)
+    app.dependency_overrides[get_current_user] = lambda: User(
+        id=99,
+        username="admin",
+        email="arcadaeum@gmail.com",
+        display_name="Arcadaeum",
+        profile_picture=None,
+    )
+    client = TestClient(app)
+    response = client.delete("/users/me/reviews/456")
+
+    assert response.status_code == 204
+    assert deleted == {"review_id": 456}

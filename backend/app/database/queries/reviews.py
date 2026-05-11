@@ -3,9 +3,7 @@ from typing import Optional
 from app.database import get_database_connection
 
 
-def add_review(
-    user_id: int, game_id: int, rating: int, review_text: Optional[str]
-) -> int:
+def add_review(user_id: int, game_id: int, rating: int, review_text: Optional[str]) -> int:
     """Add a review for a game by a user. Returns the review ID."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:
@@ -112,9 +110,24 @@ def delete_review_by_id(user_id: int, review_id: int) -> bool:
             return result is not None
 
 
-def update_review(
-    user_id: int, review_id: int, rating: int, review_text: Optional[str]
-) -> bool:
+def delete_any_review_by_id(review_id: int) -> bool:
+    """Delete any review by ID."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                DELETE FROM reviews
+                WHERE id = %s
+                RETURNING id
+                """,
+                (review_id,),
+            )
+            result = cur.fetchone()
+            conn.commit()
+            return result is not None
+
+
+def update_review(user_id: int, review_id: int, rating: int, review_text: Optional[str]) -> bool:
     """Update a review by ID for a user."""
     with get_database_connection() as conn:
         with conn.cursor() as cur:

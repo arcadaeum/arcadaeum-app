@@ -32,6 +32,18 @@ def _client_with_user():
     return TestClient(app)
 
 
+def _client_with_admin():
+    app = build_test_app(posts_routes.router)
+    app.dependency_overrides[get_current_user] = lambda: User(
+        id=99,
+        username="admin",
+        email="arcadaeum@gmail.com",
+        display_name="Arcadaeum",
+        profile_picture=None,
+    )
+    return TestClient(app)
+
+
 def test_create_post_trims_content_and_returns_post(monkeypatch):
     created = {}
 
@@ -85,3 +97,24 @@ def test_list_following_feed_returns_followed_user_posts(monkeypatch):
     assert response.status_code == 200
     assert response.json()[0]["user_id"] == 20
     assert response.json()[0]["content"] == "Feed post"
+
+
+def test_admin_can_delete_any_post(monkeypatch):
+    deleted = {}
+
+    def fake_delete_post_by_id(post_id: int) -> bool:
+        deleted["post_id"] = post_id
+        return True
+
+    monkeypatch.setattr(posts_routes, "delete_post_by_id", fake_delete_post_by_id)
+    monkeypatch.setattr(
+        posts_routes,
+        "delete_post",
+        lambda user_id, post_id: (_ for _ in ()).throw(AssertionError("owner delete used")),
+    )
+
+    client = _client_with_admin()
+    response = client.delete("/users/me/posts/123")
+
+    assert response.status_code == 204
+    assert deleted == {"post_id": 123}

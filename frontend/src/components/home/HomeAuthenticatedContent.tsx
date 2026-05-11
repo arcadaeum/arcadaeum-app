@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { PostCard } from "@/components/posts";
 import type { SocialPost } from "@/types/posts";
-import { fetchFollowingPosts } from "@/utils/posts";
+import type { UserProfileWithId } from "@/types/user";
+import { deletePost, fetchFollowingPosts } from "@/utils/posts";
+import { isAdminUser } from "@/utils/admin";
 import { getUserDisplayName } from "@/utils/user";
 
 type NewsItem = {
@@ -12,6 +14,7 @@ type NewsItem = {
 
 export default function HomeAuthenticatedContent() {
 	const [displayName, setDisplayName] = useState<string | null>(null);
+	const [currentUser, setCurrentUser] = useState<UserProfileWithId | null>(null);
 	const [news, setNews] = useState<NewsItem[]>([]);
 	const [feedPosts, setFeedPosts] = useState<SocialPost[]>([]);
 	const [feedLoading, setFeedLoading] = useState(false);
@@ -29,9 +32,11 @@ export default function HomeAuthenticatedContent() {
 			})
 			.then((data) => {
 				if (!data) return;
+				setCurrentUser(data);
 				setDisplayName(getUserDisplayName(data, "Player"));
 			})
 			.catch(() => {
+				setCurrentUser(null);
 				/* ignore */
 			});
 	}, [apiUrl]);
@@ -74,6 +79,16 @@ export default function HomeAuthenticatedContent() {
 	}, [apiUrl]);
 
 	const nameToShow = displayName ?? localStorage.getItem("username") ?? "Player";
+	const handleDeletePost = async (postId: number) => {
+		const token = localStorage.getItem("access_token");
+		if (!token) {
+			throw new Error("You must be logged in to delete posts.");
+		}
+
+		await deletePost(apiUrl, token, postId);
+		setFeedPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId));
+	};
+
 	return (
 		<div className="relative w-full min-h-screen px-4 pb-16">
 			<section className="w-full max-w-6xl mx-auto pt-28">
@@ -147,6 +162,10 @@ export default function HomeAuthenticatedContent() {
 									apiUrl={apiUrl}
 									compact
 									profilePath={`/users/${post.user_id}`}
+									canDelete={isAdminUser(currentUser)}
+									onDelete={
+										isAdminUser(currentUser) ? handleDeletePost : undefined
+									}
 								/>
 							))
 						) : (
