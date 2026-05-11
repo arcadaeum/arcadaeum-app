@@ -40,7 +40,7 @@
 /* Global styles */
 body {
 	font-family: var(--font-default);
-	background-color: var(--color-arcade-black);
+	background-color: black;
 	color: white;
 }
 
@@ -61,4 +61,15 @@ body {
 .sparkle-pop {
 	animation: sparkle-pop 500ms ease-out;
 	filter: drop-shadow(0 0 6px rgba(86, 71, 241, 0.7));
+}
+
+.settings-panel-gradient {
+	background:
+		linear-gradient(
+			180deg,
+			rgba(86, 71, 241, 0.4) 0%,
+			rgba(55, 176, 234, 0.2) 35%,
+			rgba(25, 22, 23, 0.95) 100%
+		),
+		linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(25, 22, 23, 0.4) 45%, #191617 100%);
 }
