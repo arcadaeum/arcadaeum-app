@@ -11,6 +11,10 @@ export interface SteamUnlinkResponse {
 	message: string;
 }
 
+export interface SteamVerificationResponse {
+	redirect_url: string;
+}
+
 /**
  * Link a Steam account to the user's Arcadaeum account
  * @param steamUrl - Steam ID, Steam URL, or Steam vanity URL
@@ -58,4 +62,28 @@ export async function unlinkSteamAccount(token: string): Promise<SteamUnlinkResp
 	}
 
 	return response.json();
+}
+
+/**
+ * Start Steam OpenID verification (verified account linking)
+ * Redirects to Steam login for secure verification
+ * @param token - Authentication token
+ */
+export async function startSteamVerification(token: string): Promise<void> {
+	const response = await fetch(`${apiUrl}/steam/verify-start`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	if (!response.ok) {
+		const error = await response.json();
+		throw new Error(error.detail || "Failed to start Steam verification");
+	}
+
+	const data: SteamVerificationResponse = await response.json();
+	// Redirect to Steam login
+	window.location.href = data.redirect_url;
 }

@@ -55,3 +55,15 @@ class SteamGameUnmatched(BaseModel):
     steam_name: str
     playtime_forever: int
     playtime_2weeks: int
+
+
+class SteamVerificationRequest(BaseModel):
+    """Request to start Steam OpenID verification."""
+
+    pass  # No fields needed, uses current_user from JWT
+
+
+class SteamVerificationResponse(BaseModel):
+    """Response with Steam OpenID login URL."""
+
+    redirect_url: str
