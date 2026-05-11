@@ -1,6 +1,105 @@
+import os
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
+from fastapi import HTTPException
+
 from app.database.connection import get_database_connection
 from app.database.queries.games import add_game_to_db
+from app.database.queries.news import (
+    get_cached_news_articles,
+    get_news_cache_fetched_at,
+    replace_cached_news_articles,
+)
 from app.services.igdb_service import IGDBService
+from app.services.news import DEFAULT_GAME_NEWS_QUERY, NewsApiService
+
+NEWS_CACHE_TTL = timedelta(hours=24)
+
+
+def get_news_cache_refresh_limit() -> int:
+    configured_limit = os.getenv("NEWS_CACHE_REFRESH_LIMIT", "10")
+    try:
+        return max(1, int(configured_limit))
+    except ValueError:
+        return 10
+
+
+def is_news_cache_fresh(fetched_at: datetime | None) -> bool:
+    if fetched_at is None:
+        return False
+
+    if fetched_at.tzinfo is None:
+        fetched_at = fetched_at.replace(tzinfo=timezone.utc)
+
+    return datetime.now(timezone.utc) - fetched_at < NEWS_CACHE_TTL
+
+
+def get_game_news(
+    query: str = DEFAULT_GAME_NEWS_QUERY,
+    language: str = "en",
+    country: str = "us",
+    limit: int = 10,
+) -> list[dict[str, Any]]:
+    """Return cached game news, refreshing from GNews once the cache is stale."""
+    cache_query = query.strip() or DEFAULT_GAME_NEWS_QUERY
+    cached_articles = get_cached_news_articles(
+        query=cache_query,
+        language=language,
+        country=country,
+        limit=limit,
+    )
+    fetched_at = get_news_cache_fetched_at(
+        query=cache_query,
+        language=language,
+        country=country,
+    )
+
+    if cached_articles and is_news_cache_fresh(fetched_at):
+        return cached_articles
+
+    try:
+        cache_game_news(
+            query=cache_query,
+            language=language,
+            country=country,
+            limit=max(limit, get_news_cache_refresh_limit()),
+        )
+    except HTTPException:
+        if cached_articles:
+            return cached_articles
+        raise
+
+    return get_cached_news_articles(
+        query=cache_query,
+        language=language,
+        country=country,
+        limit=limit,
+    )
+
+
+def cache_game_news(
+    query: str = DEFAULT_GAME_NEWS_QUERY,
+    language: str = "en",
+    country: str = "us",
+    limit: int = 10,
+) -> dict[str, str]:
+    """Fetch game news from GNews and store it in the news cache table."""
+    cache_query = query.strip() or DEFAULT_GAME_NEWS_QUERY
+    news_service = NewsApiService()
+    articles = news_service.search_news(
+        query=cache_query,
+        language=language,
+        country=country,
+        limit=limit,
+    )
+    replace_cached_news_articles(
+        query=cache_query,
+        articles=articles,
+        language=language,
+        country=country,
+    )
+    return {"message": f"Successfully cached {len(articles)} news articles"}
 
 
 def cache_popular_games(limit: int = 500) -> dict[str, str]:
@@ -16,11 +115,7 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
             try:
                 igdb_id = game_data.get("id")
                 title = game_data.get("name")
-                if (
-                    not isinstance(igdb_id, int)
-                    or not isinstance(title, str)
-                    or not title
-                ):
+                if not isinstance(igdb_id, int) or not isinstance(title, str) or not title:
                     continue
 
                 cover_url: str | None = None
@@ -28,7 +123,9 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
                 if isinstance(cover, dict):
                     image_id = cover.get("image_id")
                     if isinstance(image_id, str) and image_id:
-                        cover_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
+                        cover_url = (
+                            f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
+                        )
 
                 platform_names: list[str] = []
                 for platform in game_data.get("platforms", []):
@@ -80,15 +177,11 @@ def cache_popular_games(limit: int = 500) -> dict[str, str]:
                 developer = ", ".join(developer_names) if developer_names else None
 
                 first_release_date = game_data.get("first_release_date")
-                release_date = (
-                    first_release_date if isinstance(first_release_date, int) else None
-                )
+                release_date = first_release_date if isinstance(first_release_date, int) else None
 
                 total_rating = game_data.get("total_rating")
                 igdb_rating = (
-                    float(total_rating)
-                    if isinstance(total_rating, (int, float))
-                    else None
+                    float(total_rating) if isinstance(total_rating, (int, float)) else None
                 )
 
                 saved_id = add_game_to_db(
@@ -154,9 +247,7 @@ def add_default_users() -> dict[str, str]:
         with get_database_connection() as conn:
             with conn.cursor() as cur:
                 for user in default_users:
-                    cur.execute(
-                        "SELECT id FROM users WHERE email = %s", (user["email"],)
-                    )
+                    cur.execute("SELECT id FROM users WHERE email = %s", (user["email"],))
                     if cur.fetchone():
                         continue
 

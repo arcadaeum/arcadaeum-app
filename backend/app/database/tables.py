@@ -15,6 +15,7 @@ def create_tables() -> None:
     create_steam_verification_tokens_table()  # Creates the steam_verification_tokens table
     create_collections_table()  # Creates the collections table if it doesn't exist
     create_collection_games_table()  # Creates the collection_games table if it doesn't exist
+    create_news_articles_table()  # Creates the news_articles cache table if it doesn't exist
 
 
 def create_users_table() -> None:
@@ -228,5 +229,32 @@ def create_steam_verification_tokens_table() -> None:
                     expires_at timestamp NOT NULL,
                     verified boolean DEFAULT false,
                     verified_steam_id text)
+                """)
+            conn.commit()
+
+
+def create_news_articles_table() -> None:
+    """Creates the cached news articles table if it doesn't exist."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS news_articles (
+                    id serial PRIMARY KEY,
+                    query text NOT NULL,
+                    language text NOT NULL,
+                    country text NOT NULL,
+                    title text NOT NULL,
+                    description text,
+                    content text,
+                    url text NOT NULL,
+                    image_url text,
+                    published_at timestamp,
+                    source text,
+                    fetched_at timestamp DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(query, language, country, url))
+                """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS news_articles_lookup_idx
+                ON news_articles (query, language, country, fetched_at DESC)
                 """)
             conn.commit()

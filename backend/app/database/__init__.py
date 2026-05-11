@@ -21,6 +21,11 @@ from app.database.queries.followers import (
     remove_user_follower,
 )
 from app.database.queries.games import add_game_to_db
+from app.database.queries.news import (
+    get_cached_news_articles,
+    get_news_cache_fetched_at,
+    replace_cached_news_articles,
+)
 from app.database.queries.password_reset import (
     create_password_reset_token,
     get_password_reset_token,
@@ -56,6 +61,7 @@ from app.database.tables import (
     create_collection_games_table,
     create_collections_table,
     create_games_table,
+    create_news_articles_table,
     create_password_reset_table,
     create_posts_table,
     create_reviews_table,
@@ -73,6 +79,7 @@ __all__ = [
     "create_tables",
     "create_users_table",
     "create_games_table",
+    "create_news_articles_table",
     "create_reviews_table",
     "create_posts_table",
     "create_user_library_table",
@@ -88,6 +95,9 @@ __all__ = [
     "get_user_by_id",
     "update_user_display_name",
     "add_game_to_db",
+    "get_cached_news_articles",
+    "get_news_cache_fetched_at",
+    "replace_cached_news_articles",
     "add_user_follower",
     "remove_user_follower",
     "is_following",
