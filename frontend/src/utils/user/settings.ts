@@ -8,21 +8,25 @@ export interface UserProfile {
 	email: string;
 	display_name?: string;
 	profile_picture?: string;
-	oauth_provider?: string;
+	oauth_provider?: string | null;
 }
 
 export async function changeUsername(
 	token: string,
 	newUsername: string,
-	password: string,
+	password: string | null, // null for OAuth users — backend accepts missing field
 ): Promise<UserProfile> {
+	const payload: Record<string, string> = { new_username: newUsername };
+	if (password !== null) {
+		payload.password = password;
+	}
 	const res = await fetch(`${API_URL}/me/username`, {
 		method: "PATCH",
 		headers: {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${token}`,
 		},
-		body: JSON.stringify({ new_username: newUsername, password }),
+		body: JSON.stringify(payload),
 	});
 	if (!res.ok) {
 		const errorData = await res.json().catch(() => ({}));
@@ -66,14 +70,21 @@ export async function changePassword(
 	}
 }
 
-export async function deleteAccount(token: string, password: string): Promise<void> {
+export async function deleteAccount(
+	token: string,
+	password: string | null, // null for OAuth users — backend accepts empty body {}
+): Promise<void> {
+	const payload: Record<string, string> = {};
+	if (password !== null) {
+		payload.password = password;
+	}
 	const res = await fetch(`${API_URL}/me`, {
 		method: "DELETE",
 		headers: {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${token}`,
 		},
-		body: JSON.stringify({ password }),
+		body: JSON.stringify(payload),
 	});
 	if (!res.ok) {
 		const errorData = await res.json().catch(() => ({}));

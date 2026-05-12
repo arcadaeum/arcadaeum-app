@@ -18,6 +18,7 @@ class User(BaseModel):
     email: str
     display_name: Optional[str] = None
     profile_picture: Optional[str] = None
+    oauth_provider: Optional[str] = None  # FIX: was missing — caused isOAuth to always be False
 
 
 class UserInDB(User):

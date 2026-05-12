@@ -17,6 +17,7 @@ import {
 import { unlinkSteamAccount, getSteamAccount } from "@/utils/user/api";
 import { startSteamVerification } from "@/utils/user/steam";
 import {
+	type UserProfile,
 	changeUsername,
 	changeDisplayName,
 	changePassword,
@@ -34,6 +35,14 @@ interface StatusAlertProps {
 	message: string;
 	variant: AlertVariant;
 	onDismiss: () => void;
+}
+
+// FIX: typed user as UserProfile instead of any
+interface PanelProps {
+	token: string;
+	user: UserProfile;
+	onStatusChange: (message: string, variant: AlertVariant) => void;
+	onUserUpdate?: (user: UserProfile | null) => void;
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -123,29 +132,36 @@ function SectionRow({
 	);
 }
 
-// ─── Section panels ──────────────────────────────────────────────────────────
+// ─── Section panels ───────────────────────────────────────────────────────────
 
-interface PanelProps {
-	token: string;
-	onStatusChange: (message: string, variant: AlertVariant) => void;
-	onUserUpdate?: (user: any) => void;
-}
-
-function ChangeUsernamePanel({ token, onStatusChange, onUserUpdate }: PanelProps) {
+function ChangeUsernamePanel({ token, user, onStatusChange, onUserUpdate }: PanelProps) {
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newUsername, setNewUsername] = useState("");
 	const [loading, setLoading] = useState(false);
 
+	const isOAuth = user.oauth_provider != null;
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!newUsername.trim() || !currentPassword.trim()) {
-			onStatusChange("Please fill in all fields.", "error");
+		if (!newUsername.trim()) {
+			onStatusChange("Please enter a new username.", "error");
+			return;
+		}
+		if (!isOAuth && !currentPassword.trim()) {
+			onStatusChange("Please enter your password.", "error");
 			return;
 		}
 		setLoading(true);
 		try {
-			const updatedUser = await changeUsername(token, newUsername.trim(), currentPassword);
-			onStatusChange("Username updated successfully.", "success");
+			const updatedUser = await changeUsername(
+				token,
+				newUsername.trim(),
+				isOAuth ? null : currentPassword.trim(),
+			);
+			onStatusChange(
+				"Username updated successfully. Please sign in again for the change to take full effect.",
+				"success",
+			);
 			if (onUserUpdate) onUserUpdate(updatedUser);
 			setNewUsername("");
 			setCurrentPassword("");
@@ -178,19 +194,21 @@ function ChangeUsernamePanel({ token, onStatusChange, onUserUpdate }: PanelProps
 						className="w-full px-4 py-2.5 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-arcade-blue focus:outline-none transition-colors text-sm"
 					/>
 				</div>
-				<div>
-					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
-						Current Password
-					</label>
-					<input
-						type="password"
-						value={currentPassword}
-						onChange={(e) => setCurrentPassword(e.target.value)}
-						placeholder="Confirm your identity"
-						autoComplete="current-password"
-						className="w-full px-4 py-2.5 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-arcade-blue focus:outline-none transition-colors text-sm"
-					/>
-				</div>
+				{!isOAuth && (
+					<div>
+						<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
+							Current Password
+						</label>
+						<input
+							type="password"
+							value={currentPassword}
+							onChange={(e) => setCurrentPassword(e.target.value)}
+							placeholder="Confirm your identity"
+							autoComplete="current-password"
+							className="w-full px-4 py-2.5 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-arcade-blue focus:outline-none transition-colors text-sm"
+						/>
+					</div>
+				)}
 				<button
 					type="submit"
 					disabled={loading}
@@ -261,11 +279,13 @@ function ChangeDisplayNamePanel({ token, onStatusChange, onUserUpdate }: PanelPr
 	);
 }
 
-function ChangePasswordPanel({ token, onStatusChange }: PanelProps) {
+function ChangePasswordPanel({ token, user, onStatusChange }: PanelProps) {
 	const [oldPassword, setOldPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [loading, setLoading] = useState(false);
+
+	const isOAuth = user.oauth_provider != null;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -294,6 +314,20 @@ function ChangePasswordPanel({ token, onStatusChange }: PanelProps) {
 			setLoading(false);
 		}
 	};
+
+	if (isOAuth) {
+		return (
+			<div className="animate-fade-in">
+				<h2 className="text-xl font-title tracking-tighter text-arcade-white mb-1">
+					Change Password
+				</h2>
+				<div className="bg-black border border-arcade-white/20 rounded-lg p-4 text-center text-arcade-white/60 font-default text-sm">
+					You signed in with Google, so you don't have a password. If you need to create
+					one, use the "Forgot password?" option on the sign-in page.
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="animate-fade-in">
@@ -451,21 +485,22 @@ function SteamAccountPanel({ token, onStatusChange }: PanelProps) {
 	);
 }
 
-function DeleteAccountPanel({ token, onStatusChange, onUserUpdate }: PanelProps) {
+function DeleteAccountPanel({ token, user, onStatusChange, onUserUpdate }: PanelProps) {
 	const [confirmation, setConfirmation] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const navigate = useNavigate();
 	const CONFIRM_PHRASE = "DELETE MY ACCOUNT";
+	const isOAuth = user.oauth_provider != null;
 
-	const canSubmit = confirmation === CONFIRM_PHRASE && password.trim().length > 0;
+	const canSubmit = confirmation === CONFIRM_PHRASE && (isOAuth || password.trim().length > 0);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!canSubmit) return;
 		setLoading(true);
 		try {
-			await deleteAccount(token, password);
+			await deleteAccount(token, isOAuth ? null : password);
 			localStorage.removeItem("access_token");
 			if (onUserUpdate) onUserUpdate(null);
 			navigate("/signin");
@@ -504,19 +539,21 @@ function DeleteAccountPanel({ token, onStatusChange, onUserUpdate }: PanelProps)
 						className="w-full px-4 py-2.5 bg-arcade-black border border-red-500/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-red-500 focus:outline-none transition-colors text-sm"
 					/>
 				</div>
-				<div>
-					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
-						Password
-					</label>
-					<input
-						type="password"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						placeholder="Confirm your identity"
-						autoComplete="current-password"
-						className="w-full px-4 py-2.5 bg-arcade-black border border-red-500/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-red-500 focus:outline-none transition-colors text-sm"
-					/>
-				</div>
+				{!isOAuth && (
+					<div>
+						<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
+							Password
+						</label>
+						<input
+							type="password"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							placeholder="Confirm your identity"
+							autoComplete="current-password"
+							className="w-full px-4 py-2.5 bg-arcade-black border border-red-500/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-red-500 focus:outline-none transition-colors text-sm"
+						/>
+					</div>
+				)}
 				<button
 					type="submit"
 					disabled={!canSubmit || loading}
@@ -605,7 +642,7 @@ function ReportBugPanel({ token, onStatusChange }: PanelProps) {
 export default function SettingsPage() {
 	const [activeSection, setActiveSection] = useState<SettingSection>(null);
 	const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
-	const [user, setUser] = useState<any>(null);
+	const [user, setUser] = useState<UserProfile | null>(null);
 	const navigate = useNavigate();
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 	const token = localStorage.getItem("access_token");
@@ -629,7 +666,7 @@ export default function SettingsPage() {
 				link_failed: "Failed to link Steam account. Please try again.",
 			};
 			setStatus({
-				message: errorMessages[errorCode] || "Steam verification failed",
+				message: errorMessages[errorCode ?? ""] || "Steam verification failed",
 				variant: "error",
 			});
 			window.history.replaceState({}, document.title, window.location.pathname);
@@ -649,7 +686,7 @@ export default function SettingsPage() {
 				if (!res.ok) throw new Error("Unauthorized");
 				return res.json();
 			})
-			.then(setUser)
+			.then((data: UserProfile) => setUser(data))
 			.catch(() => {
 				localStorage.removeItem("access_token");
 				navigate("/signin");
@@ -663,12 +700,13 @@ export default function SettingsPage() {
 	const clearStatus = () => setStatus(null);
 
 	const renderPanel = () => {
-		if (!token) return null;
-		const commonProps = {
+		if (!token || !user) return null;
+		const commonProps: PanelProps = {
 			token,
+			user,
 			onStatusChange: (message: string, variant: AlertVariant) =>
 				setStatus({ message, variant }),
-			onUserUpdate: setUser,
+			onUserUpdate: (updated) => setUser(updated),
 		};
 		switch (activeSection) {
 			case "username":
