@@ -79,7 +79,13 @@ app = FastAPI(title="Arcadaeum API", lifespan=lifespan)
 secret_key = os.getenv("SECRET_KEY")
 if not secret_key:
     raise RuntimeError("SECRET_KEY environment variable is not set")
-app.add_middleware(SessionMiddleware, secret_key=secret_key)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=secret_key,
+    session_cookie="arcadaeum_session",
+    same_site="none",
+    https_only=os.getenv("ENVIRONMENT", "").lower() == "production",
+)
 
 origins = [
     "http://localhost:5173",
