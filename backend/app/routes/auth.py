@@ -378,27 +378,3 @@ def delete_account(
         with conn.cursor() as cur:
             cur.execute("DELETE FROM users WHERE id = %s", (current_user.id,))
             conn.commit()
-
-
-class BugReportRequest(BaseModel):
-    title: str = Field(min_length=1, max_length=200)
-    description: str = Field(min_length=1)
-
-
-@router.post("/me/bug-reports", status_code=status.HTTP_201_CREATED)
-def report_bug(
-    req: BugReportRequest,
-    current_user: User = Depends(get_current_user),
-) -> dict[str, str]:
-    """Submit a bug report."""
-    with get_database_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO bug_reports (user_id, title, description)
-                VALUES (%s, %s, %s)
-                """,
-                (current_user.id, req.title, req.description),
-            )
-            conn.commit()
-    return {"message": "Bug report submitted successfully"}

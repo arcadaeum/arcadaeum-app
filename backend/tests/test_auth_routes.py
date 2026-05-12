@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import app.routes.auth as auth_routes
+import app.routes.bugs as bugs_routes
 from app.models.auth import User
 from app.services.auth import get_current_user
 from tests.test_helpers import MockConnection, MockCursor
@@ -33,10 +34,12 @@ def _get_current_user_oauth() -> User:
     )
 
 
-def build_test_client_with_user(user: User) -> TestClient:
+def build_test_client_with_user(user: User, router=None) -> TestClient:
     """Build a test client with a mocked current user."""
     app = FastAPI()
-    app.include_router(auth_routes.router)
+    if router is None:
+        router = auth_routes.router
+    app.include_router(router)
     app.dependency_overrides[get_current_user] = lambda: user
 
     return TestClient(app)
@@ -305,11 +308,13 @@ def test_change_username_valid_characters(monkeypatch):
 
 def test_report_bug_success(monkeypatch):
     """Test successfully submitting a bug report."""
-    test_cursor = MockCursor()
-    test_connection = MockConnection(test_cursor)
-    monkeypatch.setattr(auth_routes, "get_database_connection", lambda: test_connection)
 
-    client = build_test_client_with_user(_get_current_user_local())
+    def mock_create_bug_report(user_id, title, description):
+        return True
+
+    monkeypatch.setattr(bugs_routes, "create_bug_report", mock_create_bug_report)
+
+    client = build_test_client_with_user(_get_current_user_local(), router=bugs_routes.router)
     response = client.post(
         "/me/bug-reports",
         json={
@@ -320,23 +325,11 @@ def test_report_bug_success(monkeypatch):
 
     assert response.status_code == 201
     assert "success" in response.json()["message"].lower()
-    assert test_connection.committed
-
-    # Verify the SQL was executed with correct parameters
-    executed_queries = test_cursor.executed
-    assert len(executed_queries) > 0
-    query, params = executed_queries[0]
-    assert "INSERT INTO bug_reports" in query
-    assert params == (
-        1,
-        "Login button not working",
-        "The login button on the home page doesn't respond to clicks",
-    )
 
 
 def test_report_bug_missing_title(monkeypatch):
     """Test that bug report without title is rejected."""
-    client = build_test_client_with_user(_get_current_user_local())
+    client = build_test_client_with_user(_get_current_user_local(), router=bugs_routes.router)
     response = client.post(
         "/me/bug-reports",
         json={
@@ -349,7 +342,7 @@ def test_report_bug_missing_title(monkeypatch):
 
 def test_report_bug_empty_title(monkeypatch):
     """Test that bug report with empty title is rejected."""
-    client = build_test_client_with_user(_get_current_user_local())
+    client = build_test_client_with_user(_get_current_user_local(), router=bugs_routes.router)
     response = client.post(
         "/me/bug-reports",
         json={
@@ -363,7 +356,7 @@ def test_report_bug_empty_title(monkeypatch):
 
 def test_report_bug_title_too_long(monkeypatch):
     """Test that bug report with title longer than 200 characters is rejected."""
-    client = build_test_client_with_user(_get_current_user_local())
+    client = build_test_client_with_user(_get_current_user_local(), router=bugs_routes.router)
     response = client.post(
         "/me/bug-reports",
         json={
@@ -377,7 +370,7 @@ def test_report_bug_title_too_long(monkeypatch):
 
 def test_report_bug_missing_description(monkeypatch):
     """Test that bug report without description is rejected."""
-    client = build_test_client_with_user(_get_current_user_local())
+    client = build_test_client_with_user(_get_current_user_local(), router=bugs_routes.router)
     response = client.post(
         "/me/bug-reports",
         json={
@@ -390,7 +383,7 @@ def test_report_bug_missing_description(monkeypatch):
 
 def test_report_bug_empty_description(monkeypatch):
     """Test that bug report with empty description is rejected."""
-    client = build_test_client_with_user(_get_current_user_local())
+    client = build_test_client_with_user(_get_current_user_local(), router=bugs_routes.router)
     response = client.post(
         "/me/bug-reports",
         json={
@@ -404,13 +397,15 @@ def test_report_bug_empty_description(monkeypatch):
 
 def test_report_bug_long_description(monkeypatch):
     """Test that bug report with very long description is accepted."""
-    test_cursor = MockCursor()
-    test_connection = MockConnection(test_cursor)
-    monkeypatch.setattr(auth_routes, "get_database_connection", lambda: test_connection)
+
+    def mock_create_bug_report(user_id, title, description):
+        return True
+
+    monkeypatch.setattr(bugs_routes, "create_bug_report", mock_create_bug_report)
 
     long_description = "a" * 5000
 
-    client = build_test_client_with_user(_get_current_user_local())
+    client = build_test_client_with_user(_get_current_user_local(), router=bugs_routes.router)
     response = client.post(
         "/me/bug-reports",
         json={
@@ -420,16 +415,19 @@ def test_report_bug_long_description(monkeypatch):
     )
 
     assert response.status_code == 201
-    assert test_connection.committed
 
 
 def test_report_bug_oauth_user(monkeypatch):
     """Test that OAuth users can also submit bug reports."""
-    test_cursor = MockCursor()
-    test_connection = MockConnection(test_cursor)
-    monkeypatch.setattr(auth_routes, "get_database_connection", lambda: test_connection)
 
-    client = build_test_client_with_user(_get_current_user_oauth())
+    def mock_create_bug_report(user_id, title, description):
+        # Verify the correct user ID (2 for OAuth user)
+        assert user_id == 2
+        return True
+
+    monkeypatch.setattr(bugs_routes, "create_bug_report", mock_create_bug_report)
+
+    client = build_test_client_with_user(_get_current_user_oauth(), router=bugs_routes.router)
     response = client.post(
         "/me/bug-reports",
         json={
@@ -439,21 +437,17 @@ def test_report_bug_oauth_user(monkeypatch):
     )
 
     assert response.status_code == 201
-    assert test_connection.committed
-    # Verify user ID is correct for OAuth user
-    executed_queries = test_cursor.executed
-    assert len(executed_queries) > 0
-    query, params = executed_queries[0]
-    assert params[0] == 2  # OAuth user ID
 
 
 def test_report_bug_special_characters_in_title(monkeypatch):
     """Test that special characters in title are accepted."""
-    test_cursor = MockCursor()
-    test_connection = MockConnection(test_cursor)
-    monkeypatch.setattr(auth_routes, "get_database_connection", lambda: test_connection)
 
-    client = build_test_client_with_user(_get_current_user_local())
+    def mock_create_bug_report(user_id, title, description):
+        return True
+
+    monkeypatch.setattr(bugs_routes, "create_bug_report", mock_create_bug_report)
+
+    client = build_test_client_with_user(_get_current_user_local(), router=bugs_routes.router)
     response = client.post(
         "/me/bug-reports",
         json={
@@ -463,4 +457,3 @@ def test_report_bug_special_characters_in_title(monkeypatch):
     )
 
     assert response.status_code == 201
-    assert test_connection.committed

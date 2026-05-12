@@ -13,6 +13,7 @@ from starlette.responses import JSONResponse
 from app.database import create_tables
 from app.routes import (
     auth,
+    bugs,
     cache,
     collections,
     followers,
@@ -126,6 +127,7 @@ async def crash_logging_middleware(request: Request, call_next):
 
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(bugs.router)
 app.include_router(cache.router)
 app.include_router(games.router)
 app.include_router(library.router)

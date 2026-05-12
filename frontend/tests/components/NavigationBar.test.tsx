@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, MemoryRouter } from "react-router-dom";
 import NavigationBar from "@/components/ui/NavigationBar";
 
 // Mock the images and icons
@@ -13,6 +13,15 @@ vi.mock("@/components/search", () => ({
 	GameSearch: () => <div data-testid="game-search">GameSearch</div>,
 	UserSearch: () => <div data-testid="user-search">UserSearch</div>,
 }));
+
+// Mock useNavigate
+vi.mock("react-router-dom", async () => {
+	const actual = await vi.importActual("react-router-dom");
+	return {
+		...actual,
+		useNavigate: vi.fn(),
+	};
+});
 
 describe("NavigationBar", () => {
 	beforeEach(() => {
@@ -44,11 +53,10 @@ describe("NavigationBar", () => {
 
 	it("hides search on signin page even when authenticated", () => {
 		localStorage.setItem("access_token", "fake-token");
-		// Simulate being on /signin by wrapping with MemoryRouter? We'll just test prop
 		render(
-			<BrowserRouter>
-				<NavigationBar isSignInPage={true} />
-			</BrowserRouter>,
+			<MemoryRouter initialEntries={["/signin"]}>
+				<NavigationBar />
+			</MemoryRouter>,
 		);
 		expect(screen.queryByTestId("game-search")).not.toBeInTheDocument();
 	});
@@ -111,11 +119,12 @@ describe("NavigationBar", () => {
 		expect(screen.getByRole("menuitem", { name: "Log Out" })).toBeInTheDocument();
 	});
 
-	it("logs out and redirects to signin", () => {
-		localStorage.setItem("access_token", "fake-token");
+	it("logs out and redirects to signin", async () => {
+		const { useNavigate } = await import("react-router-dom");
 		const navigateMock = vi.fn();
-		vi.spyOn(require("react-router-dom"), "useNavigate").mockReturnValue(navigateMock);
+		vi.mocked(useNavigate).mockReturnValue(navigateMock);
 
+		localStorage.setItem("access_token", "fake-token");
 		render(
 			<BrowserRouter>
 				<NavigationBar />
