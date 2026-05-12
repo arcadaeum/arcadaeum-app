@@ -179,7 +179,8 @@ export default function ReviewsPage() {
 				transparent
 				autoRotate={0}
 			/>
-			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16 pb-20">
+			<div className="w-full min-h-screen pb-16 md:pb-20">
+			<div className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 md:pt-32">
 				<PageHeader
 					title="Reviews."
 					subtitle={
@@ -190,7 +191,7 @@ export default function ReviewsPage() {
 				/>
 
 				{isPublicView && profile && (
-					<div className="w-2/3 ml-50 mt-3 font-secondary text-sm text-arcade-white/70">
+				<div className="mt-4 font-secondary text-sm text-arcade-white/70">
 						Viewing reviews for{" "}
 						<Link
 							to={`/users/${profile.id}`}
@@ -203,18 +204,17 @@ export default function ReviewsPage() {
 				)}
 
 				{error && (
-					<div className="w-2/3 ml-50 mt-4 rounded-lg border border-red-300/30 bg-arcade-black/80 px-4 py-3 font-secondary text-sm text-red-300">
-						{error}
-					</div>
-				)}
-				{statusMessage && (
-					<div className="w-2/3 ml-50 mt-4 rounded-lg border border-arcade-blue/30 bg-arcade-black/80 px-4 py-3 font-secondary text-sm text-arcade-white/80">
-						{statusMessage}
+				<div className="mt-4 rounded-lg border border-red-300/30 bg-arcade-black/80 px-3 sm:px-4 py-3 font-secondary text-sm text-red-300">
+					{error}
+				</div>
+			)}
+			{statusMessage && (
+				<div className="mt-4 rounded-lg border border-arcade-blue/30 bg-arcade-black/80 px-3 sm:px-4 py-3 font-secondary text-sm text-arcade-white/80">
 					</div>
 				)}
 
 				{reviews.length > 0 ? (
-					<div className="mt-12 w-full space-y-6">
+				<div className="mt-8 sm:mt-10 md:mt-12 w-full space-y-4 sm:space-y-6">
 						{reviews.map((review, index) => {
 							const borderColors = [
 								"border-arcade-white",
@@ -228,7 +228,7 @@ export default function ReviewsPage() {
 							return (
 								<section
 									key={review.id}
-									className={`w-2/3 ml-50 rounded-lg border ${borderColor} bg-arcade-black/80 p-5`}
+									className={`rounded-lg border ${borderColor} bg-arcade-black/80 p-4 sm:p-5`}
 								>
 									<div className="flex gap-5">
 										<Link
@@ -369,13 +369,14 @@ export default function ReviewsPage() {
 							);
 						})}
 					</div>
-				) : (
-					<div className="w-2/3 ml-50 mt-10 rounded-lg border border-arcade-white/10 bg-arcade-black/80 p-6 text-center font-secondary text-arcade-white/70">
+					) : (
+						<div className="mt-8 sm:mt-10 rounded-lg border border-arcade-white/10 bg-arcade-black/80 p-4 sm:p-6 text-center font-secondary text-sm sm:text-base text-arcade-white/70">
 						{isPublicView
 							? "This user has not reviewed any games yet."
 							: "You have not reviewed any games yet."}
 					</div>
 				)}
+				</div>
 			</div>
 
 			{deleteTarget && (
