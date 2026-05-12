@@ -92,7 +92,7 @@ export default function SocialPage() {
 											apiUrl,
 											user.profile_picture,
 										)}
-										alt={user.display_name ?? user.username}
+										alt={user.display_name ?? "User"}
 										className="w-full h-full object-cover"
 									/>
 								) : (
@@ -101,10 +101,7 @@ export default function SocialPage() {
 							</div>
 							<div className="min-w-0">
 								<p className="truncate text-arcade-white font-title text-lg max-sm:text-base">
-									{user.display_name ?? user.username}
-								</p>
-								<p className="truncate text-arcade-white/60 text-sm font-default max-sm:text-xs">
-									@{user.username}
+									{user.display_name ?? "User"}
 								</p>
 							</div>
 						</Link>
