@@ -83,7 +83,7 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=secret_key,
     session_cookie="arcadaeum_session",
-    same_site="none",
+    same_site="lax",
     https_only=os.getenv("ENVIRONMENT", "").lower() == "production",
 )
 
