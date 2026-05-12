@@ -45,7 +45,8 @@ def get_user_by_username(username: str) -> Optional[dict]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, username, email, password_hash, display_name, profile_picture FROM users WHERE username = %s",
+                # FIX: added oauth_provider to SELECT — was missing, so User.oauth_provider was always None
+                "SELECT id, username, email, password_hash, display_name, profile_picture, oauth_provider FROM users WHERE username = %s",
                 (username,),
             )
             row = cur.fetchone()
@@ -57,6 +58,7 @@ def get_user_by_username(username: str) -> Optional[dict]:
                     password_hash=row[3],
                     display_name=row[4],
                     profile_picture=row[5],
+                    oauth_provider=row[6],
                 )
     return None
 
@@ -65,7 +67,8 @@ def get_user_by_email(email: str) -> Optional[dict]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, username, email, password_hash, display_name, profile_picture FROM users WHERE email = %s",
+                # FIX: added oauth_provider to SELECT
+                "SELECT id, username, email, password_hash, display_name, profile_picture, oauth_provider FROM users WHERE email = %s",
                 (email,),
             )
             row = cur.fetchone()
@@ -77,6 +80,7 @@ def get_user_by_email(email: str) -> Optional[dict]:
                     password_hash=row[3],
                     display_name=row[4],
                     profile_picture=row[5],
+                    oauth_provider=row[6],
                 )
     return None
 
@@ -85,7 +89,8 @@ def get_user_by_id(user_id: int) -> Optional[dict]:
     with get_database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, username, email, password_hash, display_name, profile_picture FROM users WHERE id = %s",
+                # FIX: added oauth_provider to SELECT
+                "SELECT id, username, email, password_hash, display_name, profile_picture, oauth_provider FROM users WHERE id = %s",
                 (user_id,),
             )
             row = cur.fetchone()
@@ -97,6 +102,7 @@ def get_user_by_id(user_id: int) -> Optional[dict]:
                     password_hash=row[3],
                     display_name=row[4],
                     profile_picture=row[5],
+                    oauth_provider=row[6],
                 )
     return None
 

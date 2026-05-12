@@ -4,21 +4,30 @@ import { NavigationBar, ColorBends } from "@/components/ui";
 import {
 	User,
 	Type,
+	KeyRound,
 	Trash2,
 	Bug,
+	Gamepad2,
 	ChevronRight,
 	ChevronLeft,
 	Check,
 	AlertTriangle,
 	X,
-	Gamepad2,
 } from "lucide-react";
 import { unlinkSteamAccount, getSteamAccount } from "@/utils/user/api";
 import { startSteamVerification } from "@/utils/user/steam";
+import {
+	type UserProfile,
+	changeUsername,
+	changeDisplayName,
+	changePassword,
+	deleteAccount,
+	submitBugReport,
+} from "@/utils/user/settings";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type SettingSection = "username" | "displayname" | "steam" | "delete" | "bug" | null;
+type SettingSection = "username" | "displayname" | "password" | "steam" | "bug" | "delete" | null;
 
 type AlertVariant = "success" | "error";
 
@@ -26,6 +35,14 @@ interface StatusAlertProps {
 	message: string;
 	variant: AlertVariant;
 	onDismiss: () => void;
+}
+
+// FIX: typed user as UserProfile instead of any
+interface PanelProps {
+	token: string;
+	user: UserProfile;
+	onStatusChange: (message: string, variant: AlertVariant) => void;
+	onUserUpdate?: (user: UserProfile | null) => void;
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -115,28 +132,44 @@ function SectionRow({
 	);
 }
 
-// ─── Section panels ──────────────────────────────────────────────────────────
+// ─── Section panels ───────────────────────────────────────────────────────────
 
-function ChangeUsernamePanel() {
+function ChangeUsernamePanel({ token, user, onStatusChange, onUserUpdate }: PanelProps) {
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newUsername, setNewUsername] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
+
+	const isOAuth = user.oauth_provider != null;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!newUsername.trim() || !currentPassword.trim()) {
-			setStatus({ message: "Please fill in all fields.", variant: "error" });
+		if (!newUsername.trim()) {
+			onStatusChange("Please enter a new username.", "error");
+			return;
+		}
+		if (!isOAuth && !currentPassword.trim()) {
+			onStatusChange("Please enter your password.", "error");
 			return;
 		}
 		setLoading(true);
-		// TODO: wire up to backend
-		setTimeout(() => {
-			setLoading(false);
-			setStatus({ message: "Username updated successfully.", variant: "success" });
+		try {
+			const updatedUser = await changeUsername(
+				token,
+				newUsername.trim(),
+				isOAuth ? null : currentPassword.trim(),
+			);
+			onStatusChange(
+				"Username updated successfully. Please sign in again for the change to take full effect.",
+				"success",
+			);
+			if (onUserUpdate) onUserUpdate(updatedUser);
 			setNewUsername("");
 			setCurrentPassword("");
-		}, 800);
+		} catch (err: any) {
+			onStatusChange(err.message, "error");
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	return (
@@ -147,15 +180,6 @@ function ChangeUsernamePanel() {
 			<p className="text-xs font-default text-arcade-white/40 mb-6">
 				Your username is how others find you. It must be unique.
 			</p>
-
-			{status && (
-				<StatusAlert
-					message={status.message}
-					variant={status.variant}
-					onDismiss={() => setStatus(null)}
-				/>
-			)}
-
 			<form onSubmit={handleSubmit} className="space-y-4">
 				<div>
 					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
@@ -170,19 +194,21 @@ function ChangeUsernamePanel() {
 						className="w-full px-4 py-2.5 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-arcade-blue focus:outline-none transition-colors text-sm"
 					/>
 				</div>
-				<div>
-					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
-						Current Password
-					</label>
-					<input
-						type="password"
-						value={currentPassword}
-						onChange={(e) => setCurrentPassword(e.target.value)}
-						placeholder="Confirm your identity"
-						autoComplete="current-password"
-						className="w-full px-4 py-2.5 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-arcade-blue focus:outline-none transition-colors text-sm"
-					/>
-				</div>
+				{!isOAuth && (
+					<div>
+						<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
+							Current Password
+						</label>
+						<input
+							type="password"
+							value={currentPassword}
+							onChange={(e) => setCurrentPassword(e.target.value)}
+							placeholder="Confirm your identity"
+							autoComplete="current-password"
+							className="w-full px-4 py-2.5 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-arcade-blue focus:outline-none transition-colors text-sm"
+						/>
+					</div>
+				)}
 				<button
 					type="submit"
 					disabled={loading}
@@ -195,24 +221,28 @@ function ChangeUsernamePanel() {
 	);
 }
 
-function ChangeDisplayNamePanel() {
+function ChangeDisplayNamePanel({ token, onStatusChange, onUserUpdate }: PanelProps) {
 	const [newDisplayName, setNewDisplayName] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!newDisplayName.trim()) {
-			setStatus({ message: "Display name cannot be empty.", variant: "error" });
+		const trimmed = newDisplayName.trim();
+		if (!trimmed) {
+			onStatusChange("Display name cannot be empty.", "error");
 			return;
 		}
 		setLoading(true);
-		// TODO: wire up to PATCH /me
-		setTimeout(() => {
-			setLoading(false);
-			setStatus({ message: "Display name updated successfully.", variant: "success" });
+		try {
+			const updatedUser = await changeDisplayName(token, trimmed);
+			onStatusChange("Display name updated successfully.", "success");
+			if (onUserUpdate) onUserUpdate(updatedUser);
 			setNewDisplayName("");
-		}, 800);
+		} catch (err: any) {
+			onStatusChange(err.message, "error");
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	return (
@@ -223,15 +253,6 @@ function ChangeDisplayNamePanel() {
 			<p className="text-xs font-default text-arcade-white/40 mb-6">
 				Your display name is shown on your profile and can be anything you like.
 			</p>
-
-			{status && (
-				<StatusAlert
-					message={status.message}
-					variant={status.variant}
-					onDismiss={() => setStatus(null)}
-				/>
-			)}
-
 			<form onSubmit={handleSubmit} className="space-y-4">
 				<div>
 					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
@@ -258,19 +279,124 @@ function ChangeDisplayNamePanel() {
 	);
 }
 
-function SteamAccountPanel() {
+function ChangePasswordPanel({ token, user, onStatusChange }: PanelProps) {
+	const [oldPassword, setOldPassword] = useState("");
+	const [newPassword, setNewPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+	const [loading, setLoading] = useState(false);
+
+	const isOAuth = user.oauth_provider != null;
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!oldPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+			onStatusChange("Please fill in all fields.", "error");
+			return;
+		}
+		if (newPassword !== confirmPassword) {
+			onStatusChange("New passwords do not match.", "error");
+			return;
+		}
+		if (newPassword.length < 8) {
+			onStatusChange("New password must be at least 8 characters.", "error");
+			return;
+		}
+		setLoading(true);
+		try {
+			await changePassword(token, oldPassword, newPassword);
+			onStatusChange("Password changed successfully.", "success");
+			setOldPassword("");
+			setNewPassword("");
+			setConfirmPassword("");
+		} catch (err: any) {
+			onStatusChange(err.message, "error");
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	if (isOAuth) {
+		return (
+			<div className="animate-fade-in">
+				<h2 className="text-xl font-title tracking-tighter text-arcade-white mb-1">
+					Change Password
+				</h2>
+				<div className="bg-black border border-arcade-white/20 rounded-lg p-4 text-center text-arcade-white/60 font-default text-sm">
+					You signed in with Google, so you don't have a password. If you need to create
+					one, use the "Forgot password?" option on the sign-in page.
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="animate-fade-in">
+			<h2 className="text-xl font-title tracking-tighter text-arcade-white mb-1">
+				Change Password
+			</h2>
+			<p className="text-xs font-default text-arcade-white/40 mb-6">
+				Update your login password. Keep it secure.
+			</p>
+			<form onSubmit={handleSubmit} className="space-y-4">
+				<div>
+					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
+						Current Password
+					</label>
+					<input
+						type="password"
+						value={oldPassword}
+						onChange={(e) => setOldPassword(e.target.value)}
+						placeholder="Enter current password"
+						autoComplete="current-password"
+						className="w-full px-4 py-2.5 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-arcade-blue focus:outline-none transition-colors text-sm"
+					/>
+				</div>
+				<div>
+					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
+						New Password
+					</label>
+					<input
+						type="password"
+						value={newPassword}
+						onChange={(e) => setNewPassword(e.target.value)}
+						placeholder="At least 8 characters"
+						autoComplete="new-password"
+						className="w-full px-4 py-2.5 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-arcade-blue focus:outline-none transition-colors text-sm"
+					/>
+				</div>
+				<div>
+					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
+						Confirm New Password
+					</label>
+					<input
+						type="password"
+						value={confirmPassword}
+						onChange={(e) => setConfirmPassword(e.target.value)}
+						placeholder="Confirm new password"
+						autoComplete="off"
+						className="w-full px-4 py-2.5 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-arcade-blue focus:outline-none transition-colors text-sm"
+					/>
+				</div>
+				<button
+					type="submit"
+					disabled={loading}
+					className="w-full py-2.5 bg-black text-arcade-white font-title tracking-tight rounded-lg border border-arcade-white/20 hover:border-arcade-white/40 disabled:opacity-50 transition-colors text-sm"
+				>
+					{loading ? "Changing..." : "Change Password"}
+				</button>
+			</form>
+		</div>
+	);
+}
+
+function SteamAccountPanel({ token, onStatusChange }: PanelProps) {
 	const [isLinked, setIsLinked] = useState(false);
 	const [steamUsername, setSteamUsername] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
-
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 
-	// Fetch current steam account on mount
 	useEffect(() => {
-		const token = localStorage.getItem("access_token");
 		if (!token) return;
-
 		getSteamAccount(token, apiUrl)
 			.then((account) => {
 				if (account.steam_id) {
@@ -278,54 +404,29 @@ function SteamAccountPanel() {
 					setSteamUsername(account.steam_username || account.steam_id);
 				}
 			})
-			.catch(() => {
-				// Account not linked or error
-				setIsLinked(false);
-			});
-	}, [apiUrl]);
+			.catch(() => setIsLinked(false));
+	}, [token, apiUrl]);
 
 	const handleVerifyWithSteam = async () => {
 		setLoading(true);
-		const token = localStorage.getItem("access_token");
-		if (!token) {
-			setStatus({ message: "Not authenticated", variant: "error" });
-			setLoading(false);
-			return;
-		}
-
 		try {
 			await startSteamVerification(token);
-			// Note: startSteamVerification redirects to Steam, so this won't be reached
-			// unless there's an error
-		} catch (error) {
+			// Redirect happens, so we don't set status here
+		} catch (error: any) {
+			onStatusChange(error.message || "Failed to start Steam verification", "error");
 			setLoading(false);
-			setStatus({
-				message:
-					error instanceof Error ? error.message : "Failed to start Steam verification",
-				variant: "error",
-			});
 		}
 	};
 
 	const handleUnlink = async () => {
 		setLoading(true);
-		const token = localStorage.getItem("access_token");
-		if (!token) {
-			setStatus({ message: "Not authenticated", variant: "error" });
-			setLoading(false);
-			return;
-		}
-
 		try {
 			await unlinkSteamAccount(token, apiUrl);
 			setIsLinked(false);
 			setSteamUsername("");
-			setStatus({ message: "Steam account unlinked successfully.", variant: "success" });
-		} catch (error) {
-			setStatus({
-				message: error instanceof Error ? error.message : "Failed to unlink",
-				variant: "error",
-			});
+			onStatusChange("Steam account unlinked successfully.", "success");
+		} catch (error: any) {
+			onStatusChange(error.message || "Failed to unlink", "error");
 		} finally {
 			setLoading(false);
 		}
@@ -339,23 +440,17 @@ function SteamAccountPanel() {
 			<p className="text-xs font-default text-arcade-white/40 mb-0">
 				Link your Steam account to automatically sync your game library.
 			</p>
-
 			<p className="text-xs font-default text-arcade-white/40 mb-2">
 				(It may take several minutes for your library to appear after linking.)
 			</p>
-
-			{status && (
-				<StatusAlert
-					message={status.message}
-					variant={status.variant}
-					onDismiss={() => setStatus(null)}
-				/>
-			)}
-
 			<div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between p-4 bg-black border border-arcade-white/20 rounded-lg">
 				<div className="flex items-center gap-4">
 					<div
-						className={`p-2.5 rounded-lg transition-colors ${isLinked ? "bg-[#171a21]/80 text-[#66c0f4]" : "bg-arcade-white/5 text-arcade-white/40"}`}
+						className={`p-2.5 rounded-lg transition-colors ${
+							isLinked
+								? "bg-[#171a21]/80 text-[#66c0f4]"
+								: "bg-arcade-white/5 text-arcade-white/40"
+						}`}
 					>
 						<Gamepad2 className="w-5 h-5" />
 					</div>
@@ -390,26 +485,29 @@ function SteamAccountPanel() {
 	);
 }
 
-function DeleteAccountPanel() {
+function DeleteAccountPanel({ token, user, onStatusChange, onUserUpdate }: PanelProps) {
 	const [confirmation, setConfirmation] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
 	const navigate = useNavigate();
 	const CONFIRM_PHRASE = "DELETE MY ACCOUNT";
+	const isOAuth = user.oauth_provider != null;
 
-	const canSubmit = confirmation === CONFIRM_PHRASE && password.trim().length > 0;
+	const canSubmit = confirmation === CONFIRM_PHRASE && (isOAuth || password.trim().length > 0);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!canSubmit) return;
 		setLoading(true);
-		// TODO: wire up to DELETE /me
-		setTimeout(() => {
-			setLoading(false);
+		try {
+			await deleteAccount(token, isOAuth ? null : password);
 			localStorage.removeItem("access_token");
+			if (onUserUpdate) onUserUpdate(null);
 			navigate("/signin");
-		}, 1000);
+		} catch (err: any) {
+			onStatusChange(err.message, "error");
+			setLoading(false);
+		}
 	};
 
 	return (
@@ -422,22 +520,12 @@ function DeleteAccountPanel() {
 				This action is permanent and cannot be undone. All your data, library, reviews and
 				collections will be erased.
 			</p>
-
-			{status && (
-				<StatusAlert
-					message={status.message}
-					variant={status.variant}
-					onDismiss={() => setStatus(null)}
-				/>
-			)}
-
 			<div className="bg-black border border-red-500/20 rounded-lg px-4 py-3 mb-6">
 				<p className="text-xs font-default text-red-300/80">
 					Type <span className="font-title text-red-300">{CONFIRM_PHRASE}</span> below to
 					confirm deletion.
 				</p>
 			</div>
-
 			<form onSubmit={handleSubmit} className="space-y-4">
 				<div>
 					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
@@ -451,19 +539,21 @@ function DeleteAccountPanel() {
 						className="w-full px-4 py-2.5 bg-arcade-black border border-red-500/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-red-500 focus:outline-none transition-colors text-sm"
 					/>
 				</div>
-				<div>
-					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
-						Password
-					</label>
-					<input
-						type="password"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						placeholder="Confirm your identity"
-						autoComplete="current-password"
-						className="w-full px-4 py-2.5 bg-arcade-black border border-red-500/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-red-500 focus:outline-none transition-colors text-sm"
-					/>
-				</div>
+				{!isOAuth && (
+					<div>
+						<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
+							Password
+						</label>
+						<input
+							type="password"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							placeholder="Confirm your identity"
+							autoComplete="current-password"
+							className="w-full px-4 py-2.5 bg-arcade-black border border-red-500/20 rounded-lg text-arcade-white font-default placeholder:text-arcade-white/20 focus:border-red-500 focus:outline-none transition-colors text-sm"
+						/>
+					</div>
+				)}
 				<button
 					type="submit"
 					disabled={!canSubmit || loading}
@@ -476,26 +566,30 @@ function DeleteAccountPanel() {
 	);
 }
 
-function ReportBugPanel() {
+function ReportBugPanel({ token, onStatusChange }: PanelProps) {
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!title.trim() || !description.trim()) {
-			setStatus({ message: "Please fill in both fields.", variant: "error" });
+		const trimmedTitle = title.trim();
+		const trimmedDesc = description.trim();
+		if (!trimmedTitle || !trimmedDesc) {
+			onStatusChange("Please fill in both fields.", "error");
 			return;
 		}
 		setLoading(true);
-		// TODO: wire up to bug reporting endpoint
-		setTimeout(() => {
-			setLoading(false);
-			setStatus({ message: "Bug report submitted. Thank you!", variant: "success" });
+		try {
+			await submitBugReport(token, trimmedTitle, trimmedDesc);
+			onStatusChange("Bug report submitted. Thank you!", "success");
 			setTitle("");
 			setDescription("");
-		}, 800);
+		} catch (err: any) {
+			onStatusChange(err.message, "error");
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	return (
@@ -506,15 +600,6 @@ function ReportBugPanel() {
 			<p className="text-xs font-default text-arcade-white/40 mb-6">
 				Found something broken? Let us know and we'll get it fixed.
 			</p>
-
-			{status && (
-				<StatusAlert
-					message={status.message}
-					variant={status.variant}
-					onDismiss={() => setStatus(null)}
-				/>
-			)}
-
 			<form onSubmit={handleSubmit} className="space-y-4">
 				<div>
 					<label className="block text-xs font-title text-arcade-white/60 mb-2 tracking-widest uppercase">
@@ -556,25 +641,20 @@ function ReportBugPanel() {
 
 export default function SettingsPage() {
 	const [activeSection, setActiveSection] = useState<SettingSection>(null);
-	const [steamStatus, setSteamStatus] = useState<{
-		message: string;
-		variant: AlertVariant;
-	} | null>(null);
-
-	const toggleSection = (section: SettingSection) => {
-		setActiveSection((prev) => (prev === section ? null : section));
-	};
+	const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
+	const [user, setUser] = useState<UserProfile | null>(null);
+	const navigate = useNavigate();
+	const apiUrl = import.meta.env.VITE_API_URL as string;
+	const token = localStorage.getItem("access_token");
 
 	// Check for Steam verification status in URL query params
 	useEffect(() => {
 		const searchParams = new URLSearchParams(window.location.search);
-
 		if (searchParams.has("steam_success")) {
-			setSteamStatus({
+			setStatus({
 				message: "Steam account linked successfully!",
 				variant: "success",
 			});
-			// Clean up URL
 			window.history.replaceState({}, document.title, window.location.pathname);
 		} else if (searchParams.has("steam_error")) {
 			const errorCode = searchParams.get("steam_error");
@@ -585,14 +665,66 @@ export default function SettingsPage() {
 				already_linked: "This Steam account is already linked to another user",
 				link_failed: "Failed to link Steam account. Please try again.",
 			};
-			setSteamStatus({
-				message: errorMessages[errorCode] || "Steam verification failed",
+			setStatus({
+				message: errorMessages[errorCode ?? ""] || "Steam verification failed",
 				variant: "error",
 			});
-			// Clean up URL
 			window.history.replaceState({}, document.title, window.location.pathname);
 		}
 	}, []);
+
+	// Fetch current user info
+	useEffect(() => {
+		if (!token) {
+			navigate("/signin");
+			return;
+		}
+		fetch(`${apiUrl}/me`, {
+			headers: { Authorization: `Bearer ${token}` },
+		})
+			.then((res) => {
+				if (!res.ok) throw new Error("Unauthorized");
+				return res.json();
+			})
+			.then((data: UserProfile) => setUser(data))
+			.catch(() => {
+				localStorage.removeItem("access_token");
+				navigate("/signin");
+			});
+	}, [token, apiUrl, navigate]);
+
+	const toggleSection = (section: SettingSection) => {
+		setActiveSection((prev) => (prev === section ? null : section));
+	};
+
+	const clearStatus = () => setStatus(null);
+
+	const renderPanel = () => {
+		if (!token || !user) return null;
+		const commonProps: PanelProps = {
+			token,
+			user,
+			onStatusChange: (message: string, variant: AlertVariant) =>
+				setStatus({ message, variant }),
+			onUserUpdate: (updated) => setUser(updated),
+		};
+		switch (activeSection) {
+			case "username":
+				return <ChangeUsernamePanel {...commonProps} />;
+			case "displayname":
+				return <ChangeDisplayNamePanel {...commonProps} />;
+			case "password":
+				return <ChangePasswordPanel {...commonProps} />;
+			case "steam":
+				return <SteamAccountPanel {...commonProps} />;
+			case "bug":
+				return <ReportBugPanel {...commonProps} />;
+			case "delete":
+				return <DeleteAccountPanel {...commonProps} />;
+			default:
+				return null;
+		}
+	};
 
 	const sections = [
 		{
@@ -607,6 +739,13 @@ export default function SettingsPage() {
 			icon: <Type className="w-4 h-4" />,
 			label: "Change Display Name",
 			description: "Edit the name shown on your profile",
+			danger: false,
+		},
+		{
+			key: "password" as SettingSection,
+			icon: <KeyRound className="w-4 h-4" />,
+			label: "Change Password",
+			description: "Update your login password",
 			danger: false,
 		},
 		{
@@ -632,22 +771,7 @@ export default function SettingsPage() {
 		},
 	];
 
-	const renderPanel = () => {
-		switch (activeSection) {
-			case "username":
-				return <ChangeUsernamePanel />;
-			case "displayname":
-				return <ChangeDisplayNamePanel />;
-			case "steam":
-				return <SteamAccountPanel />;
-			case "bug":
-				return <ReportBugPanel />;
-			case "delete":
-				return <DeleteAccountPanel />;
-			default:
-				return null;
-		}
-	};
+	if (!user) return <div>Loading...</div>;
 
 	return (
 		<>
@@ -668,7 +792,6 @@ export default function SettingsPage() {
 			/>
 
 			<div className="flex flex-col items-start font-title min-h-screen pt-20 sm:pt-24 md:pt-36 px-4 sm:px-6 md:px-16 pb-16 md:pb-20">
-				{/* Header */}
 				<h1 className="w-full text-2xl sm:text-3xl md:text-4xl font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter mb-1 pb-2">
 					Settings
 				</h1>
@@ -676,18 +799,15 @@ export default function SettingsPage() {
 					Manage your account preferences and report issues.
 				</p>
 
-				{/* Steam Status Alert */}
-				{steamStatus && (
+				{status && (
 					<StatusAlert
-						message={steamStatus.message}
-						variant={steamStatus.variant}
-						onDismiss={() => setSteamStatus(null)}
+						message={status.message}
+						variant={status.variant}
+						onDismiss={clearStatus}
 					/>
 				)}
 
-				{/* Responsive Layout */}
 				<div className="w-full max-w-4xl flex flex-col md:flex-row gap-4 md:gap-6 items-start">
-					{/* Left: Nav list (Hides on mobile when a section is active) */}
 					<div
 						className={`w-full md:w-72 shrink-0 flex-col gap-2 ${activeSection ? "hidden md:flex" : "flex"}`}
 					>
@@ -704,13 +824,11 @@ export default function SettingsPage() {
 						))}
 					</div>
 
-					{/* Right: Panel (Always visible on desktop, only visible on mobile if active) */}
 					<div
 						className={`w-full flex-1 min-w-0 ${activeSection ? "block" : "hidden md:block"}`}
 					>
 						{activeSection ? (
 							<div className="settings-panel-gradient border border-arcade-white/10 rounded-xl p-4 sm:p-5 md:p-6">
-								{/* Mobile Back Button */}
 								<button
 									onClick={() => setActiveSection(null)}
 									className="md:hidden flex items-center gap-2 text-arcade-white/60 hover:text-arcade-white mb-6 text-sm font-title transition-colors"
@@ -718,7 +836,6 @@ export default function SettingsPage() {
 									<ChevronLeft className="w-4 h-4" />
 									Back to Settings
 								</button>
-
 								{renderPanel()}
 							</div>
 						) : (
@@ -733,14 +850,14 @@ export default function SettingsPage() {
 			</div>
 
 			<style>{`
-                @keyframes fade-in {
-                    from { opacity: 0; transform: translateY(6px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .animate-fade-in {
-                    animation: fade-in 0.2s ease-out both;
-                }
-            `}</style>
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out both;
+        }
+      `}</style>
 		</>
 	);
 }

@@ -14,7 +14,9 @@ from app.database import (
     create_user,
     get_user_by_email,
     update_user_display_name,
+    get_user_by_username,
 )
+from app.database.connection import get_database_connection
 from app.models.auth import (
     PasswordReset,
     PasswordResetRequest,
@@ -31,7 +33,9 @@ from app.services.auth import (
     get_current_user,
     get_password_hash,
     reset_password_with_token,
+    verify_password,
 )
+from pydantic import BaseModel, Field, field_validator
 
 router = APIRouter()
 
@@ -221,6 +225,8 @@ async def request_password_reset(req: PasswordResetRequest) -> PasswordResetResp
         raise
 
 
+# FIX: was missing @router.post decorator — endpoint was never registered
+@router.post("/password-reset/reset", response_model=PasswordResetResponse)
 async def reset_password(req: PasswordReset) -> PasswordResetResponse:
     """Reset password using a valid reset token."""
     result = reset_password_with_token(req.token, req.new_password)
@@ -234,3 +240,165 @@ async def reset_password(req: PasswordReset) -> PasswordResetResponse:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
 
     return PasswordResetResponse(message=message)
+
+
+# ==================== Settings endpoints (updated for OAuth users) ====================
+
+class ChangeUsernameRequest(BaseModel):
+    new_username: str = Field(min_length=3, max_length=50)
+    password: str | None = None  # optional for OAuth users
+
+    @field_validator("new_username")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        # FIX: original logic only rejected if BOTH conditions were true.
+        # This correctly rejects any character that isn't alphanumeric or underscore.
+        if not all(c.isalnum() or c == "_" for c in v):
+            raise ValueError("Username must contain only letters, numbers and underscores")
+        return v
+
+
+@router.patch("/me/username", response_model=User)
+def change_username(
+    req: ChangeUsernameRequest,
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Change the current user's username.
+    - For local (password) users: require password.
+    - For OAuth users (google): password is optional and not verified.
+
+    NOTE: After a successful username change the caller should discard the
+    current JWT and re-authenticate (or request a new token), because the
+    existing token still carries the old username in its `sub` claim.
+    """
+    # Skip password verification for OAuth users
+    if current_user.oauth_provider is None:
+        # Local user: password required and must be valid
+        if not req.password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password is required for local accounts",
+            )
+        user_dict = get_user_by_username(current_user.username)
+        if not user_dict or not verify_password(req.password, user_dict["password_hash"]):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid password",
+            )
+    # else: OAuth user – no password check needed
+
+    # Check if new username already taken
+    if get_user_by_username(req.new_username):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username already exists",
+        )
+
+    # Update username
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET username = %s WHERE id = %s",
+                (req.new_username, current_user.id),
+            )
+            conn.commit()
+
+    # Return updated user
+    updated = get_user_by_username(req.new_username)
+    if updated is None:
+        raise HTTPException(status_code=500, detail="Failed to update user")
+    return User(**updated)
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str = Field(min_length=8)
+
+
+@router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    req: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+) -> None:
+    """Change the current user's password after verifying old password.
+    Not allowed for OAuth users (they have no password to change).
+    """
+    if current_user.oauth_provider is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Accounts signed in with Google do not have a password. "
+                   "Use 'Forgot password?' to set one if needed.",
+        )
+
+    user_dict = get_user_by_username(current_user.username)
+    if not user_dict or not verify_password(req.old_password, user_dict["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password",
+        )
+
+    new_hash = get_password_hash(req.new_password)
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET password_hash = %s WHERE id = %s",
+                (new_hash, current_user.id),
+            )
+            conn.commit()
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str | None = None  # optional for OAuth users
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_account(
+    req: DeleteAccountRequest,
+    current_user: User = Depends(get_current_user),
+) -> None:
+    """Permanently delete the current user's account.
+    - Local users: require password.
+    - OAuth users: password not required.
+    """
+    if current_user.oauth_provider is None:
+        # Local user: password required and must be valid
+        if not req.password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password is required for local accounts",
+            )
+        user_dict = get_user_by_username(current_user.username)
+        if not user_dict or not verify_password(req.password, user_dict["password_hash"]):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid password",
+            )
+
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM users WHERE id = %s", (current_user.id,))
+            conn.commit()
+
+
+class BugReportRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    description: str = Field(min_length=1)
+
+
+@router.post("/me/bug-reports", status_code=status.HTTP_201_CREATED)
+def report_bug(
+    req: BugReportRequest,
+    current_user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    """Submit a bug report."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO bug_reports (user_id, title, description)
+                VALUES (%s, %s, %s)
+                """,
+                (current_user.id, req.title, req.description),
+            )
+            conn.commit()
+    return {"message": "Bug report submitted successfully"}
