@@ -1,8 +1,11 @@
 import asyncio
+import logging
 import os
 from datetime import timedelta
+from urllib.parse import urlencode
 
 import httpx
+from authlib.integrations.base_client.errors import OAuthError
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -39,6 +42,7 @@ from app.services.moderation import assert_content_allowed
 from pydantic import BaseModel, Field, field_validator
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/me", response_model=User)
@@ -135,7 +139,15 @@ async def google_login(request: Request) -> Response:
 @router.get("/auth/oauth/google/callback", name="google_callback")
 async def google_callback(request: Request) -> RedirectResponse:
     """Handle the redirect back from Google and issue a JWT."""
-    token = await oauth.google.authorize_access_token(request)
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
+    try:
+        token = await oauth.google.authorize_access_token(request)
+    except OAuthError as error:
+        logger.warning("Google OAuth callback failed: %s", error)
+        query = urlencode({"error": "google_oauth_failed"})
+        return RedirectResponse(url=f"{frontend_url}/signin?{query}")
+
     userinfo = token.get("userinfo")
     if not isinstance(userinfo, dict):
         raise HTTPException(status_code=400, detail="Failed to fetch user info")
@@ -175,7 +187,6 @@ async def google_callback(request: Request) -> RedirectResponse:
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     )
 
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
     return RedirectResponse(url=f"{frontend_url}/auth/callback?token={access_token}")
 
 
