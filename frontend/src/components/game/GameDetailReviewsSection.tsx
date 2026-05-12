@@ -157,14 +157,14 @@ export default function GameDetailReviewsSection({
 		: reviews;
 
 	return (
-		<div className="flex flex-col gap-4 mt-8 bg-arcade-black rounded-lg p-4">
+		<div className="flex flex-col gap-4 mt-8 bg-arcade-black rounded-lg p-4 max-sm:mt-6 max-sm:p-3">
 			<ArcadaeumRating arcadaeumReview={arcadaeumReview ?? null} />
-			<div className="flex items-center justify-between">
-				<h2 className="text-2xl font-title">Reviews</h2>
+			<div className="flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch">
+				<h2 className="text-2xl font-title max-sm:text-xl">Reviews</h2>
 				<div className="flex items-center gap-3">
 					<button
 						onClick={handleOpenModal}
-						className="text-arcade-white border border-arcade-white rounded px-4 py-2 hover:bg-arcade-white hover:text-arcade-black transition-colors duration-200"
+						className="text-arcade-white border border-arcade-white rounded px-4 py-2 hover:bg-arcade-white hover:text-arcade-black transition-colors duration-200 max-sm:w-full"
 					>
 						Add Review
 					</button>
@@ -185,12 +185,12 @@ export default function GameDetailReviewsSection({
 
 						return (
 							<div key={review.id} className="bg-arcade-black/60 rounded-lg p-3">
-								<div className="flex items-center justify-between text-sm font-default text-gray-300">
+								<div className="flex items-center justify-between gap-3 text-sm font-default text-gray-300 max-sm:flex-col max-sm:items-start">
 									<span>
 										{review.display_name ?? review.username} ·{" "}
 										{formatReviewDate(review.created_at)}
 									</span>
-									<div className="flex items-center gap-3">
+									<div className="flex items-center gap-3 max-sm:w-full max-sm:justify-between">
 										{canDeleteReview ? (
 											<button
 												type="button"

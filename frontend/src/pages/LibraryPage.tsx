@@ -96,7 +96,7 @@ export default function LibraryPage() {
 				transparent
 				autoRotate={0}
 			/>
-			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
+			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16 max-sm:pt-28 max-sm:px-4 max-sm:items-stretch">
 				<PageHeader title="Your Library." subtitle="The home of for all your games." />
 
 				{library.length > 0 && (
@@ -123,7 +123,7 @@ export default function LibraryPage() {
 				)}
 
 				{library.length === 0 && (
-					<h3 className="mx-auto mt-8 text-center text-2xl font-title text-arcade-white tracking-tighter">
+					<h3 className="mx-auto mt-8 text-center text-2xl font-title text-arcade-white tracking-tighter max-sm:text-xl max-sm:leading-7">
 						Your library is currently empty. Browse the{" "}
 						<Link to="/browse" className="text-arcade-violet hover:underline">
 							Arcadaeum

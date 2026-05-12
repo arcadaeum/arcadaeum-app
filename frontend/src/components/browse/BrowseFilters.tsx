@@ -14,9 +14,9 @@ export default function BrowseFilters({
 	onSortChange,
 }: BrowseFiltersProps) {
 	return (
-		<div className="w-full max-w-7xl mx-auto px-4 mt-6">
-			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,13rem)_minmax(0,13rem)_minmax(0,13rem)] lg:items-end">
-				<div className="w-full sm:max-w-md">
+		<div className="w-full max-w-7xl mx-auto px-4 mt-6 max-sm:px-0 max-sm:mt-5">
+			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,13rem)_minmax(0,13rem)_minmax(0,13rem)] lg:items-end max-sm:gap-4">
+				<div className="w-full sm:max-w-md max-sm:max-w-none">
 					<label
 						htmlFor="game-title-filter"
 						className="block text-xs font-default text-gray-300 mb-1"
@@ -29,7 +29,7 @@ export default function BrowseFilters({
 						value={searchQuery}
 						onChange={(event) => onSearchChange(event.target.value)}
 						placeholder="Type a game title..."
-						className="w-full rounded-lg border-2 border-arcade-white bg-arcade-black/70 px-3 py-2 font-default text-arcade-white placeholder:text-gray-400 outline-none focus:border-arcade-blue"
+						className="w-full rounded-lg border-2 border-arcade-white bg-arcade-black/70 px-3 py-2 font-default text-arcade-white placeholder:text-gray-400 outline-none focus:border-arcade-blue max-sm:text-base"
 					/>
 				</div>
 				<div className="w-full">
@@ -43,7 +43,7 @@ export default function BrowseFilters({
 						id="genre-filter"
 						value={selectedGenre}
 						onChange={(event) => onGenreChange(event.target.value)}
-						className="w-full rounded-lg border-2 border-arcade-white bg-arcade-black/70 px-3 py-2 font-default text-arcade-white outline-none focus:border-arcade-blue"
+						className="w-full rounded-lg border-2 border-arcade-white bg-arcade-black/70 px-3 py-2 font-default text-arcade-white outline-none focus:border-arcade-blue max-sm:text-base"
 					>
 						<option value="">All genres</option>
 						{genreOptions.map((option) => (
@@ -64,7 +64,7 @@ export default function BrowseFilters({
 						id="platform-filter"
 						value={selectedPlatform}
 						onChange={(event) => onPlatformChange(event.target.value)}
-						className="w-full rounded-lg border-2 border-arcade-white bg-arcade-black/70 px-3 py-2 font-default text-arcade-white outline-none focus:border-arcade-blue"
+						className="w-full rounded-lg border-2 border-arcade-white bg-arcade-black/70 px-3 py-2 font-default text-arcade-white outline-none focus:border-arcade-blue max-sm:text-base"
 					>
 						<option value="">All platforms</option>
 						{platformOptions.map((option) => (
@@ -85,7 +85,7 @@ export default function BrowseFilters({
 						id="sort-by"
 						value={sortBy}
 						onChange={(event) => onSortChange(event.target.value as BrowseSortOption)}
-						className="w-full rounded-lg border-2 border-arcade-white bg-arcade-black/70 px-3 py-2 font-default text-arcade-white outline-none focus:border-arcade-blue"
+						className="w-full rounded-lg border-2 border-arcade-white bg-arcade-black/70 px-3 py-2 font-default text-arcade-white outline-none focus:border-arcade-blue max-sm:text-base"
 					>
 						{sortOptions.map((option) => (
 							<option key={option.value} value={option.value}>

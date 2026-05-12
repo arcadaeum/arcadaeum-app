@@ -3,6 +3,7 @@ export type UserProfile = {
 	email: string;
 	display_name: string | null;
 	profile_picture: string | null;
+	oauth_provider?: string | null;
 };
 
 export type UserProfileWithId = UserProfile & {

@@ -103,7 +103,7 @@ export default function UserProfileHero({
 					{!canEdit && (
 						<MainButton
 							text={isFollowing ? "UNFOLLOW" : "FOLLOW"}
-							className="ml-3"
+							className="ml-3 px-3 py-1 font-secondary text-sm tracking-wider max-sm:ml-0"
 							onClick={onFollowToggle}
 							disabled={followLoading || !onFollowToggle}
 						/>

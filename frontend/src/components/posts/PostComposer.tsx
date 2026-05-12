@@ -1,5 +1,5 @@
-import { Send } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import { MainButton } from "@/components/ui";
 
 type PostComposerProps = {
 	onSubmit: (content: string) => Promise<void>;
@@ -34,14 +34,7 @@ export default function PostComposer({ onSubmit }: PostComposerProps) {
 
 	if (!isOpen) {
 		return (
-			<button
-				type="button"
-				onClick={() => setIsOpen(true)}
-				className="inline-flex items-center gap-2 rounded-lg border border-arcade-blue/70 bg-arcade-blue/10 px-4 py-2 font-secondary text-sm font-bold text-arcade-white transition hover:border-arcade-white hover:bg-arcade-blue/20"
-			>
-				<Send className="size-4" />
-				Add Post
-			</button>
+			<MainButton text="Add Post" onClick={() => setIsOpen(true)} />
 		);
 	}
 
@@ -74,14 +67,7 @@ export default function PostComposer({ onSubmit }: PostComposerProps) {
 					>
 						Cancel
 					</button>
-					<button
-						type="submit"
-						disabled={busy}
-						className="inline-flex items-center gap-2 rounded-lg border border-arcade-blue/70 bg-arcade-blue/20 px-4 py-2 font-secondary text-sm font-bold text-arcade-white transition hover:border-arcade-white disabled:opacity-50"
-					>
-						<Send className="size-4" />
-						Post
-					</button>
+					<MainButton text={busy ? "Posting..." : "Post"} type="submit" disabled={busy} />
 				</div>
 			</div>
 			{error && <p className="mt-2 font-secondary text-sm text-red-300">{error}</p>}

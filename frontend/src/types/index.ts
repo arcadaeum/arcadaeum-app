@@ -7,4 +7,5 @@ export * from "./home";
 export * from "./password";
 export * from "./posts";
 export * from "./search";
+export * from "./settings";
 export * from "./user";

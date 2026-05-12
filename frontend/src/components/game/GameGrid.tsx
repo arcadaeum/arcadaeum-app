@@ -8,15 +8,17 @@ type GameGridProps = {
 
 export default function GameGrid({ games, emptyMessage }: GameGridProps) {
 	return (
-		<div className="w-full max-w-7xl mx-auto px-4 py-6">
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+		<div className="w-full max-w-7xl mx-auto px-4 py-6 max-sm:px-0 max-sm:py-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-sm:grid-cols-2 max-sm:gap-3">
 				{games.map((game) => (
 					<GameCard key={game.id} id={game.id} title={game.title} image={game.cover_url} />
 				))}
 			</div>
 
 			{games.length === 0 && emptyMessage && (
-				<p className="mt-8 text-center text-sm font-default text-gray-300">{emptyMessage}</p>
+				<p className="mt-8 text-center text-sm font-default text-gray-300 max-sm:px-4">
+					{emptyMessage}
+				</p>
 			)}
 		</div>
 	);

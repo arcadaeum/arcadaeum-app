@@ -45,7 +45,7 @@ export default function UserStatsBar({
 					</span>
 				</Link>
 			)}
-			<span className="w-1 h-1 rounded-full bg-gray-500" />
+			<span className="w-1 h-1 rounded-full bg-gray-500 max-sm:hidden" />
 			{disableFollowerLinks ? (
 				<span className="inline-flex items-center">
 					<span>
@@ -64,7 +64,7 @@ export default function UserStatsBar({
 					</span>
 				</Link>
 			)}
-			<span className="w-1 h-1 rounded-full bg-gray-500" />
+			<span className="w-1 h-1 rounded-full bg-gray-500 max-sm:hidden" />
 			<Link
 				to="/library"
 				className="hover:text-arcade-white transition-colors inline-flex items-center cursor-pointer pointer-events-auto"
@@ -73,7 +73,7 @@ export default function UserStatsBar({
 					<span className="text-arcade-white font-bold">{gamesCount}</span> Games
 				</span>
 			</Link>
-			<span className="w-1 h-1 rounded-full bg-gray-500" />
+			<span className="w-1 h-1 rounded-full bg-gray-500 max-sm:hidden" />
 			<Link
 				to={collectionsLink}
 				className="hover:text-arcade-white transition-colors inline-flex items-center cursor-pointer pointer-events-auto"
@@ -83,7 +83,7 @@ export default function UserStatsBar({
 					Collections
 				</span>
 			</Link>
-			<span className="w-1 h-1 rounded-full bg-gray-500" />
+			<span className="w-1 h-1 rounded-full bg-gray-500 max-sm:hidden" />
 			<Link
 				to={reviewsLink}
 				className="hover:text-arcade-white transition-colors inline-flex items-center cursor-pointer pointer-events-auto"

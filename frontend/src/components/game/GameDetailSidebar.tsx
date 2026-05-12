@@ -49,13 +49,13 @@ export default function GameDetailSidebar({ game, apiUrl, gameId }: GameDetailSi
 	};
 
 	return (
-		<aside className="w-1/3 max-w-xs">
+		<aside className="w-1/3 max-w-xs max-sm:w-full max-sm:max-w-none">
 			<div className="bg-arcade-black rounded-lg p-4">
-				<div className="flex items-center gap-2 border-b border-arcade-white/10 pb-3">
+				<div className="flex items-center gap-2 border-b border-arcade-white/10 pb-3 max-sm:w-full">
 					<button
 						type="button"
 						onClick={() => setActiveTab("stats")}
-						className={`rounded-full px-3 py-1 text-xs font-title transition-colors ${
+						className={`rounded-full px-3 py-1 text-xs font-title transition-colors max-sm:flex-1 ${
 							activeTab === "stats"
 								? "bg-arcade-white text-arcade-black"
 								: "text-arcade-white/70 hover:text-arcade-white"
@@ -66,7 +66,7 @@ export default function GameDetailSidebar({ game, apiUrl, gameId }: GameDetailSi
 					<button
 						type="button"
 						onClick={() => setActiveTab("social")}
-						className={`rounded-full px-3 py-1 text-xs font-title transition-colors ${
+						className={`rounded-full px-3 py-1 text-xs font-title transition-colors max-sm:flex-1 ${
 							activeTab === "social"
 								? "bg-arcade-white text-arcade-black"
 								: "text-arcade-white/70 hover:text-arcade-white"
@@ -122,7 +122,7 @@ export default function GameDetailSidebar({ game, apiUrl, gameId }: GameDetailSi
 									<li key={user.id}>
 										<Link
 											to={`/users/${user.id}`}
-											className="flex items-center gap-3 rounded-lg border border-arcade-white/10 bg-arcade-white/5 p-2 text-sm text-arcade-white transition-colors hover:border-arcade-blue"
+											className="flex items-center gap-3 rounded-lg border border-arcade-white/10 bg-arcade-white/5 p-2 text-sm text-arcade-white transition-colors hover:border-arcade-blue max-sm:gap-2"
 										>
 											<span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-arcade-blue/30">
 												{user.profile_picture ? (

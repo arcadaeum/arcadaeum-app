@@ -190,8 +190,8 @@ export default function GameDetailPage() {
 				transparent
 				autoRotate={0}
 			/>
-			<div className="min-h-screen ml-16 font-title px-16 pt-36 text-arcade-white">
-				<div className="flex gap-8 items-start">
+			<div className="min-h-screen ml-16 font-title px-16 pt-36 text-arcade-white max-sm:ml-0 max-sm:px-4 max-sm:pt-28 max-sm:pb-12">
+				<div className="flex gap-8 items-start max-sm:flex-col max-sm:gap-6">
 					<GameDetailArtwork
 						game={game}
 						favourited={favourited}

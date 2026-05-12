@@ -71,19 +71,21 @@ export default function SocialPage() {
 	const renderUserList = (users: UserSummary[] | null, emptyMessage: string) => {
 		if (!users || !users.length) {
 			return (
-				<div className="text-arcade-white/70 text-sm font-default py-6">{emptyMessage}</div>
+				<div className="text-arcade-white/70 text-sm font-default py-6 max-sm:py-4">
+					{emptyMessage}
+				</div>
 			);
 		}
 
 		return (
-			<ul className="space-y-3">
+			<ul className="space-y-3 max-sm:space-y-2">
 				{users.map((user) => (
 					<li key={user.id}>
 						<Link
 							to={`/users/${user.id}`}
-							className="flex items-center gap-4 bg-arcade-black/60 border border-arcade-white/10 rounded-xl px-4 py-3 hover:border-arcade-blue transition-colors"
+							className="flex items-center gap-4 bg-arcade-black/60 border border-arcade-white/10 rounded-xl px-4 py-3 hover:border-arcade-blue transition-colors max-sm:gap-3 max-sm:px-3 max-sm:py-3"
 						>
-							<div className="w-12 h-12 rounded-full bg-arcade-black flex items-center justify-center overflow-hidden">
+							<div className="w-12 h-12 rounded-full bg-arcade-black flex shrink-0 items-center justify-center overflow-hidden max-sm:h-10 max-sm:w-10">
 								{user.profile_picture ? (
 									<img
 										src={getUserProfileImageProxyUrl(
@@ -94,14 +96,14 @@ export default function SocialPage() {
 										className="w-full h-full object-cover"
 									/>
 								) : (
-									<UserRound className="text-arcade-white w-6 h-6" />
+									<UserRound className="text-arcade-white w-6 h-6 max-sm:h-5 max-sm:w-5" />
 								)}
 							</div>
-							<div>
-								<p className="text-arcade-white font-title text-lg">
+							<div className="min-w-0">
+								<p className="truncate text-arcade-white font-title text-lg max-sm:text-base">
 									{user.display_name ?? user.username}
 								</p>
-								<p className="text-arcade-white/60 text-sm font-default">
+								<p className="truncate text-arcade-white/60 text-sm font-default max-sm:text-xs">
 									@{user.username}
 								</p>
 							</div>
@@ -131,18 +133,18 @@ export default function SocialPage() {
 				transparent
 				autoRotate={0}
 			/>
-			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
+			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16 max-sm:pt-28 max-sm:px-4 max-sm:items-stretch">
 				<PageHeader title="Social" subtitle="See who follows you and who you follow." />
 
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-10 w-full mt-10">
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-10 w-full mt-10 max-sm:mt-8 max-sm:gap-8">
 					<section>
-						<h2 className="text-2xl font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter pb-2">
+						<h2 className="text-2xl font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter pb-2 max-sm:text-xl">
 							Followers ({followerCount})
 						</h2>
 						{renderUserList(followers, emptyFollowersMessage)}
 					</section>
 					<section>
-						<h2 className="text-2xl font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter pb-2">
+						<h2 className="text-2xl font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter pb-2 max-sm:text-xl">
 							Following ({followingCount})
 						</h2>
 						{renderUserList(following, emptyFollowingMessage)}

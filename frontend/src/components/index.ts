@@ -5,5 +5,6 @@ export * as home from "./home";
 export * as password from "./password";
 export * as posts from "./posts";
 export * as search from "./search";
+export * as settings from "./settings";
 export * as user from "./user";
 export * as ui from "./ui";

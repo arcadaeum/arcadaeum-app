@@ -73,14 +73,14 @@ export default function AddReviewModal({
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm max-sm:items-end max-sm:px-3 max-sm:pb-3">
 			<div
 				ref={modalRef}
-				className="w-full max-w-lg rounded-2xl border border-arcade-white/10 bg-arcade-black/95 p-6 shadow-2xl"
+				className="w-full max-w-lg rounded-2xl border border-arcade-white/10 bg-arcade-black/95 p-6 shadow-2xl max-sm:max-h-[90vh] max-sm:overflow-y-auto max-sm:p-4"
 			>
-				<div className="flex items-start justify-between">
+				<div className="flex items-start justify-between gap-3">
 					<div>
-						<h2 className="text-2xl font-title text-arcade-white tracking-tighter">
+						<h2 className="text-2xl font-title text-arcade-white tracking-tighter max-sm:text-xl">
 							Add a review
 						</h2>
 						{gameTitle ? (
@@ -130,7 +130,7 @@ export default function AddReviewModal({
 						/>
 					</label>
 
-					<div className="flex items-center justify-end gap-3">
+					<div className="flex items-center justify-end gap-3 max-sm:flex-col-reverse max-sm:items-stretch">
 						<button
 							type="button"
 							onClick={handleClose}
