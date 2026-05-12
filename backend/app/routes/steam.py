@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from random import randint
 import secrets
 import logging
+import os
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import RedirectResponse
@@ -32,6 +33,21 @@ router = APIRouter(prefix="/steam", tags=["steam"])
 
 # Thread pool for running blocking sync operations
 _sync_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="steam_sync")
+
+
+def get_api_base_url() -> str:
+    return os.getenv("API_BASE_URL", "http://localhost:8000").rstrip("/")
+
+
+def get_frontend_url() -> str:
+    return os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
+
+def get_settings_redirect_url(**params: str) -> str:
+    from urllib.parse import urlencode
+
+    query = urlencode(params)
+    return f"{get_frontend_url()}/settings?{query}"
 
 
 @router.post("/link")
@@ -125,7 +141,7 @@ async def start_steam_verification(
     """
     logger = logging.getLogger(__name__)
     steam_service = SteamService()
-    return_url = "http://localhost:8000/steam/verify-callback"  # Update with your domain
+    return_url = f"{get_api_base_url()}/steam/verify-callback"
 
     redirect_url, token = steam_service.get_openid_redirect_url(return_url)
 
@@ -180,7 +196,7 @@ async def steam_verification_callback(
             if not token_record:
                 # Redirect to settings with error
                 return RedirectResponse(
-                    url="http://localhost:5173/settings?steam_error=invalid_token", status_code=303
+                    url=get_settings_redirect_url(steam_error="invalid_token"), status_code=303
                 )
 
             token_id, user_id, expires_at, verified = token_record
@@ -192,7 +208,7 @@ async def steam_verification_callback(
             if expires_at < datetime.now(timezone.utc):
                 # Redirect to settings with error
                 return RedirectResponse(
-                    url="http://localhost:5173/settings?steam_error=token_expired", status_code=303
+                    url=get_settings_redirect_url(steam_error="token_expired"), status_code=303
                 )
 
     # Verify with Steam (query_params already captured from request above)
@@ -206,7 +222,7 @@ async def steam_verification_callback(
         # Redirect to settings with error
         logger.error("Steam verification failed")
         return RedirectResponse(
-            url="http://localhost:5173/settings?steam_error=verification_failed", status_code=303
+            url=get_settings_redirect_url(steam_error="verification_failed"), status_code=303
         )
 
     logger.info(f"Verified Steam ID {verified_steam_id} for user {user_id}")
@@ -218,14 +234,14 @@ async def steam_verification_callback(
     if existing and existing["user_id"] != user_id:
         # Redirect to settings with error
         return RedirectResponse(
-            url="http://localhost:5173/settings?steam_error=already_linked", status_code=303
+            url=get_settings_redirect_url(steam_error="already_linked"), status_code=303
         )
 
     # Link the Steam account
     if not link_steam_account(user_id, verified_steam_id):
         # Redirect to settings with error
         return RedirectResponse(
-            url="http://localhost:5173/settings?steam_error=link_failed", status_code=303
+            url=get_settings_redirect_url(steam_error="link_failed"), status_code=303
         )
 
     # Mark token as verified and store the Steam ID
@@ -247,7 +263,7 @@ async def steam_verification_callback(
     # Redirect back to settings page with success message
     logger.info(f"Steam account linked successfully for user {user_id}: {verified_steam_id}")
     return RedirectResponse(
-        url="http://localhost:5173/settings?steam_success=true", status_code=303
+        url=get_settings_redirect_url(steam_success="true"), status_code=303
     )
 
 
