@@ -1,15 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-	Bug,
-	ChevronLeft,
-	Gamepad2,
-	KeyRound,
-	Trash2,
-	Type,
-	User,
-} from "lucide-react";
+import { Bug, ChevronLeft, Gamepad2, KeyRound, Trash2, Type, User } from "lucide-react";
 import { NavigationBar, ColorBends } from "@/components/ui";
 import {
 	ChangeDisplayNamePanel,
@@ -41,21 +33,18 @@ const sectionIcons: Record<SettingsIconKey, ReactNode> = {
 
 export default function SettingsPage() {
 	const [activeSection, setActiveSection] = useState<SettingSection>(null);
-	const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(null);
+	const [status, setStatus] = useState<{ message: string; variant: AlertVariant } | null>(() =>
+		getSteamStatusFromSearchParams(new URLSearchParams(window.location.search)),
+	);
 	const [user, setUser] = useState<UserProfileWithId | null>(null);
 	const navigate = useNavigate();
 	const apiUrl = import.meta.env.VITE_API_URL as string;
 	const token = localStorage.getItem("access_token");
 
 	useEffect(() => {
-		const nextStatus = getSteamStatusFromSearchParams(
-			new URLSearchParams(window.location.search),
-		);
-		if (!nextStatus) return;
-
-		setStatus(nextStatus);
+		if (!status) return;
 		window.history.replaceState({}, document.title, window.location.pathname);
-	}, []);
+	}, [status]);
 
 	useEffect(() => {
 		if (!token) {

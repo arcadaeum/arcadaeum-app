@@ -19,28 +19,41 @@ type GameDetailSidebarProps = {
 
 export default function GameDetailSidebar({ game, apiUrl, gameId }: GameDetailSidebarProps) {
 	const [activeTab, setActiveTab] = useState<"stats" | "social">("stats");
-	const [socialUsers, setSocialUsers] = useState<SocialLibraryUser[] | null>(null);
-	const [socialError, setSocialError] = useState(false);
-	const [socialRequiresSignIn, setSocialRequiresSignIn] = useState(false);
+	const token = localStorage.getItem("access_token");
+	const [socialState, setSocialState] = useState<{
+		gameId: string;
+		users: SocialLibraryUser[];
+		error: boolean;
+	} | null>(null);
+
+	const isCurrentSocialState = socialState?.gameId === gameId;
+	const socialUsers = !token ? [] : isCurrentSocialState ? (socialState?.users ?? []) : null;
+	const socialError = !token
+		? false
+		: isCurrentSocialState
+			? (socialState?.error ?? false)
+			: false;
+	const socialRequiresSignIn = !token;
 
 	useEffect(() => {
-		const token = localStorage.getItem("access_token");
-		if (!token) {
-			setSocialUsers([]);
-			setSocialRequiresSignIn(true);
-			return;
-		}
+		if (!token) return;
 
-		setSocialUsers(null);
-		setSocialError(false);
-		setSocialRequiresSignIn(false);
+		let isActive = true;
+
 		fetchSocialLibraryUsers(apiUrl, token, gameId)
-			.then(setSocialUsers)
+			.then((users) => {
+				if (!isActive) return;
+				setSocialState({ gameId, users, error: false });
+			})
 			.catch(() => {
-				setSocialUsers([]);
-				setSocialError(true);
+				if (!isActive) return;
+				setSocialState({ gameId, users: [], error: true });
 			});
-	}, [apiUrl, gameId]);
+
+		return () => {
+			isActive = false;
+		};
+	}, [apiUrl, gameId, token]);
 
 	const getRelationshipLabel = (user: SocialLibraryUser) => {
 		if (user.follows_you && user.followed_by_you) return "Mutual";
