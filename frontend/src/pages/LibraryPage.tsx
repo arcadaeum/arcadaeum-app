@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { NavigationBar, ColorBends, PageHeader } from "@/components/ui";
 import { BrowseFilters } from "@/components/browse";
 import { GameGrid } from "@/components/game";
@@ -11,7 +11,8 @@ import {
 } from "@/utils/user";
 import type { LibraryEntry, UserProfile } from "@/types/user";
 import { BROWSE_SORT_OPTIONS } from "@/utils/browse";
-import { getUserLibraryUrl } from "@/utils/game/detail";
+import { getPublicUserLibraryUrl, getUserLibraryUrl } from "@/utils/game/detail";
+import { getUserDisplayName } from "@/utils/user";
 
 export default function LibraryPage() {
 	const [user, setUser] = useState<UserProfile | null>(null);
@@ -23,7 +24,9 @@ export default function LibraryPage() {
 	const [selectedPlatform, setSelectedPlatform] = useState("");
 	const [sortBy, setSortBy] = useState<BrowseSortOption>("title-asc");
 	const navigate = useNavigate();
+	const { userId } = useParams<{ userId: string }>();
 	const apiUrl = import.meta.env.VITE_API_URL as string;
+	const isPublicView = Boolean(userId);
 
 	const filteredAndSortedLibrary = filterAndSortLibraryEntries(
 		library,
@@ -34,8 +37,26 @@ export default function LibraryPage() {
 	);
 	const genreOptions = useMemo(() => getLibraryFilterOptions(library, "genres"), [library]);
 	const platformOptions = useMemo(() => getLibraryFilterOptions(library, "platforms"), [library]);
+	const displayName = getUserDisplayName(user, "User");
+	const libraryOwnerLabel = isPublicView ? `${displayName}'s` : "Your";
+	const emptySearchMessage = `No games in ${libraryOwnerLabel.toLowerCase()} library match your search.`;
 
 	useEffect(() => {
+		if (isPublicView) {
+			if (!userId) return;
+			fetch(`${apiUrl}/users/${userId}`)
+				.then((res) => {
+					if (!res.ok) throw new Error("User not found");
+					return res.json();
+				})
+				.then((data) => setUser(data))
+				.catch(() => {
+					setError("User not found.");
+				})
+				.finally(() => setLoading(false));
+			return;
+		}
+
 		const token = localStorage.getItem("access_token");
 		if (!token) {
 			navigate("/signin");
@@ -55,11 +76,23 @@ export default function LibraryPage() {
 				navigate("/signin");
 			})
 			.finally(() => setLoading(false));
-	}, [apiUrl, navigate]);
+	}, [apiUrl, isPublicView, navigate, userId]);
 
 	// Fetch user's library from API
 	useEffect(() => {
 		if (!user) return; // Wait for user to be authenticated
+
+		if (isPublicView) {
+			if (!userId) return;
+			fetch(getPublicUserLibraryUrl(apiUrl, userId))
+				.then((res) => {
+					if (!res.ok) throw new Error("Failed to fetch library");
+					return res.json();
+				})
+				.then((data: LibraryEntry[]) => setLibrary(data))
+				.catch(() => setLibrary([]));
+			return;
+		}
 
 		const token = localStorage.getItem("access_token");
 		if (!token) {
@@ -74,7 +107,7 @@ export default function LibraryPage() {
 			})
 			.then((data: LibraryEntry[]) => setLibrary(data))
 			.catch(() => setLibrary([]));
-	}, [apiUrl, user]);
+	}, [apiUrl, isPublicView, user, userId]);
 
 	if (loading) return <div>Loading...</div>;
 	if (error) return <div>{error}</div>;
@@ -97,7 +130,14 @@ export default function LibraryPage() {
 				autoRotate={0}
 			/>
 			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16 max-sm:pt-28 max-sm:px-4 max-sm:items-stretch">
-				<PageHeader title="Your Library." subtitle="The home of for all your games." />
+				<PageHeader
+					title={`${libraryOwnerLabel} Library.`}
+					subtitle={
+						isPublicView
+							? `Games in ${displayName}'s library.`
+							: "The home of all your games."
+					}
+				/>
 
 				{library.length > 0 && (
 					<>
@@ -117,18 +157,24 @@ export default function LibraryPage() {
 
 						<GameGrid
 							games={mapLibraryEntriesToGameGridItems(filteredAndSortedLibrary)}
-							emptyMessage="No games in your library match your search."
+							emptyMessage={emptySearchMessage}
 						/>
 					</>
 				)}
 
 				{library.length === 0 && (
 					<h3 className="mx-auto mt-8 text-center text-2xl font-title text-arcade-white tracking-tighter max-sm:text-xl max-sm:leading-7">
-						Your library is currently empty. Browse the{" "}
-						<Link to="/browse" className="text-arcade-violet hover:underline">
-							Arcadaeum
-						</Link>{" "}
-						to find games to add!
+						{isPublicView ? (
+							`${displayName}'s library is currently empty.`
+						) : (
+							<>
+								Your library is currently empty. Browse the{" "}
+								<Link to="/browse" className="text-arcade-violet hover:underline">
+									Arcadaeum
+								</Link>{" "}
+								to find games to add!
+							</>
+						)}
 					</h3>
 				)}
 			</div>

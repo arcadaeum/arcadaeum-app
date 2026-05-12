@@ -26,6 +26,9 @@ export const getGameDetailUrl = (apiUrl: string, gameId: string | number) =>
 
 export const getUserLibraryUrl = (apiUrl: string) => `${apiUrl}/users/me/library`;
 
+export const getPublicUserLibraryUrl = (apiUrl: string, userId: string | number) =>
+	`${apiUrl}/users/${userId}/library`;
+
 export const getUserLibraryItemUrl = (apiUrl: string, gameId: string | number) =>
 	`${apiUrl}/users/me/library/${gameId}`;
 

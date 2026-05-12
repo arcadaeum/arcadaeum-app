@@ -18,7 +18,7 @@ import {
 	fetchUserCollections,
 	mapCollectionGames,
 } from "@/utils/collections";
-import { fetchUserReviews, getUserLibraryUrl } from "@/utils/game";
+import { fetchUserReviews, getPublicUserLibraryUrl, getUserLibraryUrl } from "@/utils/game";
 import { createPost, deletePost, fetchUserPosts, updatePost } from "@/utils/posts";
 import { isAdminUser } from "@/utils/admin";
 import { getUserDisplayName, getUserProfileBorderColor } from "@/utils/user";
@@ -59,9 +59,9 @@ export default function ProfilePage() {
 	const displayName = getUserDisplayName(user);
 	const isOwnProfile = currentUserId === user?.id;
 	const canDeletePosts = isOwnProfile || isAdminUser(currentUser);
-	const currentlyPlayingEntry = isOwnProfile
-		? libraryEntries.find((entry) => entry.status === "currently_playing")
-		: null;
+	const currentlyPlayingEntry = libraryEntries.find(
+		(entry) => entry.status === "currently_playing",
+	);
 
 	// Get current user ID
 	useEffect(() => {
@@ -151,9 +151,28 @@ export default function ProfilePage() {
 		setIsFollowing(followerIds.includes(currentUserId));
 	}, [currentUserId, followerIds]);
 
-	// Get user's collections (or favorites for other profiles)
+	// Get user's collections
 	useEffect(() => {
 		if (!userId) return;
+
+		const getDefaultCollectionGames = (
+			collections: { id: number; name: string }[],
+			fetchGames: (collectionId: number) => Promise<Game[]>,
+		) => {
+			const getGames = (name: string) => {
+				const collection = collections.find((c) => c.name === name);
+				if (!collection) {
+					return Promise.resolve<Game[]>([]);
+				}
+				return fetchGames(collection.id);
+			};
+
+			return Promise.all([
+				getGames("Favourites"),
+				getGames("Want To Play"),
+				getGames("Completed"),
+			]);
+		};
 
 		if (isOwnProfile) {
 			const token = localStorage.getItem("access_token");
@@ -162,19 +181,9 @@ export default function ProfilePage() {
 			fetchCollections(apiUrl, token)
 				.then((collections) => {
 					setCollectionsCount(collections.length);
-					const getGames = (name: string) => {
-						const collection = collections.find((c) => c.name === name);
-						if (!collection) {
-							return Promise.resolve<Game[]>([]);
-						}
-						return fetchCollectionGames(apiUrl, token, collection.id);
-					};
-
-					return Promise.all([
-						getGames("Favourites"),
-						getGames("Want To Play"),
-						getGames("Completed"),
-					]);
+					return getDefaultCollectionGames(collections, (collectionId) =>
+						fetchCollectionGames(apiUrl, token, collectionId),
+					);
 				})
 				.then(([favoriteGames, wantToPlayGames, completedGames]) => {
 					setFavorites(mapCollectionGames(favoriteGames));
@@ -193,18 +202,14 @@ export default function ProfilePage() {
 		fetchUserCollections(apiUrl, userId)
 			.then((collections) => {
 				setCollectionsCount(collections.length);
-				const favouritesCollection = collections.find((c) => c.name === "Favourites");
-				if (!favouritesCollection) {
-					return [];
-				}
-				return fetchUserCollectionGames(apiUrl, userId, favouritesCollection.id).then(
-					mapCollectionGames,
+				return getDefaultCollectionGames(collections, (collectionId) =>
+					fetchUserCollectionGames(apiUrl, userId, collectionId),
 				);
 			})
-			.then((data: UserCollectionGame[]) => {
-				setFavorites(data);
-				setWantToPlay([]);
-				setCompleted([]);
+			.then(([favoriteGames, wantToPlayGames, completedGames]) => {
+				setFavorites(mapCollectionGames(favoriteGames));
+				setWantToPlay(mapCollectionGames(wantToPlayGames));
+				setCompleted(mapCollectionGames(completedGames));
 			})
 			.catch(() => {
 				setCollectionsCount(0);
@@ -215,8 +220,16 @@ export default function ProfilePage() {
 	}, [apiUrl, userId, isOwnProfile]);
 
 	useEffect(() => {
+		if (!userId) return;
+
 		if (!isOwnProfile) {
-			setLibraryEntries([]);
+			fetch(getPublicUserLibraryUrl(apiUrl, userId))
+				.then((res) => {
+					if (!res.ok) throw new Error("Failed to fetch library");
+					return res.json();
+				})
+				.then((data: LibraryEntry[]) => setLibraryEntries(data))
+				.catch(() => setLibraryEntries([]));
 			return;
 		}
 
@@ -232,7 +245,7 @@ export default function ProfilePage() {
 			})
 			.then((data: LibraryEntry[]) => setLibraryEntries(data))
 			.catch(() => setLibraryEntries([]));
-	}, [apiUrl, isOwnProfile]);
+	}, [apiUrl, isOwnProfile, userId]);
 
 	useEffect(() => {
 		if (!userId) return;
@@ -399,7 +412,8 @@ export default function ProfilePage() {
 				<UserStatsBar
 					followersCount={followersCount}
 					followingCount={followingCount}
-					gamesCount={favorites.length}
+					gamesCount={libraryEntries.length}
+					gamesLink={isOwnProfile ? "/library" : `/users/${user.id}/library`}
 					collectionsCount={collectionsCount}
 					collectionsLink={
 						isOwnProfile ? "/collections" : `/users/${user.id}/collections`
@@ -456,6 +470,7 @@ export default function ProfilePage() {
 				<UserCollectionsRow
 					collections={favorites}
 					emptyMessage="No games in this collection yet."
+					className="user-page__collections-row"
 				/>
 
 				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
@@ -464,6 +479,7 @@ export default function ProfilePage() {
 				<UserCollectionsRow
 					collections={wantToPlay}
 					emptyMessage="No games in this collection yet."
+					className="user-page__collections-row"
 				/>
 
 				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
@@ -472,6 +488,7 @@ export default function ProfilePage() {
 				<UserCollectionsRow
 					collections={completed}
 					emptyMessage="No games in this collection yet."
+					className="user-page__collections-row"
 				/>
 
 				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
