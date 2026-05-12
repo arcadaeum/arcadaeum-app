@@ -13,6 +13,7 @@ from app.database.queries.users import get_user_by_id
 from app.models import CreatePostRequest, PostWithUser, UpdatePostRequest, User
 from app.services.admin import is_admin_user
 from app.services.auth import get_current_user
+from app.services.moderation import assert_content_allowed
 
 router = APIRouter(tags=["posts"])
 
@@ -30,6 +31,7 @@ def create_user_post(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Post content cannot be empty"
         )
+    assert_content_allowed(content)
 
     post_id = create_post(current_user.id, content)
     post = get_post_with_user(post_id)
@@ -49,6 +51,7 @@ def update_user_post(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Post content cannot be empty"
         )
+    assert_content_allowed(content)
 
     updated = update_post(current_user.id, post_id, content)
     if not updated:

@@ -2,6 +2,7 @@ from datetime import datetime
 
 import app.routes.posts as posts_routes
 from app.models import User
+from app.services import moderation
 from app.services.auth import get_current_user
 from fastapi.testclient import TestClient
 from tests.test_helpers import build_test_app
@@ -72,6 +73,23 @@ def test_create_post_rejects_blank_content(monkeypatch):
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Post content cannot be empty"
+
+
+def test_create_post_rejects_moderated_content(monkeypatch):
+    monkeypatch.setenv("MODERATION_BLOCKLIST", "blockedword")
+    moderation.get_blocked_terms.cache_clear()
+    monkeypatch.setattr(
+        posts_routes,
+        "create_post",
+        lambda user_id, content: (_ for _ in ()).throw(AssertionError("post was created")),
+    )
+
+    client = _client_with_user()
+    response = client.post("/users/me/posts", json={"content": "contains blockedword"})
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Content contains disallowed language"
+    moderation.get_blocked_terms.cache_clear()
 
 
 def test_list_user_posts_returns_404_for_missing_user(monkeypatch):
