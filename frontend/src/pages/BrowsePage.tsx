@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ColorBends, NavigationBar, PageHeader } from "@/components/ui";
+import { ColorBends, MainButton, NavigationBar, PageHeader } from "@/components/ui";
 import { BrowseFilters } from "@/components/browse";
 import { GameGrid } from "@/components/game";
 import type { BrowseSortOption } from "@/types/browse";
@@ -85,7 +85,7 @@ export default function BrowsePage() {
 			/>
 			<NavigationBar />
 
-			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
+			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16 max-sm:pt-28 max-sm:px-4 max-sm:items-stretch">
 				<PageHeader
 					title="The Arcadaeum."
 					subtitle="Discover new games and explore your library."
@@ -103,17 +103,16 @@ export default function BrowsePage() {
 					onPlatformChange={handlePlatformChange}
 					onSortChange={handleSortChange}
 				/>
-				<div className="w-full max-w-7xl mx-auto px-4 py-6">
+				<div className="w-full max-w-7xl mx-auto px-4 py-6 max-sm:px-0 max-sm:py-4">
 					<GameGrid games={visibleGames} emptyMessage="No games matched your search." />
 
 					{hasMoreGames && (
 						<div className="mt-8 flex justify-center">
-							<button
+							<MainButton
+								text={`Load ${PAGE_SIZE} More`}
 								onClick={handleLoadMore}
-								className="bg-arcade-black hover:bg-arcade-blue text-arcade-white font-title py-2 px-6 border-2 border-arcade-white rounded-lg"
-							>
-								Load {PAGE_SIZE} More
-							</button>
+								className="max-sm:w-full"
+							/>
 						</div>
 					)}
 				</div>

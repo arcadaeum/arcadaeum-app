@@ -102,12 +102,12 @@ export default function GameDetailArtwork({
 		};
 	}, [isMenuOpen]);
 	return (
-		<div className="w-1/3 max-w-md">
+		<div className="w-1/3 max-w-md max-sm:w-full max-sm:max-w-none">
 			<div className="relative">
 				<img
 					src={game?.cover_url ?? undefined}
 					alt={game?.title}
-					className="shadow-lg object-cover rounded-xl h-auto w-full border-5 border-arcade-white"
+					className="shadow-lg object-cover rounded-xl h-auto w-full border-5 border-arcade-white max-sm:mx-auto max-sm:max-h-[70vh] max-sm:w-auto max-sm:max-w-full"
 				/>
 
 				{/* This should be refactored into a component once the style is finalised @FRED */}
@@ -125,7 +125,7 @@ export default function GameDetailArtwork({
 									<img src={addIcon} alt="Open actions" className="h-5 w-5" />
 								</button>
 								{isMenuOpen && (
-									<div className="absolute left-1/2 z-10 mt-2 w-48 -translate-x-1/2 rounded-lg border border-arcade-white/20 bg-arcade-black/95 shadow-lg">
+									<div className="absolute left-1/2 z-10 mt-2 w-48 -translate-x-1/2 rounded-lg border border-arcade-white/20 bg-arcade-black/95 shadow-lg max-sm:fixed max-sm:left-4 max-sm:right-4 max-sm:top-auto max-sm:w-auto max-sm:translate-x-0">
 										<button
 											type="button"
 											onClick={handleToggleFavourite}

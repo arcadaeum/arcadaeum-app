@@ -19,9 +19,9 @@ export default function GameCard({ id, title, image, onClick }: GameCardProps) {
 		<div
 			onClick={handleClick}
 			role="button"
-			className="group min-w-40 cursor-pointer select-none rounded-sm overflow-hidden bg-arcade-black duration-200 drop-shadow-lg"
+			className="group min-w-40 cursor-pointer select-none rounded-sm overflow-hidden bg-arcade-black duration-200 drop-shadow-lg max-sm:min-w-0"
 		>
-			<div className="w-full h-full bg-gray-800 relative">
+			<div className="w-full h-full bg-gray-800 relative max-sm:aspect-[3/4]">
 				<img
 					src={
 						image ??
@@ -32,8 +32,10 @@ export default function GameCard({ id, title, image, onClick }: GameCardProps) {
 				/>
 				<div className="pointer-events-none absolute inset-0 z-10 rounded-sm transition-all duration-200 border-4 border-transparent group-hover:border-arcade-white box-border" />
 			</div>
-			<div className="px-3 py-2">
-				<div className="text-sm font-default text-arcade-white truncate">{title}</div>
+			<div className="px-3 py-2 max-sm:px-2">
+				<div className="text-sm font-default text-arcade-white truncate max-sm:text-xs">
+					{title}
+				</div>
 			</div>
 		</div>
 	);

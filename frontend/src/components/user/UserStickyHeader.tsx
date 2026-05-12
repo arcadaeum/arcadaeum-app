@@ -3,9 +3,9 @@ import type { UserStickyHeaderProps } from "@/types/user";
 export default function UserStickyHeader({ displayName, withGlow = false }: UserStickyHeaderProps) {
 	return (
 		<div className="fixed top-0 left-0 w-full z-50 bg-arcade-black opacity-100">
-			<div className="flex items-center gap-4 px-16 py-3">
+			<div className="flex items-center gap-4 px-16 py-3 max-sm:px-4 max-sm:py-2">
 				<span
-					className="text-xl font-title text-arcade-white tracking-tighter"
+					className="truncate text-xl font-title text-arcade-white tracking-tighter max-sm:text-lg"
 					style={withGlow ? { textShadow: "0 0 3px #fefddc" } : undefined}
 				>
 					{displayName}

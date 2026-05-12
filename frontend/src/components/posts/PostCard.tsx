@@ -85,19 +85,19 @@ export default function PostCard({
 	};
 
 	const card = (
-		<article className="rounded-lg border border-arcade-white/15 bg-arcade-black/80 p-4 text-arcade-white">
-			<div className="flex items-start gap-3">
-				<div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-arcade-blue/60 bg-arcade-white/10">
+		<article className="rounded-lg border border-arcade-white/15 bg-arcade-black/80 p-4 text-arcade-white max-sm:p-3">
+			<div className="flex items-start gap-3 max-sm:gap-2">
+				<div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-arcade-blue/60 bg-arcade-white/10 max-sm:size-9">
 					{profileImage ? (
 						<img src={profileImage} alt="" className="h-full w-full object-cover" />
 					) : (
-						<UserRound className="size-6 text-arcade-white/70" />
+						<UserRound className="size-6 text-arcade-white/70 max-sm:size-5" />
 					)}
 				</div>
 				<div className="min-w-0 flex-1">
 					<div className="flex flex-wrap items-center justify-between gap-2">
 						<div className="min-w-0">
-							<div className="truncate font-title text-lg leading-tight text-arcade-white">
+							<div className="truncate font-title text-lg leading-tight text-arcade-white max-sm:text-base">
 								{displayName}
 							</div>
 							<div className="text-xs text-arcade-white/50">
@@ -105,7 +105,7 @@ export default function PostCard({
 							</div>
 						</div>
 						{(showEditControl || showDeleteControl) && !isEditing && (
-							<div className="flex items-center gap-2">
+							<div className="flex items-center gap-2 max-sm:gap-1">
 								{showEditControl && (
 									<button
 										type="button"
@@ -114,7 +114,7 @@ export default function PostCard({
 											setIsEditing(true);
 											setError("");
 										}}
-										className="rounded-full border border-arcade-white/20 p-2 text-arcade-white/70 transition hover:text-arcade-blue"
+										className="rounded-full border border-arcade-white/20 p-2 text-arcade-white/70 transition hover:text-arcade-blue max-sm:p-1.5"
 										aria-label="Edit post"
 									>
 										<Pencil className="size-4" />
@@ -125,7 +125,7 @@ export default function PostCard({
 										type="button"
 										onClick={handleDelete}
 										disabled={busy}
-										className="rounded-full border border-arcade-white/20 p-2 text-arcade-white/70 transition hover:text-red-300 disabled:opacity-50"
+										className="rounded-full border border-arcade-white/20 p-2 text-arcade-white/70 transition hover:text-red-300 disabled:opacity-50 max-sm:p-1.5"
 										aria-label="Delete post"
 									>
 										<Trash2 className="size-4" />
@@ -168,7 +168,7 @@ export default function PostCard({
 							</div>
 						</form>
 					) : (
-						<p className={`mt-3 whitespace-pre-wrap font-secondary text-arcade-white/85 ${compact ? "text-sm" : "text-base"}`}>
+						<p className={`mt-3 whitespace-pre-wrap break-words font-secondary text-arcade-white/85 ${compact ? "text-sm" : "text-base max-sm:text-sm"}`}>
 							{post.content}
 						</p>
 					)}

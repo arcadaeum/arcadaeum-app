@@ -1,21 +1,14 @@
 // src/utils/user/settings.ts
 
-const API_URL = import.meta.env.VITE_API_URL;
+import type { UserProfileWithId } from "@/types/user";
 
-export interface UserProfile {
-	id: number;
-	username: string;
-	email: string;
-	display_name?: string;
-	profile_picture?: string;
-	oauth_provider?: string | null;
-}
+const API_URL = import.meta.env.VITE_API_URL;
 
 export async function changeUsername(
 	token: string,
 	newUsername: string,
 	password: string | null, // null for OAuth users — backend accepts missing field
-): Promise<UserProfile> {
+): Promise<UserProfileWithId> {
 	const payload: Record<string, string> = { new_username: newUsername };
 	if (password !== null) {
 		payload.password = password;
@@ -35,7 +28,10 @@ export async function changeUsername(
 	return res.json();
 }
 
-export async function changeDisplayName(token: string, displayName: string): Promise<UserProfile> {
+export async function changeDisplayName(
+	token: string,
+	displayName: string,
+): Promise<UserProfileWithId> {
 	const res = await fetch(`${API_URL}/me`, {
 		method: "PATCH",
 		headers: {

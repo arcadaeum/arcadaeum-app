@@ -377,12 +377,13 @@ export default function ProfilePage() {
 				autoRotate={0}
 			/>
 			{showHeader && <UserStickyHeader displayName={displayName} />}
-			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16">
+			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16 max-sm:pt-28 max-sm:px-4 max-sm:items-stretch">
 				<UserProfileHero
 					user={user}
 					profileRef={profileRef}
 					borderColor={borderColor}
 					apiUrl={apiUrl}
+					className="user-page__hero"
 					canEdit={isOwnProfile}
 					editing={editing}
 					newDisplayName={newDisplayName}
@@ -406,19 +407,20 @@ export default function ProfilePage() {
 					reviewsCount={reviewsCount}
 					reviewsLink={isOwnProfile ? "/reviews" : `/users/${user.id}/reviews`}
 					disableFollowerLinks={true}
+					className="user-page__stats"
 				/>
 
-				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter">
+				<h2 className="w-2/3 mt-20 text-4xl ml-50 font-title text-arcade-white tracking-tighter max-sm:mt-10 max-sm:ml-0 max-sm:w-full max-sm:text-2xl">
 					<Link to="/user" className="text-arcade-violet hover:underline">
 						{getUserDisplayName(user, "User")}
 					</Link>{" "}
 					is currently playing:
 				</h2>
 				{currentlyPlayingEntry ? (
-					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 text-arcade-white text-2xl">
+					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 text-arcade-white text-2xl max-sm:ml-0 max-sm:w-full max-sm:text-lg">
 						<Link
 							to={`/games/${currentlyPlayingEntry.game_id}`}
-							className="flex items-center gap-6 p-6"
+							className="flex items-center gap-6 p-6 max-sm:flex-col max-sm:items-start max-sm:gap-4 max-sm:p-4"
 						>
 							<img
 								src={
@@ -428,10 +430,10 @@ export default function ProfilePage() {
 									)}`
 								}
 								alt={currentlyPlayingEntry.title}
-								className="h-36 w-56 object-cover rounded-md border-2 border-arcade-white/30"
+								className="h-36 w-56 object-cover rounded-md border-2 border-arcade-white/30 max-sm:h-auto max-sm:w-full"
 							/>
 							<div className="flex flex-col">
-								<span className="text-3xl text-arcade-violet">
+								<span className="text-3xl text-arcade-violet max-sm:text-2xl">
 									{currentlyPlayingEntry.title}
 								</span>
 								<span className="text-sm text-arcade-white/70 mt-2">
@@ -441,14 +443,14 @@ export default function ProfilePage() {
 						</Link>
 					</div>
 				) : (
-					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 min-h-56 text-arcade-white text-2xl text-center flex items-center justify-center">
+					<div className="w-2/3 ml-50 bg-arcade-black rounded-lg mt-6 min-h-56 text-arcade-white text-2xl text-center flex items-center justify-center max-sm:ml-0 max-sm:w-full max-sm:min-h-40 max-sm:px-4 max-sm:text-lg">
 						{isOwnProfile
 							? "No game selected as currently playing."
 							: "Currently playing is not available for this profile."}
 					</div>
 				)}
 
-				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter">
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-white tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
 					Favorite Games
 				</h3>
 				<UserCollectionsRow
@@ -456,7 +458,7 @@ export default function ProfilePage() {
 					emptyMessage="No games in this collection yet."
 				/>
 
-				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter">
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-blue tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
 					Want to Play
 				</h3>
 				<UserCollectionsRow
@@ -464,7 +466,7 @@ export default function ProfilePage() {
 					emptyMessage="No games in this collection yet."
 				/>
 
-				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
+				<h3 className="w-2/3 mt-5 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
 					Completed
 				</h3>
 				<UserCollectionsRow
@@ -472,10 +474,10 @@ export default function ProfilePage() {
 					emptyMessage="No games in this collection yet."
 				/>
 
-				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter">
+				<h2 className="w-2/3 z-50 text-2xl ml-50 font-title text-arcade-white border-b-4 border-arcade-purple tracking-tighter max-sm:ml-0 max-sm:w-full max-sm:text-xl">
 					Posts
 				</h2>
-				<section className="w-2/3 ml-50 mt-5 mb-20 space-y-4">
+				<section className="w-2/3 ml-50 mt-5 mb-20 space-y-4 max-sm:ml-0 max-sm:w-full">
 					{isOwnProfile && (
 						<div className="flex w-full justify-end">
 							<PostComposer onSubmit={handleCreatePost} />
