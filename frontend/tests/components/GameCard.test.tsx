@@ -1,9 +1,22 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import GameCard from "@/components/game/GameCard";
 
+// Mock useNavigate
+vi.mock("react-router-dom", async () => {
+	const actual = await vi.importActual("react-router-dom");
+	return {
+		...actual,
+		useNavigate: vi.fn(),
+	};
+});
+
 describe("GameCard", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
 	it("renders title and image", () => {
 		render(
 			<BrowserRouter>
@@ -25,9 +38,10 @@ describe("GameCard", () => {
 		expect(img.getAttribute("src")).toContain("via.placeholder.com");
 	});
 
-	it("navigates to game detail on click by default", () => {
+	it("navigates to game detail on click by default", async () => {
+		const { useNavigate } = await import("react-router-dom");
 		const navigateMock = vi.fn();
-		vi.spyOn(require("react-router-dom"), "useNavigate").mockReturnValue(navigateMock);
+		vi.mocked(useNavigate).mockReturnValue(navigateMock);
 
 		render(
 			<BrowserRouter>

@@ -7,14 +7,30 @@ const sortOptions = [
 	{ value: "title-desc", label: "Title Z-A" },
 ];
 
+const genreOptions = [
+	{ value: "action", label: "Action" },
+	{ value: "rpg", label: "RPG" },
+];
+
+const platformOptions = [
+	{ value: "pc", label: "PC" },
+	{ value: "playstation", label: "PlayStation" },
+];
+
 describe("BrowseFilters", () => {
 	it("renders search input and sort select", () => {
 		render(
 			<BrowseFilters
 				searchQuery=""
+				selectedGenre=""
+				selectedPlatform=""
 				sortBy="title-asc"
+				genreOptions={genreOptions}
+				platformOptions={platformOptions}
 				sortOptions={sortOptions}
 				onSearchChange={vi.fn()}
+				onGenreChange={vi.fn()}
+				onPlatformChange={vi.fn()}
 				onSortChange={vi.fn()}
 			/>,
 		);
@@ -27,9 +43,15 @@ describe("BrowseFilters", () => {
 		render(
 			<BrowseFilters
 				searchQuery=""
+				selectedGenre=""
+				selectedPlatform=""
 				sortBy="title-asc"
+				genreOptions={genreOptions}
+				platformOptions={platformOptions}
 				sortOptions={sortOptions}
 				onSearchChange={handleSearch}
+				onGenreChange={vi.fn()}
+				onPlatformChange={vi.fn()}
 				onSortChange={vi.fn()}
 			/>,
 		);
@@ -43,9 +65,15 @@ describe("BrowseFilters", () => {
 		render(
 			<BrowseFilters
 				searchQuery=""
+				selectedGenre=""
+				selectedPlatform=""
 				sortBy="title-asc"
+				genreOptions={genreOptions}
+				platformOptions={platformOptions}
 				sortOptions={sortOptions}
 				onSearchChange={vi.fn()}
+				onGenreChange={vi.fn()}
+				onPlatformChange={vi.fn()}
 				onSortChange={handleSort}
 			/>,
 		);
@@ -58,9 +86,15 @@ describe("BrowseFilters", () => {
 		render(
 			<BrowseFilters
 				searchQuery="mario"
+				selectedGenre=""
+				selectedPlatform=""
 				sortBy="title-desc"
+				genreOptions={genreOptions}
+				platformOptions={platformOptions}
 				sortOptions={sortOptions}
 				onSearchChange={vi.fn()}
+				onGenreChange={vi.fn()}
+				onPlatformChange={vi.fn()}
 				onSortChange={vi.fn()}
 			/>,
 		);

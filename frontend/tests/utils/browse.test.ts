@@ -77,12 +77,12 @@ describe("browse utils", () => {
 	});
 
 	it("sorts by release date ascending", () => {
-		const result = filterAndSortGames(mockGames, "", "release-asc");
+		const result = filterAndSortGames(mockGames, "", "release-old-new");
 		expect(result.map((g) => g.title)).toEqual(["Mario", "Zelda", "Elden Ring"]);
 	});
 
 	it("sorts by release date descending", () => {
-		const result = filterAndSortGames(mockGames, "", "release-desc");
+		const result = filterAndSortGames(mockGames, "", "release-new-old");
 		expect(result.map((g) => g.title)).toEqual(["Elden Ring", "Zelda", "Mario"]);
 	});
 });

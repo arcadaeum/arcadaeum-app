@@ -1,18 +1,3 @@
-"""
-Database queries for bug reports.
-
-Required migration — run once before using this module:
-
-    CREATE TABLE IF NOT EXISTS bug_reports (
-        id          SERIAL PRIMARY KEY,
-        user_id     INT REFERENCES users(id) ON DELETE SET NULL,
-        title       VARCHAR(255) NOT NULL,
-        description TEXT         NOT NULL,
-        status      VARCHAR(20)  NOT NULL DEFAULT 'open',
-        created_at  TIMESTAMP    NOT NULL DEFAULT NOW()
-    );
-"""
-
 from app.database.connection import get_database_connection
 
 

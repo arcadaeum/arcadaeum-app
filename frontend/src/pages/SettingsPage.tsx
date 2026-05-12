@@ -297,8 +297,8 @@ function ChangePasswordPanel({ token, user, onStatusChange }: PanelProps) {
 			onStatusChange("New passwords do not match.", "error");
 			return;
 		}
-		if (newPassword.length < 8) {
-			onStatusChange("New password must be at least 8 characters.", "error");
+		if (newPassword.length < 6) {
+			onStatusChange("New password must be at least 6 characters.", "error");
 			return;
 		}
 		setLoading(true);
@@ -442,6 +442,9 @@ function SteamAccountPanel({ token, onStatusChange }: PanelProps) {
 			</p>
 			<p className="text-xs font-default text-arcade-white/40 mb-2">
 				(It may take several minutes for your library to appear after linking.)
+			</p>
+			<p className="text-sm font-default text-arcade-white/40 mb-2">
+				Your Steam library needs to be public for this feature to work
 			</p>
 			<div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between p-4 bg-black border border-arcade-white/20 rounded-lg">
 				<div className="flex items-center gap-4">
