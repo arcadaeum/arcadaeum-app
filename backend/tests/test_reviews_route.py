@@ -1,9 +1,15 @@
+from fastapi.testclient import TestClient
+
 import app.routes.reviews as reviews_routes
-from app.models import ArcadaeumReview, User
+from app.models import User
 from app.services import moderation
 from app.services.auth import get_current_user
-from fastapi.testclient import TestClient
-from tests.test_helpers import MockConnection, MockCursor, build_test_app, build_test_client
+from tests.test_helpers import (
+    MockConnection,
+    MockCursor,
+    build_test_app,
+    build_test_client,
+)
 
 
 def test_get_game_arcadaeum_review(monkeypatch):
@@ -14,7 +20,9 @@ def test_get_game_arcadaeum_review(monkeypatch):
 
     import app.database.queries.reviews as reviews_queries
 
-    monkeypatch.setattr(reviews_queries, "get_database_connection", lambda: test_connection)
+    monkeypatch.setattr(
+        reviews_queries, "get_database_connection", lambda: test_connection
+    )
 
     client = build_test_client(reviews_routes.router)
     response = client.get("/games/5/arcadaeum-review")
@@ -33,7 +41,9 @@ def test_get_game_arcadaeum_review_not_found(monkeypatch):
 
     import app.database.queries.reviews as reviews_queries
 
-    monkeypatch.setattr(reviews_queries, "get_database_connection", lambda: test_connection)
+    monkeypatch.setattr(
+        reviews_queries, "get_database_connection", lambda: test_connection
+    )
 
     client = build_test_client(reviews_routes.router)
     response = client.get("/games/999/arcadaeum-review")
@@ -51,7 +61,9 @@ def test_get_game_arcadaeum_review_single_review(monkeypatch):
 
     import app.database.queries.reviews as reviews_queries
 
-    monkeypatch.setattr(reviews_queries, "get_database_connection", lambda: test_connection)
+    monkeypatch.setattr(
+        reviews_queries, "get_database_connection", lambda: test_connection
+    )
 
     client = build_test_client(reviews_routes.router)
     response = client.get("/games/10/arcadaeum-review")
@@ -71,7 +83,9 @@ def test_get_game_arcadaeum_review_many_reviews(monkeypatch):
 
     import app.database.queries.reviews as reviews_queries
 
-    monkeypatch.setattr(reviews_queries, "get_database_connection", lambda: test_connection)
+    monkeypatch.setattr(
+        reviews_queries, "get_database_connection", lambda: test_connection
+    )
 
     client = build_test_client(reviews_routes.router)
     response = client.get("/games/20/arcadaeum-review")
@@ -79,7 +93,9 @@ def test_get_game_arcadaeum_review_many_reviews(monkeypatch):
     assert response.status_code == 200
     data = response.json()
     assert data["total_reviews"] == 5
-    assert abs(data["average_rating"] - 5.8) < 0.01  # Account for floating point precision
+    assert (
+        abs(data["average_rating"] - 5.8) < 0.01
+    )  # Account for floating point precision
 
 
 def test_admin_can_delete_any_review(monkeypatch):
@@ -89,11 +105,15 @@ def test_admin_can_delete_any_review(monkeypatch):
         deleted["review_id"] = review_id
         return True
 
-    monkeypatch.setattr(reviews_routes, "delete_any_review_by_id", fake_delete_any_review_by_id)
+    monkeypatch.setattr(
+        reviews_routes, "delete_any_review_by_id", fake_delete_any_review_by_id
+    )
     monkeypatch.setattr(
         reviews_routes,
         "delete_review_by_id",
-        lambda user_id, review_id: (_ for _ in ()).throw(AssertionError("owner delete used")),
+        lambda user_id, review_id: (_ for _ in ()).throw(
+            AssertionError("owner delete used")
+        ),
     )
 
     app = build_test_app(reviews_routes.router)

@@ -21,7 +21,7 @@ export default function GameCard({ id, title, image, onClick }: GameCardProps) {
 			role="button"
 			className="group min-w-40 cursor-pointer select-none rounded-sm overflow-hidden bg-arcade-black duration-200 drop-shadow-lg max-sm:min-w-0"
 		>
-			<div className="w-full h-full bg-gray-800 relative max-sm:aspect-[3/4]">
+			<div className="w-full h-full bg-gray-800 relative max-sm:aspect-3/4">
 				<img
 					src={
 						image ??

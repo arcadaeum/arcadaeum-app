@@ -89,13 +89,13 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 			style={{ top: `${topOffset}px` }}
 		>
 			<div className="navigation-bar__brand">
-			<Link to="/">
-				<img
-					src={pngLogo}
-					alt="Arcadaeum Logo"
-					className="h-12 w-12p-1 rounded-br-2xl rounded-tl-2xl cursor-pointer hover:scale-110 transition-transform"
-				/>
-			</Link>
+				<Link to="/">
+					<img
+						src={pngLogo}
+						alt="Arcadaeum Logo"
+						className="h-12 w-12p-1 rounded-br-2xl rounded-tl-2xl cursor-pointer hover:scale-110 transition-transform"
+					/>
+				</Link>
 			</div>
 
 			<div className="navigation-bar__actions flex items-center gap-4">
@@ -106,7 +106,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 						<select
 							value={searchType}
 							onChange={(e) => setSearchType(e.target.value as "games" | "users")}
-							className="px-3 py-2 bg-arcade-black border-1 border-arcade-white/20 rounded-lg text-arcade-white font-secondary focus:border-arcade-blue focus:outline-none transition-colors"
+							className="px-3 py-2 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-secondary focus:border-arcade-blue focus:outline-none transition-colors"
 						>
 							<option value="games">Games</option>
 							<option value="users">Users</option>
@@ -142,7 +142,7 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 					<button
 						onClick={handleMenuToggle}
 						type="button"
-						className="navigation-bar__menu-button flex items-center justify-center rounded-full bg-arcade-black border-1 border-arcade-white/20 p-3 text-arcade-white shadow-sm transition hover:bg-arcade-black/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-blue hover:scale-110 hover:cursor-pointer"
+						className="navigation-bar__menu-button flex items-center justify-center rounded-full bg-arcade-black border border-arcade-white/20 p-3 text-arcade-white shadow-sm transition hover:bg-arcade-black/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arcade-blue hover:scale-110 hover:cursor-pointer"
 						aria-haspopup="menu"
 						aria-expanded={menuOpen}
 						aria-label="Open menu"
@@ -274,18 +274,21 @@ export default function NavigationBar({ isSignInPage = false }: NavigationBarPro
 							<select
 								value={searchType}
 								onChange={(e) => setSearchType(e.target.value as "games" | "users")}
-								className="px-3 py-2 bg-arcade-black border-1 border-arcade-white/20 rounded-lg text-arcade-white font-secondary focus:border-arcade-blue focus:outline-none transition-colors"
+								className="px-3 py-2 bg-arcade-black border border-arcade-white/20 rounded-lg text-arcade-white font-secondary focus:border-arcade-blue focus:outline-none transition-colors"
 							>
 								<option value="games">Games</option>
 								<option value="users">Users</option>
 							</select>
-							<button onClick={handleSearchClose} className="p-2 text-arcade-white/70 hover:text-arcade-white">
+							<button
+								onClick={handleSearchClose}
+								className="p-2 text-arcade-white/70 hover:text-arcade-white"
+							>
 								<X className="w-5 h-5" />
 							</button>
 						</div>
 						{searchType === "games" ? <GameSearch /> : <UserSearch />}
 					</div>
-					</div>
+				</div>
 			)}
 		</nav>
 	);

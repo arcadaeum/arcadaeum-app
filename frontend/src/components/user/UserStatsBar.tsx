@@ -25,7 +25,7 @@ export default function UserStatsBar({
 }: UserStatsBarProps) {
 	return (
 		<div
-			className={`relative z-10 flex items-center gap-6 -mt-11 ml-[28.5rem] font-default text-xs tracking-wider text-gray-400 max-sm:mt-4 max-sm:ml-0 max-sm:w-full max-sm:flex-wrap max-sm:justify-center max-sm:gap-x-4 max-sm:gap-y-2 ${className ?? ""}`}
+			className={`relative z-10 flex items-center gap-6 -mt-11 ml-114 font-default text-xs tracking-wider text-gray-400 max-sm:mt-4 max-sm:ml-0 max-sm:w-full max-sm:flex-wrap max-sm:justify-center max-sm:gap-x-4 max-sm:gap-y-2 ${className ?? ""}`}
 		>
 			{disableFollowerLinks ? (
 				<span className="inline-flex items-center">

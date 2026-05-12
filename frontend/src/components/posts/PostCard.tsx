@@ -101,7 +101,9 @@ export default function PostCard({
 								{displayName}
 							</div>
 							<div className="text-xs text-arcade-white/50">
-								{formatPostDate(post.created_at) ? ` - ${formatPostDate(post.created_at)}` : ""}
+								{formatPostDate(post.created_at)
+									? ` - ${formatPostDate(post.created_at)}`
+									: ""}
 							</div>
 						</div>
 						{(showEditControl || showDeleteControl) && !isEditing && (
@@ -168,7 +170,9 @@ export default function PostCard({
 							</div>
 						</form>
 					) : (
-						<p className={`mt-3 whitespace-pre-wrap break-words font-secondary text-arcade-white/85 ${compact ? "text-sm" : "text-base max-sm:text-sm"}`}>
+						<p
+							className={`mt-3 whitespace-pre-wrap wrap-break-word font-secondary text-arcade-white/85 ${compact ? "text-sm" : "text-base max-sm:text-sm"}`}
+						>
 							{post.content}
 						</p>
 					)}

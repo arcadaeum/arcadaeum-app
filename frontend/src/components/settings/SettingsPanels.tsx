@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Gamepad2 } from "lucide-react";
 import type { SettingsPanelProps } from "@/types/settings";
@@ -24,7 +24,7 @@ export function ChangeUsernamePanel({
 
 	const isOAuth = user.oauth_provider != null;
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		if (!newUsername.trim()) {
 			onStatusChange("Please enter a new username.", "error");
@@ -112,7 +112,7 @@ export function ChangeDisplayNamePanel({
 	const [newDisplayName, setNewDisplayName] = useState("");
 	const [loading, setLoading] = useState(false);
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		const trimmed = newDisplayName.trim();
 		if (!trimmed) {
@@ -174,7 +174,7 @@ export function ChangePasswordPanel({ token, user, onStatusChange }: SettingsPan
 
 	const isOAuth = user.oauth_provider != null;
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		if (!oldPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
 			onStatusChange("Please fill in all fields.", "error");
@@ -386,7 +386,7 @@ export function DeleteAccountPanel({
 
 	const canSubmit = confirmation === confirmPhrase && (isOAuth || password.trim().length > 0);
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		if (!canSubmit) return;
 		setLoading(true);
@@ -462,7 +462,7 @@ export function ReportBugPanel({ token, onStatusChange }: SettingsPanelProps) {
 	const [description, setDescription] = useState("");
 	const [loading, setLoading] = useState(false);
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		const trimmedTitle = title.trim();
 		const trimmedDesc = description.trim();

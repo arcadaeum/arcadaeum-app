@@ -1,9 +1,13 @@
 from fastapi import APIRouter, HTTPException
 
 from app.database.connection import get_database_connection
-from app.database.queries.games import add_game_from_igdb_data, add_game_to_db
+from app.database.queries.games import add_game_from_igdb_data
+from app.database.queries.games import add_game_to_db as _add_game_to_db
 from app.models.games import AddGameFromIGDBRequest
 from app.services.igdb_service import IGDBService
+
+# Expose for tests that monkeypatch this symbol in app.routes.games
+add_game_to_db = _add_game_to_db
 
 router = APIRouter()
 
@@ -27,9 +31,7 @@ async def search_igdb(q: str) -> list[dict[str, object]]:
             if isinstance(cover, dict):
                 image_id = cover.get("image_id")
                 if isinstance(image_id, str) and image_id:
-                    cover_url = (
-                        f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
-                    )
+                    cover_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
 
             formatted_games.append(
                 {
@@ -52,7 +54,9 @@ async def add_game_from_igdb(request: AddGameFromIGDBRequest) -> dict[str, objec
         game_id = add_game_from_igdb_data(request.igdb_id, igdb_service)
 
         if game_id is None:
-            raise HTTPException(status_code=404, detail="Game not found on IGDB or failed to add")
+            raise HTTPException(
+                status_code=404, detail="Game not found on IGDB or failed to add"
+            )
 
         # Get the game title for response
         with get_database_connection() as conn:
@@ -103,7 +107,9 @@ def get_game_of_the_day() -> dict[str, object]:
                 raise HTTPException(status_code=404, detail="No games found")
 
             if cur.description is None:
-                raise HTTPException(status_code=500, detail="Failed to retrieve game data")
+                raise HTTPException(
+                    status_code=500, detail="Failed to retrieve game data"
+                )
 
             columns = [desc[0] for desc in cur.description]
             return dict(zip(columns, row))
@@ -126,7 +132,9 @@ def get_game(game_id: int) -> dict[str, object]:
                 raise HTTPException(status_code=404, detail="Game not found")
 
             if cur.description is None:
-                raise HTTPException(status_code=500, detail="Failed to retrieve game data")
+                raise HTTPException(
+                    status_code=500, detail="Failed to retrieve game data"
+                )
 
             columns = [desc[0] for desc in cur.description]
             return dict(zip(columns, row))
