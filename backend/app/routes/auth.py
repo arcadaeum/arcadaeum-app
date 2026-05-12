@@ -35,6 +35,7 @@ from app.services.auth import (
     reset_password_with_token,
     verify_password,
 )
+from app.services.moderation import assert_content_allowed
 from pydantic import BaseModel, Field, field_validator
 
 router = APIRouter()
@@ -52,6 +53,7 @@ async def update_me_display_name(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Update the current user's display name."""
+    assert_content_allowed(display_name)
     update_user_display_name(current_user.username, display_name)
 
     updated_user = get_user_by_email(current_user.email)

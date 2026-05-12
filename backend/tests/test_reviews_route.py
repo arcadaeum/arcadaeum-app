@@ -1,5 +1,6 @@
 import app.routes.reviews as reviews_routes
 from app.models import ArcadaeumReview, User
+from app.services import moderation
 from app.services.auth import get_current_user
 from fastapi.testclient import TestClient
 from tests.test_helpers import MockConnection, MockCursor, build_test_app, build_test_client
@@ -108,3 +109,33 @@ def test_admin_can_delete_any_review(monkeypatch):
 
     assert response.status_code == 204
     assert deleted == {"review_id": 456}
+
+
+def test_create_review_rejects_moderated_text(monkeypatch):
+    monkeypatch.setenv("MODERATION_BLOCKLIST", "blockedword")
+    moderation.get_blocked_terms.cache_clear()
+    monkeypatch.setattr(
+        reviews_routes,
+        "add_review",
+        lambda user_id, game_id, rating, review_text: (_ for _ in ()).throw(
+            AssertionError("review was created")
+        ),
+    )
+
+    app = build_test_app(reviews_routes.router)
+    app.dependency_overrides[get_current_user] = lambda: User(
+        id=10,
+        username="elliott",
+        email="elliott@example.com",
+        display_name="Elliott",
+        profile_picture=None,
+    )
+    client = TestClient(app)
+    response = client.post(
+        "/games/1/reviews",
+        json={"rating": 8, "review_text": "contains blockedword"},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Content contains disallowed language"
+    moderation.get_blocked_terms.cache_clear()

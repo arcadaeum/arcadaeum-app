@@ -25,6 +25,7 @@ from app.models import (
 )
 from app.services.admin import is_admin_user
 from app.services.auth import get_current_user
+from app.services.moderation import assert_content_allowed
 
 router = APIRouter()
 
@@ -55,6 +56,7 @@ def update_current_user_review(
     current_user: User = Depends(get_current_user),
 ) -> ReviewWithGame:
     """Update one of the current user's reviews."""
+    assert_content_allowed(request.review_text)
     updated = update_review(current_user.id, review_id, request.rating, request.review_text)
     if not updated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")
@@ -110,6 +112,7 @@ def create_game_review(
     current_user: User = Depends(get_current_user),
 ) -> Review:
     """Create a review for a game by the current user."""
+    assert_content_allowed(request.review_text)
     try:
         review_id = add_review(current_user.id, game_id, request.rating, request.review_text)
     except psycopg.errors.UniqueViolation:
