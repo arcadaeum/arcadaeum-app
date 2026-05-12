@@ -8,6 +8,7 @@ from app.database.queries.library import (
     remove_from_library,
     update_library_status,
 )
+from app.database.queries.users import get_user_by_id
 from app.models import (
     AddToLibraryRequest,
     LibraryEntry,
@@ -25,6 +26,16 @@ def get_my_library(
 ) -> list[LibraryEntry]:
     """Get current user's library."""
     entries = get_user_library(current_user.id, offset=offset, limit=limit)
+    return [LibraryEntry(**entry) for entry in entries]
+
+
+@router.get("/users/{user_id}/library", response_model=list[LibraryEntry])
+def get_public_user_library(user_id: int, offset: int = 0, limit: int = 5000) -> list[LibraryEntry]:
+    """Get a user's public library."""
+    if get_user_by_id(user_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    entries = get_user_library(user_id, offset=offset, limit=limit)
     return [LibraryEntry(**entry) for entry in entries]
 
 

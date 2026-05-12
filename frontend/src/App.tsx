@@ -30,6 +30,7 @@ export default function App() {
 			<Route path="/forgot-password" element={<ForgotPasswordPage />} />
 			<Route path="/reset-password" element={<PasswordResetPage />} />
 			<Route path="/users/:userId" element={<ProfilePage />} />
+			<Route path="/users/:userId/library" element={<LibraryPage />} />
 			<Route path="/users/:userId/collections" element={<CollectionsPage />} />
 			<Route path="/users/:userId/reviews" element={<ReviewsPage />} />
 			<Route path="/library" element={<LibraryPage />} />

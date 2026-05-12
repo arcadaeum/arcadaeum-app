@@ -20,6 +20,7 @@ export {
 	getLibraryPopupType,
 	getReleaseYear,
 	getSocialLibraryUsersUrl,
+	getPublicUserLibraryUrl,
 	getUserLibraryItemUrl,
 	getUserLibraryStatusUrl,
 	getUserLibraryUrl,

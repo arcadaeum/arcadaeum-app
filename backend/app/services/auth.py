@@ -113,9 +113,12 @@ def generate_reset_token() -> str:
 
 
 async def create_password_reset_link(
-    email: str, frontend_url: str = "http://localhost:5173"
+    email: str, frontend_url: str | None = None
 ) -> dict[str, object]:
     """Create and send a password reset token for a user."""
+    resolved_frontend_url = (
+        frontend_url or os.getenv("FRONTEND_URL") or "http://localhost:5173"
+    )
     user = get_user_by_email(email)
 
     if not user:
@@ -131,7 +134,9 @@ async def create_password_reset_link(
     if not stored:
         return {"success": False, "message": "Failed to create reset token"}
 
-    email_sent = await send_password_reset_email(email, reset_token, frontend_url)
+    email_sent = await send_password_reset_email(
+        email, reset_token, resolved_frontend_url
+    )
     if not email_sent:
         return {"success": False, "message": "Failed to send reset email"}
 

@@ -4,6 +4,7 @@ type UserStatsBarProps = {
 	followersCount?: number;
 	followingCount?: number;
 	gamesCount?: number;
+	gamesLink?: string;
 	collectionsCount?: number;
 	collectionsLink?: string;
 	reviewsCount?: number;
@@ -16,6 +17,7 @@ export default function UserStatsBar({
 	followersCount = 0,
 	followingCount = 0,
 	gamesCount = 0,
+	gamesLink = "/library",
 	collectionsCount = 0,
 	collectionsLink = "/collections",
 	reviewsCount = 0,
@@ -66,7 +68,7 @@ export default function UserStatsBar({
 			)}
 			<span className="w-1 h-1 rounded-full bg-gray-500 max-sm:hidden" />
 			<Link
-				to="/library"
+				to={gamesLink}
 				className="hover:text-arcade-white transition-colors inline-flex items-center cursor-pointer pointer-events-auto"
 			>
 				<span>
