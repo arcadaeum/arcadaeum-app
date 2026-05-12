@@ -217,18 +217,19 @@ export default function CollectionsPage() {
 				transparent
 				autoRotate={0}
 			/>
-			<div className="flex flex-col items-start font-title min-h-screen pt-40 px-16 pb-20">
-				<PageHeader
-					title="Collections."
-					subtitle={
-						isPublicView
-							? "Browse this user's game shelves."
-							: "Create and organise your game shelves."
-					}
-				/>
+			<div className="w-full min-h-screen pb-16 md:pb-20">
+				<div className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 md:pt-32">
+					<PageHeader
+						title="Collections."
+						subtitle={
+							isPublicView
+								? "Browse this user's game shelves."
+								: "Create and organise your game shelves."
+						}
+					/>
 
-				{isPublicView && profile && (
-					<div className="w-2/3 ml-50 mt-3 font-secondary text-sm text-arcade-white/70">
+					{isPublicView && profile && (
+						<div className="mt-4 font-secondary text-sm text-arcade-white/70">
 						Viewing collections for{" "}
 						<Link
 							to={`/users/${profile.id}`}
@@ -241,7 +242,7 @@ export default function CollectionsPage() {
 				)}
 
 				{!isPublicView && (
-					<div className="w-2/3 ml-50 mt-10">
+					<div className="mt-6 sm:mt-8 md:mt-10">
 						{showCreateForm ? (
 							<form
 								onSubmit={handleCreateCollection}
@@ -288,18 +289,18 @@ export default function CollectionsPage() {
 				)}
 
 				{error && (
-					<div className="w-2/3 ml-50 mt-4 rounded-lg border border-red-300/30 bg-arcade-black/80 px-4 py-3 font-secondary text-sm text-red-300">
+					<div className="mt-4 rounded-lg border border-red-300/30 bg-arcade-black/80 px-3 sm:px-4 py-3 font-secondary text-sm text-red-300">
 						{error}
 					</div>
 				)}
 				{statusMessage && (
-					<div className="w-2/3 ml-50 mt-4 rounded-lg border border-arcade-blue/30 bg-arcade-black/80 px-4 py-3 font-secondary text-sm text-arcade-white/80">
+					<div className="mt-4 rounded-lg border border-arcade-blue/30 bg-arcade-black/80 px-3 sm:px-4 py-3 font-secondary text-sm text-arcade-white/80">
 						{statusMessage}
 					</div>
 				)}
 
 				{collections.length > 0 ? (
-					<div className="mt-12 w-full">
+					<div className="mt-8 sm:mt-10 md:mt-12 w-full">
 						{collections.map((collection, index) => {
 							const borderColors = [
 								"border-arcade-white",
@@ -311,9 +312,9 @@ export default function CollectionsPage() {
 							const isEditing = editingCollectionId === collection.id;
 
 							return (
-								<section key={collection.id} className="mb-8">
+								<section key={collection.id} className="mb-6 sm:mb-8">
 									<div
-										className={`w-2/3 ml-50 flex items-center justify-between gap-4 border-b-4 ${borderColor}`}
+										className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 border-b-4 pb-2 ${borderColor}`}
 									>
 										{isEditing ? (
 											<input
@@ -322,10 +323,10 @@ export default function CollectionsPage() {
 												onChange={(event) =>
 													setEditingName(event.target.value)
 												}
-												className="mb-2 min-w-0 flex-1 rounded-lg border border-arcade-white/20 bg-arcade-black px-3 py-2 font-title text-2xl tracking-tighter text-arcade-white focus:border-arcade-blue focus:outline-none"
+												className="mb-2 min-w-0 flex-1 rounded-lg border border-arcade-white/20 bg-arcade-black px-3 py-2 font-title text-lg sm:text-xl md:text-2xl tracking-tighter text-arcade-white focus:border-arcade-blue focus:outline-none"
 											/>
 										) : (
-											<h2 className="min-w-0 truncate text-2xl font-title text-arcade-white tracking-tighter">
+														<h2 className="min-w-0 truncate text-xl sm:text-2xl font-title text-arcade-white tracking-tighter">
 												{collection.name}
 											</h2>
 										)}
@@ -388,7 +389,7 @@ export default function CollectionsPage() {
 									</div>
 
 									{collection.gamesLoading ? (
-										<div className="w-2/3 ml-50 py-6 font-secondary text-sm text-arcade-white/60">
+									<div className="py-4 sm:py-6 font-secondary text-sm text-arcade-white/60">
 											Loading games...
 										</div>
 									) : (
@@ -402,7 +403,7 @@ export default function CollectionsPage() {
 						})}
 					</div>
 				) : (
-					<div className="w-2/3 ml-50 mt-10 rounded-lg border border-arcade-white/10 bg-arcade-black/80 p-6 text-center font-secondary text-arcade-white/70">
+					<div className="mt-8 sm:mt-10 rounded-lg border border-arcade-white/10 bg-arcade-black/80 p-4 sm:p-6 text-center font-secondary text-sm sm:text-base text-arcade-white/70">
 						{isPublicView ? (
 							"This user has no collections yet."
 						) : (
@@ -417,8 +418,9 @@ export default function CollectionsPage() {
 					</div>
 				)}
 			</div>
+		</div>
 
-			{deleteTarget && (
+		{deleteTarget && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
 					<div className="w-full max-w-sm rounded-xl border border-arcade-white/20 bg-arcade-black/95 p-6 shadow-2xl">
 						<h2 className="text-xl font-title text-arcade-white tracking-tighter">
