@@ -16,6 +16,7 @@ def create_tables() -> None:
     create_collections_table()  # Creates the collections table if it doesn't exist
     create_collection_games_table()  # Creates the collection_games table if it doesn't exist
     create_news_articles_table()  # Creates the news_articles cache table if it doesn't exist
+    create_bug_reports_table()  # Creates the bug_reports table if it doesn't exist
 
 
 def create_users_table() -> None:
@@ -300,5 +301,24 @@ def create_news_articles_table() -> None:
             cur.execute("""
                 CREATE INDEX IF NOT EXISTS news_articles_lookup_idx
                 ON news_articles (query, language, country, fetched_at DESC)
+                """)
+            conn.commit()
+
+
+def create_bug_reports_table() -> None:
+    """Creates the bug_reports table if it doesn't exist."""
+    with get_database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS bug_reports (
+                    id serial PRIMARY KEY,
+                    user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    title text NOT NULL,
+                    description text NOT NULL,
+                    created_at timestamp DEFAULT CURRENT_TIMESTAMP)
+                """)
+            cur.execute("""
+                CREATE INDEX IF NOT EXISTS bug_reports_user_id_idx
+                ON bug_reports (user_id)
                 """)
             conn.commit()

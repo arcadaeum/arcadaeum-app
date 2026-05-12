@@ -10,6 +10,8 @@ os.environ.setdefault("STEAM_WEB_KEY", "test_steam_key_123_for_pytest")
 os.environ.setdefault("DATABASE_URL", "postgresql://user:password@localhost/testdb")
 os.environ.setdefault("IGDB_CLIENT_ID", "test_igdb_client")
 os.environ.setdefault("IGDB_KEY", "test_igdb_key")
+os.environ.setdefault("GOOGLE_CLIENT_ID", "test_google_client_id")
+os.environ.setdefault("GOOGLE_CLIENT_SECRET", "test_google_client_secret")
 
 # Add backend directory to path so app module can be imported
 backend_dir = Path(__file__).parent
